@@ -1,3 +1,6 @@
+image:
+	@echo "Building docker image"
+	docker-compose -f docker-compose.base.yml build --pull --no-cache
 dev:
 	@echo "Starting DEV Server"
 	docker-compose -f docker-compose.base.yml -f docker-compose.dev.yml up -d --force-recreate

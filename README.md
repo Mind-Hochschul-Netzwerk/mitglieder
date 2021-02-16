@@ -4,11 +4,10 @@ Die MHN-Mitgliederverwaltung (http://mitglieder.mind-hochschul-netzwerk.de)
 
 ## Container lokal bauen und starten
 
-Zuerst muss [mindhochschulnetzwerk/php-base](https://github.com/Mind-Hochschul-Netzwerk/php-base) gebaut werden. Anschließend kann der Mitglieder-Container mit 
-
+    $ make image
     $ make dev
-    
-gestartet werden. Der Login ist dann im Browser unter https://mitglieder.docker.localhost/ erreichbar.
+
+Der Login ist dann im Browser unter [https://mitglieder.docker.localhost/](https://mitglieder.docker.localhost/) erreichbar. Die Sicherheitswarnung wegen des Zertifikates kann weggeklickt werden.
 
 * Benutzername: Webteam
 * Passwort: webteam1
