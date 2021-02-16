@@ -1,0 +1,75 @@
+version: '3.5'
+services:
+  mitglieder-database:
+    image: mariadb
+    restart: unless-stopped
+    environment:
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD
+      - MYSQL_DATABASE=database
+      - MYSQL_ROOT_PASSWORD
+    volumes:
+      - "./docker/sql:/docker-entrypoint-initdb.d:ro"
+      - "${VOLUMES_DIR}/mariadb:/var/lib/mysql"
+    networks:
+      - mitglieder
+
+  mitglieder-adminer:
+    image: adminer
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.mitglieder-adminer.entrypoints=websecure
+      - traefik.http.routers.mitglieder-adminer.rule=Host(`mitglieder-adminer.${DOMAINNAME}`)
+      - traefik.http.routers.mitglieder-adminer.tls=true
+      - traefik.http.routers.mitglieder-adminer.tls.certresolver=myresolver
+      - traefik.http.routers.mitglieder-adminer.middlewares=secheader
+    depends_on:
+      - mitglieder-database
+    networks:
+      - traefik
+      - mitglieder
+
+  mitglieder:
+    build:
+      context: .
+    image: mindhochschulnetzwerk/mitglieder
+    restart: unless-stopped
+    environment:
+      - MYSQL_HOST=mitglieder-database
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD
+      - MYSQL_DATABASE=database
+      - SECRET_AUFNAHME
+      - TOKEN_KEY
+      - LDAP_HOST=ldap://ldap:389/
+      - LDAP_ROLES_DN=ou=roles,dc=mind-hochschul-netzwerk,dc=de
+      - LDAP_PEOPLE_DN=ou=people,dc=mind-hochschul-netzwerk,dc=de
+      - LDAP_COURSES_DN=ou=moodleCourses,dc=mind-hochschul-netzwerk,dc=de
+      - LDAP_BIND_DN=cn=admin,dc=mind-hochschul-netzwerk,dc=de
+      - LDAP_BIND_PASSWORD
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.mitglieder.entrypoints=websecure
+      - traefik.http.routers.mitglieder.rule=Host(`mitglieder.${DOMAINNAME}`)
+      - traefik.http.routers.mitglieder.tls=true
+      - traefik.http.routers.mitglieder.tls.certresolver=myresolver
+      - traefik.http.routers.mitglieder.middlewares=secheader
+    depends_on:
+      - mitglieder-database
+    networks:
+      - traefik
+      - mitglieder
+      - ldap
+
+networks:
+  traefik:
+    name: traefik
+    external: true
+  ldap:
+    name: ldap
+    external: true
+  mitglieder:
+    name: mitglieder

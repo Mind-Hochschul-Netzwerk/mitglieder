@@ -1,0 +1,7 @@
+version: "3.5"
+services:
+  mitglieder:
+    volumes:
+      - "./app:/var/www"
+      - "./update.d:/update.d"
+      - "${VOLUMES_DIR}/profilbilder:/var/www/html/profilbilder"

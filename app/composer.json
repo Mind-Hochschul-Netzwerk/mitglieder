@@ -1,0 +1,15 @@
+{
+    "name": "mhn/mitglieder",
+    "description": "Mitgliederverwaltung",
+    "type": "project",
+    "require": {
+        "php": "^7.4",
+        "symfony/ldap": "^5.2",
+        "firebase/php-jwt": "^5.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "MHN\\Mitglieder\\": "Classes/"
+        }
+    }
+}
