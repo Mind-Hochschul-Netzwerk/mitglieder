@@ -32,8 +32,6 @@ services:
       - mitglieder
 
   mitglieder:
-    build:
-      context: .
     image: mindhochschulnetzwerk/mitglieder
     restart: unless-stopped
     environment:

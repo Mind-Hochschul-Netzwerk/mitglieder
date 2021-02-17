@@ -5,7 +5,7 @@ endif
 
 image:
 	@echo "(Re)building docker image"
-	docker-compose -f docker-compose.base.yml build --pull --no-cache
+	docker build --pull --no-cache -t mindhochschulnetzwerk/mitglieder:latest .
 
 dev: check-traefik
 	@echo "Starting DEV Server"
