@@ -28,6 +28,9 @@ if (!Auth::hatRecht('mvedit')) {
 }
 
 $roles = Ldap::getInstance()->getRoles();
+usort($roles, function ($a, $b) {
+    return strnatcasecmp($a['name'], $b['name']);
+});
 
 Tpl::set('roles', $roles);
 

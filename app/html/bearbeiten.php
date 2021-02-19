@@ -229,7 +229,7 @@ if (isset($_REQUEST['email'])) {
         $_REQUEST['rechte'] = trim($_REQUEST['rechte'], ", \n\r\t\v\0");
         $_REQUEST['rechte'] = preg_replace('/\s+/', ',', $_REQUEST['rechte']);
         $_REQUEST['rechte'] = preg_replace('/,+/', ',', $_REQUEST['rechte']);
-        $rechte = array_unique(explode(',', $_REQUEST['rechte']));
+        $rechte = $_REQUEST['rechte'] ? array_unique(explode(',', $_REQUEST['rechte'])) : [];
 
         if (Auth::ist($m->get('id')) && (!in_array('rechte', $rechte, true))) {
             die('Du kannst dir das Recht zur Rechtverwaltung nicht selbst entziehen.');
