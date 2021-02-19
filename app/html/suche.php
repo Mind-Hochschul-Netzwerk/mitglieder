@@ -70,13 +70,13 @@ if ($_GET['q']) {
         $AND[] = '(' . implode(' OR ', $OR) . ')';
     }
 
-    $countResults = (int)DB::query('SELECT COUNT(id) FROM mitglieder WHERE deleted = false AND aktiviert = true AND ' . implode(' AND ', $AND))->get();
+    $countResults = (int)DB::query('SELECT COUNT(id) FROM mitglieder WHERE aktiviert = true AND ' . implode(' AND ', $AND))->get();
     Tpl::set('countResults', $countResults);
 
     // TODO Pagination?? oder einfach suche einschränken lassen und die erst 50 zeigen...
-    $ids = DB::query('SELECT id FROM mitglieder WHERE deleted = false AND aktiviert = true AND ' . implode(' AND ', $AND) . ' ORDER BY nachname, vorname LIMIT 50')->get_column();
+    $ids = DB::query('SELECT id FROM mitglieder WHERE aktiviert = true AND ' . implode(' AND ', $AND) . ' ORDER BY nachname, vorname LIMIT 50')->get_column();
 
-    // Die Mitgliederverwaltung darf auch nach gelöschten Mitgliedern suchen
+    // Die Mitgliederverwaltung darf auch nach nicht aktivierten Mitgliedern suchen
     if (Auth::hatRecht('mvedit')) {
         $id = DB::query('SELECT id FROM mitglieder WHERE id=%d OR username="%s"', (int)$_GET['q'], $_GET['q'])->get();
         if ($id) {
@@ -89,7 +89,7 @@ if ($_GET['q']) {
     $ergebnisse = [];
     if (count($ids)) {
         foreach ($ids as $id) {
-            $m = Mitglied::lade($id, true);
+            $m = Mitglied::lade((int)$id, true);
 
             $orte = [];
             if ($m->get('ort') && $m->get('sichtbarkeit_plz_ort')) {
@@ -106,7 +106,6 @@ if ($_GET['q']) {
                 'fullName' => $m->get('fullName'),
                 'username' => $m->get('username'),
                 'orte' => implode(', ', $orte),
-                'deleted' => $m->get('deleted'),
                 'profilbild' => $m->get('profilbild') ? ('thumbnail-' . $m->get('profilbild')) : null,
             ];
 

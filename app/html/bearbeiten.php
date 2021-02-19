@@ -138,9 +138,9 @@ if (isset($_REQUEST['email'])) {
             Tpl::set($key, $_REQUEST[$key]);
         }
 
-        ensure($_REQUEST['deleted'], ENSURE_BOOL);
-        if ($_REQUEST['deleted']) {
-            $fehler = $m->scheduleDelete();
+        ensure($_REQUEST['delete'], ENSURE_BOOL);
+        if ($_REQUEST['delete']) {
+            $fehler = $m->delete();
             if ($fehler)  {
                 Tpl::set('errorMessage', $fehler);
             }

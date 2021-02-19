@@ -146,12 +146,6 @@ if (!empty($data_saved_info)) {
     \MHN\Mitglieder\Tpl::render('Layout/alert');
 }
 
-if (!empty($deleted)) {
-    \MHN\Mitglieder\Tpl::set('alert_type', 'warning');
-    \MHN\Mitglieder\Tpl::set('alert_text', 'Das Mitgliedskonto wurde zum Löschen markiert. Das Mitglied kann sich nicht mehr einloggen und ist über die Mitgliedersuche nur noch von Mitgliedern der Mitgliederbetreuung bei genauer Eingabe des Benutzernamens oder der Mitgliedsnummer zu finden. Die Mitgliedsdaten außer Benutzername und Mitgliedsnummer werden zum vorgesehenen Zeitpunkt aus der Datenbank entfernt! Die <a href="https://wiki.mind-hochschul-netzwerk.de/wiki/Benutzer:' . $username . '">Benutzerseite im Wiki</a> muss manuell gelöscht werden.', false);
-    \MHN\Mitglieder\Tpl::render('Layout/alert');
-}
-
 if (!empty($errorMessage)) {
     \MHN\Mitglieder\Tpl::set('alert_type', 'warning');
     \MHN\Mitglieder\Tpl::set('alert_text', $errorMessage);
@@ -458,9 +452,8 @@ if (!empty($errorMessage)) {
             
             <div class="form-group row">
                 <label class="col-sm-2 col-form-label">Mitglied löschen</label>
-                <div class="col-sm-10"><label><input name="deleted" type="checkbox" id="deleted"
-                    <?=($deleted) ? 'checked="checked"' : ''?>
-                    onclick="return confirm(&quot;Bist du ganz sicher?&quot; + (!$(&quot;#deleted&quot;).get(0).checked ? &quot;&quot; : &quot; Daten werden unwiederbringlich gelöscht!&quot;));"
+                <div class="col-sm-10"><label><input name="delete" type="checkbox" id="delete"
+                    onclick="return confirm(&quot;Bist du ganz sicher?&quot; + (!$(&quot;#delete&quot;).get(0).checked ? &quot;&quot; : &quot; Daten werden unwiederbringlich gelöscht!&quot;));"
                     >
                     </label>
                     Die Daten werden SOFORT endgültig und unwiederbringlich gelöscht! Die Mitglieder der Mitgliederbetreuung werden informiert.
