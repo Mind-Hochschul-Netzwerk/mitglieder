@@ -490,7 +490,7 @@ class Mitglied
 
         $ldapData = [
             'firstname' => $this->get('vorname'),
-            'nachname' => $this->get('nachname'),
+            'lastname' => $this->get('nachname'),
             'email' => $this->get('email'),
             'suspended' => 1 - $this->get('aktiviert'),
         ];
