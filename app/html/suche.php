@@ -70,9 +70,6 @@ if ($_GET['q']) {
         $AND[] = '(' . implode(' OR ', $OR) . ')';
     }
 
-    $countResults = (int)DB::query('SELECT COUNT(id) FROM mitglieder WHERE aktiviert = true AND ' . implode(' AND ', $AND))->get();
-    Tpl::set('countResults', $countResults);
-
     // TODO Pagination?? oder einfach suche einschränken lassen und die erst 50 zeigen...
     $ids = DB::query('SELECT id FROM mitglieder WHERE aktiviert = true AND ' . implode(' AND ', $AND) . ' ORDER BY nachname, vorname LIMIT 50')->get_column();
 
@@ -84,33 +81,31 @@ if ($_GET['q']) {
         }
         $ids = array_unique($ids);
     }
-
+    
     // Alle Mitglieder laden
     $ergebnisse = [];
-    if (count($ids)) {
-        foreach ($ids as $id) {
-            $m = Mitglied::lade((int)$id, true);
+    foreach ($ids as $id) {
+        $m = Mitglied::lade((int)$id, true);
 
-            $orte = [];
-            if ($m->get('ort') && $m->get('sichtbarkeit_plz_ort')) {
-                $orte[] = $m->get('ort');
-            }
-            if ($m->get('ort2')) {
-                $orte[] = $m->get('ort2');
-            }
-
-            // auszugebende Daten speichern und an Tpl übergeben
-            $e = [
-                'id' => $m->get('id'),
-                'last_login' => $m->get('last_login'),
-                'fullName' => $m->get('fullName'),
-                'username' => $m->get('username'),
-                'orte' => implode(', ', $orte),
-                'profilbild' => $m->get('profilbild') ? ('thumbnail-' . $m->get('profilbild')) : null,
-            ];
-
-            $ergebnisse[] = $e;
+        $orte = [];
+        if ($m->get('ort') && $m->get('sichtbarkeit_plz_ort')) {
+            $orte[] = $m->get('ort');
         }
+        if ($m->get('ort2')) {
+            $orte[] = $m->get('ort2');
+        }
+
+        // auszugebende Daten speichern und an Tpl übergeben
+        $e = [
+            'id' => $m->get('id'),
+            'last_login' => $m->get('last_login'),
+            'fullName' => $m->get('fullName'),
+            'username' => $m->get('username'),
+            'orte' => implode(', ', $orte),
+            'profilbild' => $m->get('profilbild') ? ('thumbnail-' . $m->get('profilbild')) : null,
+        ];
+
+        $ergebnisse[] = $e;
     }
     Tpl::set('ergebnisse', $ergebnisse);
 }

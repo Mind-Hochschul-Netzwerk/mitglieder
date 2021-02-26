@@ -16,15 +16,9 @@
     <div id="suchergebnisse">
     <h2>Suchergebnisse</h2>
 
-    <?php if (!$countResults): ?>
+    <?php if (!count($ergebnisse)): ?>
         <p>Die Suche erbrachte kein Ergebnis.</p>
     <?php else: ?>
-        <p>Es <?=$countResults===1?'wurde ein Mitglied':"wurden $countResults Mitglieder"?> gefunden.
-            <?php if (count($ergebnisse) < $countResults): ?>
-                Es werden nur die ersten <?=count($ergebnisse)?> Ergebnisse angezeigt. Verfeinere die Suche, wenn das gesuchte Mitglied nicht dabei ist.
-            <?php elseif (count($ergebnisse) < $countResults): ?>
-                In dieser Zahl sind nicht aktivierte oder als gelöscht markierte Mitglieder nicht enthalten.
-            <?php endif; ?>
         <div class="table-responsive"><table class="table vertical-center" id="suchergebnisse">
             <tr><th>#</th><th>Profilbild</th><th>Name</th><th>Ort</th><th>Benutzerseite im Wiki</th></tr>
             <?php
@@ -52,6 +46,9 @@
         </table></div>
         <?php if ($graue): ?>
             <p>Mitglieder, die sich seit mehr als 6 Monaten nicht mehr eingeloggt haben, werden ausgegraut dargestellt.</p>
+        <?php endif; ?>
+        <?php if (count($ergebnisse) >= 50): ?>
+            <p>Es werden nicht alle Ergebnisse angezeigt. Grenze deine Suchkriterien weiter ein.</p>
         <?php endif; ?>
         
         <?php endif; ?>   
