@@ -43,13 +43,13 @@ class Mitglied
      * Benutze die Funktion Mitglied::lade($uid)
      * @param int $uid
      * @param bool $auchDeaktivierte
-     * @param bool $neu
      */
-    private function __construct($uid, $auchDeaktivierte, $neu = false)
+    private function __construct(int $uid, $auchDeaktivierte)
     {
-        if ($neu) {
+        if ($uid === 0) { // new member
             return;
         }
+
         $data = DB::query('SELECT '. implode(',', array_keys(self::felder)) . ' FROM mitglieder WHERE id=%d ' . ($auchDeaktivierte ? '' : 'AND aktiviert=true'), $uid)->get_row();
         if (!$data) {
             return;
@@ -77,12 +77,15 @@ class Mitglied
     /**
      * Erzeugt ein Mitglied-Objekt für ein neues Mitglied
      */
-    public static function neu(): Mitglied
+    public static function neu(string $username, string $password, string $email): Mitglied
     {
-        $m = new self(0, false, true);
+        $m = new self(0, false);
         $m->data = self::felder;
 
-        $m->setData('password', 'in ldap');
+        $m->setUsername($username);
+        $m->set('password', $password);
+        $m->setEmail($email);
+        
         $m->setData('aufnahmedatum', 'now');
         $m->setData('db_modified', 'now');
 
@@ -255,20 +258,15 @@ class Mitglied
     }
 
     /**
-     * Legt den Benutzernamen fest.
-     * Nur bei neuen Benutzern aufrufen!
-     * Gibt false zurück, wenn der Benutzername schon existiert (und bricht ab), sonst true
-     * @param string $username
-     * @return bool Erfolg, d.h. Name existierte noch nicht
+     * @throws \UnexpectedValueException if username is already used by another user
      */
-    public function setUsername(string $username): bool
+    private function setUsername(string $username)
     {
         $existingId = self::getIdByUsername($username);
         if ($existingId !== null && $existingId !== $this->data['id']) {
-            return false;
+            throw new \UnexpectedValueException('username already used', 1614368197);
         }
         $this->setData('username', $username);
-        return true;
     }
 
     /**
@@ -278,14 +276,14 @@ class Mitglied
      * @throws \RuntimeException falls schon ein anderes Mitglied diese Adresse verwendet.
      * @return void
      */
-    public function setEmail(string $email): void
+    public function setEmail(string $email, int $changerUserId = 0): void
     {
         $id = self::getIdByEmail($email);
         if ($id !== null && $id !== $this->get('id')) {
             throw new \RuntimeException('Doppelte Verwendung der E-Mail-Adresse ' . $email, 1494003025);
         }
 
-        $this->logChange('email', $email);
+        $this->logChange('email', $email, $changerUserId);
         $this->setData('email', $email);
     }
 
@@ -526,6 +524,7 @@ class Mitglied
 
         // neuen Benutzer anlegen
         if ($this->data['id'] === null) {
+            $this->changeLog = [];
             DB::actualQuery("INSERT INTO mitglieder SET \n" . implode(",\n    ", $key_value_pairs));
             $this->setData('id', DB::insert_id());
             $ldapData['uid'] = $this->get('id');

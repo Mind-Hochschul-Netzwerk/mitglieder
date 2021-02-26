@@ -67,7 +67,7 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
     {
         $this->bind();
         try {
-            $result = $this->ldap->query(getenv('LDAP_PEOPLE_DN'), '(&(objectclass=inetOrgPerson)(email=' . ldap_escape($email) . '))')->execute();
+            $result = $this->ldap->query(getenv('LDAP_PEOPLE_DN'), '(&(objectclass=inetOrgPerson)(mail=' . ldap_escape($email) . '))')->execute();
         } catch (\Exception $e) {
             return null;
         }
@@ -209,6 +209,18 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
             $roles[] = $role->getAttribute('cn')[0];
         }
         return $roles;
+    }
+
+    public function getIdsByRole(string $roleName): array
+    {
+        $roles = $this->getRoles();
+        foreach ($roles as $role) {
+            if ($role['name'] !== $roleName) {
+                continue;
+            }
+            return array_map(function ($user) {return (int)$user['id'];}, $role['users']);
+        }
+        throw new \OutOfRangeException('invalid role name', 1614374821);
     }
 
     /**

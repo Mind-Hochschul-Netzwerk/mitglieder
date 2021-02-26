@@ -18,6 +18,7 @@ services:
     image: mindhochschulnetzwerk/mitglieder
     restart: unless-stopped
     environment:
+      - DOMAINNAME
       - MYSQL_HOST=mitglieder-database
       - MYSQL_USER=user
       - MYSQL_PASSWORD
