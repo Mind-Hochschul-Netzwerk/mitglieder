@@ -1,1 +1,0 @@
-Wird vom Dockerfile erstellt.

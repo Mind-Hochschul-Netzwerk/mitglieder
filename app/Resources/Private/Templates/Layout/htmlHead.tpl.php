@@ -1,6 +1,5 @@
 <?php declare(strict_types=1); namespace MHN\Mitglieder; ?>
 <!DOCTYPE html>
-<!-- Version: <?php \MHN\Mitglieder\Tpl::render('VERSION'); ?> -->
 <html lang="de">
   <head>
     <meta charset="utf-8">

@@ -26,9 +26,9 @@ foreach ($alerts as $name=>$text) {
 <form action="?token=<?=$token?>" method="post">
 
 <div class='form-group row '>
-    <label for='input-password' class='col-sm-2 col-form-label'>Benutzername</label>
+    <label for='input-username' class='col-sm-2 col-form-label'>Benutzername</label>
     <div class='col-sm-10'>
-        <input id='input-password' name='username' class='form-control'  title='Benutzername' value="<?=$username?>" required>
+        <input id='input-username' name='username' class='form-control'  title='Benutzername' value="<?=$username?>" required>
     </div>
 </div>
 
@@ -42,7 +42,7 @@ foreach ($alerts as $name=>$text) {
 </div>
 
 <div class='form-group row '>
-    <label for='input-password' class='col-sm-2 col-form-label'>Passwort wiederholen</label>
+    <label for='input-password2' class='col-sm-2 col-form-label'>Passwort wiederholen</label>
     <div class='col-sm-10'>
         <input id='input-password2' name='password2' type='password' class='form-control' placeholder='neues Passwort' title='neues Passwort'>
     </div>
