@@ -23,7 +23,6 @@ services:
       - MYSQL_USER=user
       - MYSQL_PASSWORD
       - MYSQL_DATABASE=database
-      - SECRET_AUFNAHME
       - TOKEN_KEY
       - LDAP_HOST=ldap://ldap:389/
       - LDAP_ROLES_DN=ou=roles,dc=mind-hochschul-netzwerk,dc=de
