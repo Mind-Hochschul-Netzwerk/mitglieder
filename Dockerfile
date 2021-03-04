@@ -22,6 +22,7 @@ RUN set -ex \
     php7-phar \  
     php7-json \
     php7-session \
+    php7-ctype \
   # begin: composer
   && php -r "readfile('https://getcomposer.org/download/${COMPOSER_VERSION}/composer.phar');" > /usr/local/bin/composer \
   && test "$(sha256sum /usr/local/bin/composer|cut -d' ' -f1)" = "$COMPOSER_SHA256SUM" \
