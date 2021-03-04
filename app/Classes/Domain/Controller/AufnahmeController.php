@@ -168,7 +168,7 @@ class AufnahmeController
         $username0 = substr($username0, 0, 255);
         $username = $username0;
 
-        for ($n = 1; !Mitglied::isUsernameAvaible($username); ++$n) {
+        for ($n = 1; !Mitglied::isUsernameAvailable($username); ++$n) {
             $username = $username0 . $n;
         }
 
