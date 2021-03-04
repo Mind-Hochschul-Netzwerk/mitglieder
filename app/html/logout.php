@@ -24,7 +24,4 @@ if (!isset($_REQUEST['step']) || (int)$_REQUEST['step'] < 2) {
 
 Tpl::render('Auth/logout');
 
-// aus dem Wiki ausloggen
-Tpl::footPut('<iframe src="https://wiki.mind-hochschul-netzwerk.de/index.php?title=Spezial:Abmelden&amp;returnto=Hauptseite" style="display:none;"></iframe>');
-
 Tpl::submit();
