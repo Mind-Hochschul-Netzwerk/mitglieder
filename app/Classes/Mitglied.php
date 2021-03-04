@@ -528,7 +528,8 @@ class Mitglied
             $this->changeLog = [];
             DB::actualQuery("INSERT INTO mitglieder SET \n" . implode(",\n    ", $key_value_pairs));
             $this->setData('id', DB::insert_id());
-            $ldapData['uid'] = $this->get('id');
+
+            $ldapData['id'] = $this->get('id');
             $this->ldapEntry = Ldap::getInstance()->addUser($this->get('username'), $ldapData);
         } else {
             DB::actualQuery("UPDATE mitglieder SET \n" . implode(",\n    ", $key_value_pairs) . "\nWHERE id=" . ((int)$this->get('id')));
