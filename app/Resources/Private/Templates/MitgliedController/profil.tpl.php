@@ -34,11 +34,11 @@ function row($label, $value, $sichtbarkeit = true)
                         <?= $aufnahmedatum === null ? 'unbekannt' : $aufnahmedatum->format('d.m.Y') ?>
                 </div>
             </div>
-            
+
             <div class="row">
                 <div class="col-xs-6">Benutzerseite im Wiki</div>
                 <div class="col-xs-6">
-                        <a href="https://wiki.mind-hochschul-netzwerk.de/wiki/Benutzer:<?=$username?>"><?=$username?></a> 
+                        <a href="https://wiki.mind-hochschul-netzwerk.de/wiki/Benutzer:<?=$username?>"><?=$username?></a>
                 </div>
             </div>
             <?php if ($mensa_nr): ?>
@@ -79,7 +79,7 @@ function row($label, $value, $sichtbarkeit = true)
                 <?php endif;?>
             </div>
         <?php endif; ?>
-        
+
         <?php if ($sprachen or $hobbys or $interessen): ?>
         <div class="col-sm-6">
             <h4>Interessen</h4>
@@ -89,8 +89,8 @@ function row($label, $value, $sichtbarkeit = true)
         </div>
         <?php endif; ?>
     </div>
-    
-    <div class="row">  
+
+    <div class="row">
         <?php if ($email or $telefon or $mobil or $homepage): ?>
             <div class="col-sm-3">
                 <h4>Kontaktdaten</h4>
@@ -98,9 +98,9 @@ function row($label, $value, $sichtbarkeit = true)
                 <?php if ($telefon): ?><p class="<?=sichtbarkeit($sichtbarkeit_telefon)?>"><span class="glyphicon glyphicon-earphone"></span> <?=$telefon?></p><?php endif; ?>
                 <?php if ($mobil): ?><p class="<?=sichtbarkeit($sichtbarkeit_mobil)?>"><span class="glyphicon glyphicon-phone"></span> <?=$mobil?></p><?php endif; ?>
                 <?php if ($homepage): ?><p><span class="glyphicon glyphicon-globe"></span> <a href="<?=$homepage?>"><?=$homepage?></a></p><?php endif; ?>
-            </div> 
+            </div>
         <?php endif; ?>
-        
+
         <?php if ($strasse or $adresszusatz or $plz or $ort or $land): ?>
             <div class="col-sm-3">
                 <h4>Adresse</h4>
@@ -112,7 +112,7 @@ function row($label, $value, $sichtbarkeit = true)
                 </address>
             </div>
         <?php endif; ?>
-        
+
         <?php if ($strasse2 or $adresszusatz2 or $plz2 or $ort2 or $land2): ?>
             <div class="col-sm-3">
                 <h4>Zweitwohnsitz</h4>
@@ -124,11 +124,11 @@ function row($label, $value, $sichtbarkeit = true)
                 </address>
             </div>
         <?php endif; ?>
-            
+
     </div> <!-- /row -->
-    
+
     <?php if ($beschaeftigung or $unityp or $studienort or $studienfach or $schwerpunkt or $nebenfach or $abschluss or $zweitstudium or $hochschulaktivitaeten or $stipendien or $auslandsaufenthalte or $praktika or $beruf): ?>
-        <div class="row">  
+        <div class="row">
             <div class="col-sm-6">
                 <h4>Angaben zu Ausbildung und Beruf</h4>
                 <div class="row <?=sichtbarkeit($sichtbarkeit_beschaeftigung)?>">
@@ -184,7 +184,7 @@ function row($label, $value, $sichtbarkeit = true)
     <?php endif; ?>
 
 <?php if ($mvread): ?>
-    <div class="row">  
+    <div class="row">
         <div class="col-sm-6">
             <h4 class="unsichtbar">Mitgliederverwaltung</h4>
             <div class="row">
@@ -194,10 +194,6 @@ function row($label, $value, $sichtbarkeit = true)
             <div class="row">
                 <div class="col-xs-6">Benutzerkonto aktiviert</div>
                 <div class="col-xs-6"><?=$aktiviert ? 'ja' : 'nein'?></div>
-            </div>
-            <div class="row">
-                <div class="col-xs-6">Benutzerkonto wurde/wird gelöscht</div>
-                <div class="col-xs-6"><?=$deleted ? 'ja' : 'nein'?></div>
             </div>
         </div>
         <div class="col-sm-6">
