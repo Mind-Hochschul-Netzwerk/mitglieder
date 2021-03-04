@@ -12,6 +12,7 @@ use MHN\Mitglieder\DB;
 use MHN\Mitglieder\Domain\Repository\ChangeLog;
 use MHN\Mitglieder\Domain\Model\ChangeLogEntry;
 use MHN\Mitglieder\Service\Ldap;
+use MHN\Mitglieder\Service\EmailService;
 
 /**
  * Repräsentiert ein Mitglied
@@ -545,31 +546,11 @@ class Mitglied
      * $headers ist ein assoziatives Array wie [From => "noreply@example.com", ...]
      * @param string $subject
      * @param string $body
-     * @param string $headers
-     * @param string $to    receiver adress (defaults to the adress of $this)
      * @throws \RuntimeException wenn eine E-Mail nicht versandt werden konnte.
      */
-    public function sendEmail($subject, $body, $headers = [], $to = '')
+    public function sendEmail($subject, $body)
     {
-        if (!$to) {
-            $to = $this->get('email');
-        }
-        if (!$to) {
-            throw new \RuntimeException('email address of user ' . $this->get('id') . ' is unknown.');
-        }
-
-        ensure($headers['MIME-Version'], ENSURE_STRING, null, '1.0');
-        ensure($headers['Content-Type'], ENSURE_STRING, null, 'text/plain; charset=utf-8');
-        ensure($headers['From'], ENSURE_STRING, null, Config::emailFrom);
-        ensure($headers['Reply-To'], ENSURE_STRING, null, Config::emailFrom);
-        ensure($headers['X-Mailer'], ENSURE_STRING, null, 'PHP');
-
-        $headerStr = '';
-        foreach ($headers as $k => $v) {
-            $headerStr .= $k . ': ' . $v . "\r\n";
-        }
-
-        if (!mail($to, $subject, $body, $headerStr)) {
+        if (!(EmailService::getInstance()->send($this->get('email'), $subject, $body))) {
             throw new \RuntimeException('Beim Versand der E-Mail an ' . $TO . ' (ID ' . $this->data['id'] . ') ist ein Fehler aufgetreten.', 1522422201);
         }
     }

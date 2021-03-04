@@ -41,18 +41,13 @@ if ($_REQUEST['id']) {
                 time(),
                 $m->get('id')
             ], $m->get('hashedPassword'));
-            // E-Mail mit dem Zugangslink Passwort schicken (nur an die alte Adresse)
+
+            Tpl::set('fullName', $m->get('fullName'), false);
+            Tpl::set('url', 'https://mitglieder.' . getenv('DOMAINNAME') . '/lost-password.php?token=' . $token);
+            $text = Tpl::render('mails/lost-password', false);
+
             try {
-                $m->sendEmail('Neues Passwort',
-    'Hallo ' . $m->get('fullName') . ",
-
-    Du hast angegeben, dass du dein Passwort für deinen Zugang zum MinD-Hochschul-Netzwerk
-    vergessen hast. Unter dem folgenden Link kannst du ein neues Passwort vergeben:
-
-    " . Config::rootURL . "reset-password.php?token=$token
-
-    Falls du diese E-Mail nicht selbst angefordert hast, kannst du sie ignorieren.
-    ", [], 'email');
+                $m->sendEmail('Passwort vergessen', $text);
             } catch (\RuntimeException $e) {
                 die("Fehler beim Versenden der E-Mail.");
             }

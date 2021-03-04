@@ -4,7 +4,8 @@
     "type": "project",
     "require": {
         "php": "^7.4",
-        "symfony/ldap": "^5.2"
+        "symfony/ldap": "^5.2",
+        "phpmailer/phpmailer": "^6.3"
     },
     "autoload": {
         "psr-4": {

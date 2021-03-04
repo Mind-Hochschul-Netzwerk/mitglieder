@@ -49,5 +49,5 @@ if ($_REQUEST['password']) {
 }
 
 Tpl::set('token', $_REQUEST['token']);
-Tpl::render('Auth/reset-password');
+Tpl::render('Auth/lost-password');
 Tpl::submit();

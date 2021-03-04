@@ -13,6 +13,7 @@ use MHN\Mitglieder\Auth;
 use MHN\Mitglieder\Mitglied;
 use MHN\Mitglieder\Tpl;
 use MHN\Mitglieder\Service\Token;
+use MHN\Mitglieder\Service\EmailService;
 
 require_once '../lib/base.inc.php';
 
@@ -46,15 +47,10 @@ try {
 }
 $m->save();
 
-try {
-    Tpl::set('fullName', $m->get('fullName'));
-    Tpl::set('email', $email);
-    $text = Tpl::render('mails/email-changed', false);
-    $m->sendEmail('E-Mail-Änderung', $text, [], $oldMail);
-} catch (\RuntimeException $e) {
-    // the mail to the old address could not be sent
-    // but do not inform the user because the mail is only important if she/he is not the one who would have received it
-}
+Tpl::set('fullName', $m->get('fullName'));
+Tpl::set('email', $email);
+$text = Tpl::render('mails/email-changed', false);
+EmailService::getInstance()->send($oldMail, 'E-Mail-Änderung', $text);
 
 echo "Deine E-Mail-Adresse wurde erfolgreich zu $email geändert.";
 

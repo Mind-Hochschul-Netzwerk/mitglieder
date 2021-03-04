@@ -15,13 +15,6 @@ class Config
 {
     const passwordIterations = 100000;
 
-    const newEmailTokenExpireTime = '+24 hours'; // Zeit, in der eine neue E-Mail-Adresse aktiviert werden muss. Format für strtodate.
-    const newPasswordLength = 12; // Anzahl der Zeichen für ein automatisch generiertes Passwort
-    const newPasswordExpireTime = '+24 hours'; // Gültigkeitsdauer des Tokens für Passwortreset
-
-    const rootURL = 'http://mitglieder.mind-hochschul-netzwerk.de/'; // mit / am Ende
-    const emailFrom = 'Mein MHN <noreply@mitglieder.mind-hochschul-netzwerk.de>'; // Absendeadresse von E-Mails
-
     // Maximale Größe von Profilbildern
     const profilbildMaxWidth = 800;
     const profilbildMaxHeight = 800;

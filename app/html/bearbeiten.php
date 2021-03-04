@@ -16,6 +16,7 @@ use MHN\Mitglieder\Tpl;
 use MHN\Mitglieder\Domain\Repository\ChangeLog;
 use MHN\Mitglieder\Domain\Model\ChangeLogEntry;
 use MHN\Mitglieder\Service\Token;
+use MHN\Mitglieder\Service\EmailService;
 
 // Liste der vom Mitglied änderbaren Strings, deren Werte nicht geprüft werden
 const bearbeiten_strings_ungeprueft = ['titel', 'mensa_nr', 'strasse', 'adresszusatz', 'plz', 'ort', 'land', 'strasse2', 'adresszusatz2', 'plz2', 'ort2', 'land2', 'telefon', 'mobil', 'homepage', 'sprachen', 'hobbys', 'interessen', 'studienort', 'studienfach', 'unityp', 'schwerpunkt', 'nebenfach', 'abschluss', 'zweitstudium', 'hochschulaktivitaeten', 'stipendien', 'auslandsaufenthalte', 'praktika', 'beruf', 'aufgabe_sonstiges_beschreibung'];
@@ -120,14 +121,10 @@ if (isset($_REQUEST['email'])) {
             $m->get('id'),
             $_REQUEST['email']
         ], $m->get('email'));
-        try {
-            Tpl::set('fullName', $m->get('fullName'));
-            Tpl::set('token', $token);
-            $text = Tpl::render('mails/email-auth', false);
-            $m->sendEmail('E-Mail-Änderung', $text, [], $_REQUEST['email']);
-        } catch (\RuntimeException $e) {
-            // die("Fehler beim Versenden der Bestätigungs-E-Mail an die neue Adresse.");
-        }
+        Tpl::set('fullName', $m->get('fullName'));
+        Tpl::set('token', $token);
+        $text = Tpl::render('mails/email-auth', false);
+        EmailService::getInstance()->send($_REQUEST['email'], 'E-Mail-Änderung', $text);
     }
 
     // nur für die Mitgliederverwaltung
