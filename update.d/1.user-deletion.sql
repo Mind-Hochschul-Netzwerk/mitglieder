@@ -5,11 +5,11 @@ CREATE TABLE deleted_usernames (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PACK_KEYS=0;
 
-INSERT INTO deleted_usernames (username) SELECT username FROM mitglieder WHERE deleted = true;
+INSERT INTO deleted_usernames (id, username) SELECT id, username FROM mitglieder WHERE deleted = true;
 
 DELETE FROM mitglieder WHERE deleted = true;
 
-ALTER TABLE mitglieder 
+ALTER TABLE mitglieder
 DROP COLUMN deleted,
 DROP COLUMN delete_time,
 DROP COLUMN delete_user_id;

@@ -86,7 +86,7 @@ class Mitglied
         $m->setUsername($username);
         $m->set('password', $password);
         $m->setEmail($email);
-        
+
         $m->setData('aufnahmedatum', 'now');
         $m->setData('db_modified', 'now');
 
@@ -258,13 +258,28 @@ class Mitglied
         return true;
     }
 
+    public function isUsernameAvailable(string $username): bool
+    {
+        $existingId = self::getIdByUsername($username);
+        if ($existingId !== null) {
+            return false;
+        }
+        $id = DB::query('SELECT id FROM deleted_usernames WHERE username = "%s"', $username)->get();
+        if ($id) {
+            return false;
+        }
+        return true;
+    }
+
     /**
      * @throws \UnexpectedValueException if username is already used by another user
      */
     private function setUsername(string $username)
     {
-        $existingId = self::getIdByUsername($username);
-        if ($existingId !== null && $existingId !== $this->data['id']) {
+        if ($this->get('username') === 'username') {
+            return;
+        }
+        if (!$this->isUsernameAvailable($username)) {
             throw new \UnexpectedValueException('username already used', 1614368197);
         }
         $this->setData('username', $username);
@@ -396,11 +411,11 @@ class Mitglied
         // shortcuts
         $ldap = Ldap::getInstance();
         $username = $this->get('username');
-    
+
         $changed = false;
         $roles = array_map('strtolower', $roles);
         $oldRoles = array_map('strtolower', $this->getRoles());
-        
+
         foreach(array_diff($oldRoles, $roles) as $role) {
             $ldap->removeRole($username, $role);
             $changed = true;
@@ -468,7 +483,7 @@ class Mitglied
 
         ChangeLog::getInstance()->deleteByUserId($this->get('id'));
 
-        DB::query('INSERT INTO deleted_usernames SET username = "%s"', $this->get('username'));
+        DB::query('INSERT INTO deleted_usernames SET id = %d, username = "%s"', $this->get('id'), $this->get('username'));
         DB::query('DELETE FROM mitglieder WHERE id = %d', $this->get('id'));
 
         $this->deleted = true;

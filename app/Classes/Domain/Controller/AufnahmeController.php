@@ -55,7 +55,7 @@ class AufnahmeController
         'einwilligung_datenverarbeitung_aufnahme' => 'einwilligung_datenverarbeitung',
         'einwilligung_datenverarbeitung_aufnahme_text' => 'einwilligung_datenverarbeitung_text',
     ];
-   
+
     const MAP_BOOL = [
         'auskunft_studiengang' => 'mhn_auskunft_studiengang',
         'auskunft_stipendien' => 'mhn_auskunft_stipendien',
@@ -105,7 +105,7 @@ class AufnahmeController
         Tpl::set('htmlTitle', 'Benutzerkonto aktivieren');
         Tpl::set('title', 'Benutzerkonto aktivieren');
         Tpl::set('navId', 'start');
-        
+
         $this->requestData();
         $this->checkEmailUsed();
 
@@ -128,7 +128,7 @@ class AufnahmeController
         $curl = curl_init('http://aufnahme:8080/get-antrag.php?action=data&token=' . $this->token);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $response = curl_exec($curl);
-        
+
         $this->data = json_decode($response);
         if ($this->data === null) {
             Tpl::render('AufnahmeController/invalid');
@@ -168,16 +168,11 @@ class AufnahmeController
         $username0 = substr($username0, 0, 255);
         $username = $username0;
 
-        for ($n = 1; $this->isUsernameUsed($username); ++$n) {
+        for ($n = 1; !Mitglied::isUsernameAvaible($username); ++$n) {
             $username = $username0 . $n;
         }
 
         return $username;
-    }
-
-    private function isUsernameUsed(string $username): bool
-    {
-        return (Mitglied::getIdByUsername($username) !== null);
     }
 
     private function checkEnteredUsername(): void
@@ -192,13 +187,13 @@ class AufnahmeController
             return;
         }
 
-        if (!preg_match('/^[A-Za-z][A-Za-z0-9\-_.]*$/', $this->username)) {        
+        if (!preg_match('/^[A-Za-z][A-Za-z0-9\-_.]*$/', $this->username)) {
             $this->readyToSave = false;
             Tpl::set('usernameInvalid', true);
             return;
         }
 
-        if ($this->isUsernameUsed($this->username)) {
+        if (!Mitglied::isUsernameAvailable($this->username)) {
             $this->readyToSave = false;
             Tpl::set('usernameUsed', true);
             return;
@@ -209,7 +204,7 @@ class AufnahmeController
     {
         ensure($_REQUEST['password'], ENSURE_STRING);
         ensure($_REQUEST['password2'], ENSURE_STRING);
-    
+
         $this->password = $_REQUEST['password'];
 
         if (!($this->password)) {
