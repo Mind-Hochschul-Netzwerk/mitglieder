@@ -1,4 +1,4 @@
-version: '3.5'
+version: "3.5"
 services:
   mitglieder-database:
     image: mariadb
@@ -43,7 +43,7 @@ services:
       - traefik.http.routers.mitglieder.rule=Host(`mitglieder.${DOMAINNAME}`)
       - traefik.http.routers.mitglieder.tls=true
       - traefik.http.routers.mitglieder.tls.certresolver=myresolver
-      - traefik.http.routers.mitglieder.middlewares=secheader
+      - traefik.http.routers.mitglieder.middlewares=secheader@file
     depends_on:
       - mitglieder-database
     networks:
