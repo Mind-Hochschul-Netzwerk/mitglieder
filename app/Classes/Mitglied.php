@@ -559,7 +559,6 @@ class Mitglied
 
     /**
      * Sendet eine E-Mail
-     * $headers ist ein assoziatives Array wie [From => "noreply@example.com", ...]
      * @param string $subject
      * @param string $body
      * @throws \RuntimeException wenn eine E-Mail nicht versandt werden konnte.
