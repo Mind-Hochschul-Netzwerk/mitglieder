@@ -21,6 +21,8 @@ RUN set -ex \
   && cd /var/www \
   && su www-data -s /bin/sh -c "composer install --optimize-autoloader --no-dev --no-interaction --no-progress --no-cache" \
   && chown -R nobody:nobody /var/www \
+  # for profile picture upload (default limit: 1 MB)
+  && echo "client_max_body_size 20m;" > /etc/nginx/conf.d/server-client_max_body_size \
   && mkdir -p /var/www/html/profilbilder && chown www-data:www-data /var/www/html/profilbilder
 
 VOLUME /var/www/html/profilbilder
