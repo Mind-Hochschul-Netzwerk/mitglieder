@@ -26,7 +26,7 @@ if (Auth::istEingeloggt()) {
     die("forbidden");
 }
 
-die("Dein Zugang ist deaktiviert. Bitte wende dich an die Mitgliederbetreuung.");
+die("Herzlichen Willkommen im MHN! Im Mai 2021 haben wir den Aufnahmeprozess in unser Netzwerk umstrukturiert. Ältere inaktive Mitgliedskonten können leider nicht mehr über diesen Link aktiviert werden. Bitte wende dich an webteam@mind-hochschul-netzwerk.de, dann werden wir deinen Zugang manuell freischalten.");
 
 // Schritt 1: Nutzungsbedingungen müssen akzeptiert werden.
 if (!$u->get('aktiviert')) {
