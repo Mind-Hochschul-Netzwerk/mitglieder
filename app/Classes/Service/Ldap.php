@@ -93,7 +93,7 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
             $entry->setAttribute('description', [$data['description']]);
         }
         if (!empty($data['id'])) {
-            $entry->setAttribute('uid', [$data['id']]);
+            $entry->setAttribute('employeeNumber', [$data['id']]);
         }
         if (!empty($data['suspended'])) {
             $entry->setAttribute('employeeType', [$data['suspended']]);
@@ -116,7 +116,7 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
             'sn' => ['-'],
             'mail' => ['no@mail.invalid'],
             'userPassword' => ['{CRYPT}! no login'],
-            'uid' => ['0'],
+            'employeeNumber' => ['0'],
             'employeeType' => ['0'],
         ]);
         $this->setAttributes($entry, $data);
@@ -251,7 +251,7 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
                 $username = substr(substr($dn, strlen('cn=')), 0, -1-strlen(getenv('LDAP_PEOPLE_DN')));
                 $user = $this->getEntryByUsername($username);
                 return [
-                    'id' => $user->getAttribute('uid')[0],
+                    'id' => $user->getAttribute('employeeNumber')[0],
                     'username' => $user->getAttribute('cn')[0],
                     'firstname' => $user->getAttribute('givenName')[0],
                     'lastname' => $user->getAttribute('sn')[0],
@@ -267,5 +267,124 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
             ];
         }
         return $roles;
+    }
+
+
+    public function hasMoodleCourse(string $username, string $moodleCourse)
+    {
+        $this->bind();
+        $query = '(&(objectclass=groupOfNames)(cn=' . ldap_escape($moodleCourse) . ')(member=' . $this->getDnByUsername($username) . '))';
+        $entry = $this->ldap->query(getenv('LDAP_COURSES_DN'), $query)->execute()[0];
+        return !empty($entry);
+    }
+
+    public function addMoodleCourse($username, $moodleCourse)
+    {
+        if ($this->hasMoodleCourse($username, $moodleCourse)) {
+            return;
+        }
+        $userEntry = $this->getEntryByUsername($username);
+        if (!$userEntry) {
+            throw new \InvalidArgumentException('no such user: ' . $username, 1612375712);
+        }
+        $entry = $this->ldap->query(getenv('LDAP_COURSES_DN'), '(&(objectclass=groupOfNames)(cn=' . ldap_escape($moodleCourse) . '))')->execute()[0];
+        if (!$entry) {
+            throw new \OutOfRangeException('invalid moodleCourse: ' . $moodleCourse, 1612375711);
+        }
+        $member = $entry->getAttribute('member');
+        $member[] = $this->getDnByUsername($username);
+        $entry->setAttribute('member', $member);
+        $this->ldap->getEntryManager()->update($entry);
+    }
+
+    public function removeMoodleCourse($username, $moodleCourse)
+    {
+        $this->bind();
+        $query = '(&(objectclass=groupOfNames)(cn=' . ldap_escape($moodleCourse) . ')(member=' . $this->getDnByUsername($username) . '))';
+        $entry = $this->ldap->query(getenv('LDAP_COURSES_DN'), $query)->execute()[0];
+        if (!$entry) {
+            return;
+        }
+        $member = $entry->getAttribute('member');
+        $lowerUsername = strtolower($username);
+        foreach ($member as $i=>$dn) {
+            preg_match('/^cn=(.*?),/', $dn, $matches);
+            if ($lowerUsername === strtolower($matches[1])) {
+                unset($member[$i]);
+                break;
+            }
+        }
+        $entry->setAttribute('member', $member);
+        $this->ldap->getEntryManager()->update($entry);
+    }
+
+    public function getMoodleCoursesByUsername($username): array
+    {
+        $this->bind();
+        $query = '(&(objectclass=groupOfNames)(member=' . $this->getDnByUsername($username) . '))';
+        $result = $this->ldap->query(getenv('LDAP_COURSES_DN'), $query)->execute();
+        $moodleCourses = [];
+        foreach ($result as $moodleCourse) {
+            $moodleCourses[] = $moodleCourse->getAttribute('cn')[0];
+        }
+        return $moodleCourses;
+    }
+
+    public function getIdsByMoodleCourse(string $moodleCourseName): array
+    {
+        $moodleCourses = $this->getMoodleCourses();
+        foreach ($moodleCourses as $moodleCourse) {
+            if ($moodleCourse['name'] !== $moodleCourseName) {
+                continue;
+            }
+            return array_map(function ($user) {return (int)$user['id'];}, $moodleCourse['users']);
+        }
+        throw new \OutOfRangeException('invalid moodleCourse name', 1614374821);
+    }
+
+    /**
+     * @return array [
+     *  ['name' => course name,
+     *   'description' => description,
+     *    'users' => [
+     *        ['id' => uid, 'username' => username, 'firstname' => first name, 'lastname' => last name],
+     *         ...
+     *        ],
+     *    ...
+     *  ], ... ]
+     */
+    public function getMoodleCourses(): array
+    {
+        $this->bind();
+        $query = '(&(objectclass=groupOfNames))';
+        $result = $this->ldap->query(getenv('LDAP_COURSES_DN'), $query)->execute();
+        $moodleCourses = [];
+        foreach ($result as $moodleCourse) {
+            $members = array_map(function ($dn) {
+                if (substr($dn, 0, strlen('cn=')) !== 'cn=') {
+                    return null;
+                }
+                if (substr($dn, -strlen(getenv('LDAP_PEOPLE_DN'))) !== getenv('LDAP_PEOPLE_DN')) {
+                    return null;
+                }
+                $username = substr(substr($dn, strlen('cn=')), 0, -1-strlen(getenv('LDAP_PEOPLE_DN')));
+                $user = $this->getEntryByUsername($username);
+                return [
+                    'id' => $user->getAttribute('employeeNumber')[0],
+                    'username' => $user->getAttribute('cn')[0],
+                    'firstname' => $user->getAttribute('givenName')[0],
+                    'lastname' => $user->getAttribute('sn')[0],
+                ];
+            }, $moodleCourse->getAttribute('member'));
+            $members = array_filter($members, function ($entry) {
+                return $entry !== null;
+            });
+            $moodleCourses[] = [
+                    'name' => $moodleCourse->getAttribute('cn')[0],
+                    'description' => $moodleCourse->getAttribute('description')[0],
+                    'users' => $members
+            ];
+        }
+        return $moodleCourses;
     }
 }

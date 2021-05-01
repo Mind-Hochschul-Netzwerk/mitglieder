@@ -9,6 +9,7 @@ namespace MHN\Mitglieder\Domain\Controller;
 use MHN\Mitglieder\Tpl;
 use MHN\Mitglieder\Auth;
 use MHN\Mitglieder\Mitglied;
+use MHN\Mitglieder\Service\Ldap;
 
 /**
  * Aufnahme neuer Mitglieder
@@ -262,6 +263,10 @@ class AufnahmeController
 
         // Alles klar!
         $m->save();
+
+        $ldap = Ldap::getInstance();
+        $ldap->addMoodleCourse($member['username'], 'alleMitglieder');
+        $ldap->addMoodleCourse($member['username'], 'listen');
 
         $curl = curl_init('http://aufnahme:8080/get-antrag.php?action=finish&token=' . $this->token);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);

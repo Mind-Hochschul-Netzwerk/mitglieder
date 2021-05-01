@@ -3,8 +3,6 @@ declare(strict_types=1);
 namespace MHN\Mitglieder;
 
 /**
-* Nimmt einen neuen Benutzer vom Aufnahmetool entgegen
-*
 * @author Henrik Gebauer <mensa@henrik-gebauer.de>
 */
 
@@ -41,4 +39,7 @@ while ($member = $result->get_row()) {
     foreach ($rechte as $recht) {
         $ldap->addRole($member['username'], $recht);
     }
+
+    $ldap->addMoodleCourse($member['username'], 'alleMitglieder');
+    $ldap->addMoodleCourse($member['username'], 'listen');
 }
