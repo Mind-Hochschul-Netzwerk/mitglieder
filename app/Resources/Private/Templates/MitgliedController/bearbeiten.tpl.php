@@ -38,6 +38,7 @@ function form_row($label, $inputs)
 
         $placeholder = !empty($input['placeholder']) ? $input['placeholder'] : $label;
         $title = !empty($input['title']) ? $input['title'] : $placeholder;
+        $autocomplete = !empty($input['autocomplete']) ? "autocomplete='{$input['autocomplete']}'" : '';
 
         if ($select) {
             $tag = "<select id='input-$id' $name class='$class' $disabled title='$title'>\n";
@@ -46,7 +47,7 @@ function form_row($label, $inputs)
             }
             $tag .= "</select>\n";
         } else {
-            $tag = "<input id='input-$id' $name value='$value' $type class='$class' $disabled placeholder='$placeholder' title='$title'>\n";
+            $tag = "<input id='input-$id' $name value='$value' $type class='$class' $disabled placeholder='$placeholder' title='$title' $autocomplete>\n";
         }
 
 
@@ -57,7 +58,7 @@ function form_row($label, $inputs)
         if (is_array($input['sichtbarkeit']) || is_bool($input['sichtbarkeit'])) {
             $name = '';
             $id = '';
-                
+
             if (is_array($input['sichtbarkeit'])) {
                 $name = "name='{$input['sichtbarkeit'][0]}'";
                 $id = "id='{$input['sichtbarkeit'][0]}'";
@@ -243,10 +244,10 @@ if (!empty($errorMessage)) {
         ], 'sichtbarkeit' => ['sichtbarkeit_beschaeftigung', $sichtbarkeit_beschaeftigung]]])?>
 
         <h4>Passwort ändern</h4>
-        <?=form_row('Neues Passwort', [['new_password', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '']])?>
+        <?=form_row('Neues Passwort', [['new_password', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '', 'autocomplete' => 'new-password']])?>
         <?=form_row('Passwort wiederholen', [['new_password2', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '']])?>
         <?php if (!\MHN\Mitglieder\Auth::hatRecht('mvedit') || \MHN\Mitglieder\Auth::ist($id)): ?>
-            <?=form_row('Altes Passwort', [['password', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '']])?>
+            <?=form_row('Altes Passwort', [['password', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '', 'autocomplete' => 'current-password']])?>
         <?php endif; ?>
     </div>
 
@@ -270,14 +271,14 @@ if (!empty($errorMessage)) {
         <?=form_row('Titel', [
             ['titel', $titel, 'text', 2, 'placeholder' => 'Titel'],
         ])?>
-        
+
         <h4>Kontaktdaten</h4>
-        
+
         <?=form_row('Mobil', [['mobil', $mobil, 'tel', 'sichtbarkeit' => ['sichtbarkeit_mobil', $sichtbarkeit_mobil]]])?>
         <?=form_row('Homepage', [['homepage', $homepage]])?>
-        
+
         <h4>Zweitwohnsitz <small>z.B. Adresse der Eltern</small></h4>
-        
+
         <?=form_row('Straße + Hausnummer', [['strasse2', $strasse2]])?>
         <?=form_row('ggf. Adresszusatz', [['adresszusatz2', $adresszusatz2]])?>
 
@@ -286,14 +287,14 @@ if (!empty($errorMessage)) {
             ['ort2', $ort2, 'text', 4, 'placeholder' => 'Ort'],
             ['land2', $land2, 'text', 4, 'placeholder' => 'Land'],
         ])?>
-        
+
         <h4>Sprachen, Hobbys, Interessen</h4>
-        
+
         <?=form_row('Sprachen', [['sprachen', $sprachen]])?>
         <?=form_row('Hobbys', [['hobbys', $hobbys]])?>
         <?=form_row('Interessen', [['interessen', $interessen]])?>
     </div>
-    
+
     <div class="tab-pane <?=$active_pane === 'ausbildungberuf' ? 'active' : ''?>" id="ausbildungberuf">
         <div class="pull-right"><input class='input-group-addon' id='sichtbarkeit_ausbildung' data-height='32' data-width='50' data-toggle='toggle' data-onstyle='success' data-offstyle='danger' data-on='&lt;span class=&quot;glyphicon glyphicon-eye-open&quot;&gt;&lt;/span&gt;' data-off='&lt;span class=&quot;glyphicon glyphicon-eye-close&quot;&gt;&lt;/span&gt;' type='checkbox'></div>
 
@@ -316,7 +317,7 @@ if (!empty($errorMessage)) {
         </script>
 
         <h3>Ausbildung und Beruf</h3>
-    
+
         <p>
             Angaben über deine Ausbildung und Beruf können anderen Mitgliedern helfen, Ansprechpartner/innen für Fragen zu ihrer eigenen Ausbildung zu finden. Dies ist einer der Kerngedanken des Netzwerks.
         </p>
@@ -337,12 +338,12 @@ if (!empty($errorMessage)) {
         <?=form_row('Auslandsaufenthalte', [['auslandsaufenthalte', $auslandsaufenthalte, 'sichtbarkeit' => ['sichtbarkeit_auslandsaufenthalte', $sichtbarkeit_auslandsaufenthalte]]])?>
         <?=form_row('Praktika', [['praktika', $praktika, 'sichtbarkeit' => ['sichtbarkeit_praktika', $sichtbarkeit_praktika]]])?>
         <?=form_row('Beruf', [['beruf', $beruf, 'sichtbarkeit' => ['sichtbarkeit_beruf', $sichtbarkeit_beruf]]])?>
-        
+
     </div>
 
     <div class="tab-pane <?=$active_pane === 'profilbild' ? 'active' : ''?>" id="profilbild">
         <h3>Profilbild</h3>
-        
+
         <p>Lade ein Profilbild hoch, damit andere eine Vorstellung haben, mit wem sie es zu tun haben. Das Profilbild ist für alle Mitglieder sichtbar.</p>
 
         <div class="form-group row">
@@ -351,11 +352,11 @@ if (!empty($errorMessage)) {
                 <img id="aktuellesBild" src="<?=$profilbild ? ('profilbilder/'.$profilbild) : ('img/profilbild-default.png')?>" />
             </div>
         </div>
-        
+
         <div class="form-group row">
             <label for="profilbild" class="col-sm-2 col-form-label">Bild ändern</label>
             <div class="col-sm-10">
-            
+
                 <div class="input-group">
                     <label class="input-group-btn">
                         <span class="btn btn-primary">
@@ -375,14 +376,14 @@ if (!empty($errorMessage)) {
         <?php endif; ?>
 
     </div>
-        
+
     <div class="tab-pane <?=$active_pane === 'settings' ? 'active' : ''?>" id="settings">
         <h3>Netzwerk</h3>
 
         <p>
             Wie möchtest du im Netzwerk aktiv sein? Diese Angaben können für alle Mitglieder sichtbar sein.
         </p>
-        
+
         <div class="row form-group">
             <div class="col-sm-6">
                 <h4>Ich gebe Auskunft über</h4>
@@ -393,7 +394,7 @@ if (!empty($errorMessage)) {
                 <div class="checkbox"><label><input name="auskunft_beruf" type="checkbox"  <?=$auskunft_beruf ? 'checked="checked"' : ''?> > Beruf</label></div>
                 <div class="checkbox"><label><input name="mentoring" type="checkbox"  <?=$mentoring ? 'checked="checked"' : ''?> > Ich bin prinzipiell bereit zu beruflichem Mentoring</label></div>
             </div>
-            
+
             <div class="col-sm-6">
                 <h4>Ich könnte bei folgenden Aufgaben helfen</h4>
                 <div class="checkbox"><label><input name="aufgabe_ma" type="checkbox"  <?=$aufgabe_ma ? 'checked="checked"' : ''?> > Mithilfe bei der Organisation der MIND AKADEMIE</label></div>
@@ -411,11 +412,11 @@ if (!empty($errorMessage)) {
             </div>
         </div>
     </div>
-    
+
     <?php if (\MHN\Mitglieder\Auth::hatRecht('mvedit')): ?>
     <div class="tab-pane <?=$active_pane === 'mvedit' ? 'active' : ''?>" id="mvedit">
             <h3>Mitgliederverwaltung</h3>
-        
+
             <div class="row">
                 <div class="col-sm-2">Benutzerkonto aktiviert</div>
                 <div class="col-sm-10"><?=$aktiviert ? 'ja' : 'nein'?></div>
@@ -445,11 +446,11 @@ if (!empty($errorMessage)) {
                 <div class="col-sm-2">Einwilligung zur Datenverarbeitung (Aufnahmetool): Text</div>
                 <div class="col-sm-10"><textarea disabled class="small" style="width:100%;"><?=$einwilligung_datenverarbeitung_aufnahme_text?></textarea></div>
             </div>
-            
+
             <?php if (\MHN\Mitglieder\Auth::hatRecht('rechte')): ?>
                 <?=form_row('Rollen', [['rechte', implode(', ', $roles), 'placeholder' => 'Trennen durch Komma. Mögliche Werte siehe Menüpunkt „Mitgliederverwaltung”', 'sichtbarkeit' => false]])?>
             <?php endif; ?>
-            
+
             <div class="form-group row">
                 <label class="col-sm-2 col-form-label">Mitglied löschen</label>
                 <div class="col-sm-10"><label><input name="delete" type="checkbox" id="delete"
@@ -457,7 +458,7 @@ if (!empty($errorMessage)) {
                     >
                     </label>
                     Die Daten werden SOFORT endgültig und unwiederbringlich gelöscht! Die Mitglieder der Mitgliederbetreuung werden informiert.
-                </div> 
+                </div>
             </div>
 
             <div class="row">
@@ -496,7 +497,7 @@ $(function() {
       $(':file').on('fileselect', function(event, label) {
 
           var input = $(this).parents('.input-group').find(':text');
-              
+
           if( input.length ) {
               input.val(label);
           }
@@ -512,7 +513,7 @@ $(document).on('change', 'input', function() {
 $(window).bind('beforeunload', function(){
     if (changes) return 'Achtung! Ungespeicherte Änderungen gehen verloren. Fortsetzen?';
 });
-    
+
 document.getElementById("profile-form").addEventListener("submit", function (e) {
     let input1 = document.getElementById("input-new_password").value;
     let input2 = document.getElementById("input-new_password2").value;
