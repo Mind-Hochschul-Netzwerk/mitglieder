@@ -16,10 +16,10 @@ quick-image:
 
 dev: .env check-traefik
 	@echo "Starting DEV Server"
-	docker-compose -f docker-compose.base.yml -f docker-compose.dev.yml up -d --force-recreate
+	docker-compose -f docker-compose.base.yml -f docker-compose.dev.yml up -d --force-recreate --remove-orphans
 
 prod: .env check-traefik
 	@echo "(Re)pulling docker image"
 	docker pull mindhochschulnetzwerk/mitglieder:latest
 	@echo "Starting Production Server"
-	docker-compose -f docker-compose.base.yml -f docker-compose.prod.yml up -d --force-recreate
+	docker-compose -f docker-compose.base.yml -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
