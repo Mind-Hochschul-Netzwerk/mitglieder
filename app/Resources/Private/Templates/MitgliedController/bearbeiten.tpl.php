@@ -506,15 +506,23 @@ $(function() {
 });
 
 // vor dem Verlassen warnen, falls etwas geändert wurde
-changes = <?=$changes ? 'true' : 'false'?>;
+let changes = <?=$changes ? 'true' : 'false'?>;
+let saving = false;
+
 $(document).on('change', 'input', function() {
     changes = true;
-  });
-$(window).bind('beforeunload', function(){
-    if (changes) return 'Achtung! Ungespeicherte Änderungen gehen verloren. Fortsetzen?';
+});
+document.getElementById("profile-form").addEventListener("submit", e => {
+    saving = true;
+});
+window.addEventListener("beforeunload", e => {
+    if (changes && !saving) {
+        e.preventDefault();
+        e.returnValue = "";
+    }
 });
 
-document.getElementById("profile-form").addEventListener("submit", function (e) {
+document.getElementById("profile-form").addEventListener("submit", e => {
     let input1 = document.getElementById("input-new_password").value;
     let input2 = document.getElementById("input-new_password2").value;
     if (input1 !== input2) {
