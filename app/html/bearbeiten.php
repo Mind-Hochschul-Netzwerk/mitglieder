@@ -85,13 +85,14 @@ if (isset($_REQUEST['email'])) {
 
     // Passwort ändern
     ensure($_REQUEST['new_password'], ENSURE_SET); // nicht ENSURE_STRING, weil dabei ein trim() durchgeführt wird
+    $_REQUEST['new_password'] = (string) $_REQUEST['new_password'];
     ensure($_REQUEST['new_password2'], ENSURE_SET);
-    ensure($_REQUEST['password'], ENSURE_SET);
+    $_REQUEST['new_password2'] = (string) $_REQUEST['new_password2'];
+    ensure($_REQUEST['new_password2'], ENSURE_SET);
+    $_REQUEST['password'] = (string) $_REQUEST['password'];
 
-    if ($_REQUEST['new_password'] !== '' && $_REQUEST['new_password2'] === '' && ($_REQUEST['password'] === '' || $_REQUEST['password'] === null) && Auth::checkPassword($_REQUEST['new_password'], $m->get('id'))) {
-        // nichts tun. Der Passwort-Manager des Users hat das Passwort eingefügt und autocomplete=off ignoriert
-    } elseif ((($_REQUEST['password'] !== null && $_REQUEST['password'] !== '') || $_REQUEST['new_password2'] !== '') && $_REQUEST['new_password'] === '') {
-        Tpl::set('new_password_error', true);
+    if ($_REQUEST['new_password'] !== '' && $_REQUEST['new_password2'] === '' && $_REQUEST['password'] === '' && Auth::checkPassword($_REQUEST['new_password'], $m->get('id'))) {
+        // nichts tun. Der Passwort-Manager des Users hat das Passwort eingefügt und autocomplete=new-password ignoriert
     } elseif ($_REQUEST['new_password'] !== '') {
         Tpl::set('set_new_password', true);
         if ($_REQUEST['new_password'] !== $_REQUEST['new_password2']) {

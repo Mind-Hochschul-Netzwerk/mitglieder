@@ -114,14 +114,6 @@ if (!empty($email_error)) {
     $email_error = false;
 }
 
-if (!empty($new_password_error)) {
-    \MHN\Mitglieder\Tpl::set('alert_type', 'danger');
-    \MHN\Mitglieder\Tpl::set('alert_text', 'Das eingegebene neue Passwort ist leer. Das Passwort wurde nicht geändert.');
-    \MHN\Mitglieder\Tpl::render('Layout/alert');
-    $active_pane = 'basisdaten';
-    $password_error = $changes = $error = true;
-}
-
 \MHN\Mitglieder\Tpl::set('alert_id', 'AlertWiederholungFalsch');
 \MHN\Mitglieder\Tpl::set('alert_type', 'danger');
 \MHN\Mitglieder\Tpl::set('alert_hide', empty($new_password2_error));

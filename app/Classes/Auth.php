@@ -164,6 +164,10 @@ class Auth
      */
     public static function checkPassword(string $password, $uid = null): bool
     {
+        if (!$password) {
+            return false;
+        }
+
         if ($uid === null) {
             $uid = self::getUID();
         }
