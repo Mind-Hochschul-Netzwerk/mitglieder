@@ -23,3 +23,6 @@ prod: .env check-traefik
 	docker pull mindhochschulnetzwerk/mitglieder:latest
 	@echo "Starting Production Server"
 	docker-compose -f docker-compose.base.yml -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
+
+adminer: .env check-traefik
+	docker-compose -f docker-compose.base.yml -f docker-compose.dev.yml up -d mitglieder-adminer
