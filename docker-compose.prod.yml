@@ -2,4 +2,4 @@ version: "3.5"
 services:
   mitglieder:
     volumes:
-      - "${VOLUMES_DIR}/profilbilder:/var/www/html/public/profilbilder"
+      - "${VOLUMES_DIR}/profilbilder:/var/www/html/profilbilder"
