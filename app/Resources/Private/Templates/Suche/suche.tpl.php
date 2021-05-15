@@ -1,4 +1,7 @@
 <?php declare(strict_types=1); namespace MHN\Mitglieder; ?>
+
+<p>Willkommen im Mitgliederverzeichnis des Mind-Hochschul-Netzwerks. Hier kannst du deine Daten in unserer Mitgliederdatenbank aktualisieren und andere Mitglieder finden. Das Netzwerk lebt von deiner aktiven Beteiligung und den Kontakten unter den Mitgliedern.</p>
+
 <form>
 
 <div class="form-group row">
@@ -42,7 +45,7 @@
                 </tr>\n";
             }
             ?>
-            
+
         </table></div>
         <?php if ($graue): ?>
             <p>Mitglieder, die sich seit mehr als 6 Monaten nicht mehr eingeloggt haben, werden ausgegraut dargestellt.</p>
@@ -50,7 +53,7 @@
         <?php if (count($ergebnisse) >= 50): ?>
             <p>Es werden nicht alle Ergebnisse angezeigt. Grenze deine Suchkriterien weiter ein.</p>
         <?php endif; ?>
-        
-        <?php endif; ?>   
+
+        <?php endif; ?>
     </div>
 <?php endif; ?>

@@ -3,24 +3,21 @@
 
 if (Auth::istEingeloggt()) {
     $navItems = [
-        'home' => ['/', 'Startseite', 'home'],
-        'bearbeiten' => ['bearbeiten.php', 'Mein Profil', 'user'],
-        'suche' => ['suche.php', 'Mitgliedersuche', 'search'],
-        'veranstaltungen' => ['https://veranstaltungen.mind-hochschul-netzwerk.de/', 'Veranstaltungen', 'calendar'],
-        'wiki' => ['https://wiki.mind-hochschul-netzwerk.de/index.php?title=Spezial:Anmelden&returnto=Hauptseite', 'Wiki', 'globe'],
+        'suche' => ['/', 'Mitgliedersuche', 'search'],
+        'bearbeiten' => ['bearbeiten.php', 'Meine Daten', 'user'],
         'admin' => Auth::hatRecht('mvedit') ? ['admin.php', 'Mitgliederverwaltung', 'wrench'] : null,
         'logout' => ['logout.php', 'Logout', 'log-out'],
-        'datenschutz' => ['https://www.mind-hochschul-netzwerk.de/index.php/datenschutz/', 'Datenschutz', 'paragraph'],
-        'impressum' => ['https://www.mind-hochschul-netzwerk.de/index.php/impressum/', 'Impressum', 'globe'],
+        'homepage' => ['https://www.' . getenv('DOMAINNAME'), 'MHN-Webseite', 'home'],
+        'datenschutz' => ['https://www.' . getenv('DOMAINNAME') . '/mod/page/view.php?id=12', 'Datenschutz', 'paragraph'],
+        'impressum' => ['https://www.' . getenv('DOMAINNAME') . '/mod/page/view.php?id=5', 'Impressum', 'globe'],
     ];
 } else {
     $navItems = [
-        'homepage' => ['https://www.mind-hochschul-netzwerk.de/', 'Homepage', 'home'],
+        'homepage' => ['https://www.' . getenv('DOMAINNAME'), 'Startseite', 'home'],
         'login' => ['/', 'Login', 'log-in'],
-        'aufnahme' => ['https://mind-hochschul-netzwerk.de/index.php/aufnahme/', 'Mitglied werden', 'plus'],
         'logout' => ['logout.php', 'Logout', 'log-out'],
-        'datenschutz' => ['https://www.mind-hochschul-netzwerk.de/index.php/datenschutz/', 'Datenschutz', 'paragraph'],
-        'impressum' => ['https://www.mind-hochschul-netzwerk.de/index.php/impressum/', 'Impressum', 'globe'],
+        'datenschutz' => ['https://www.' . getenv('DOMAINNAME') . '/mod/page/view.php?id=12', 'Datenschutz', 'paragraph'],
+        'impressum' => ['https://www.' . getenv('DOMAINNAME') . '/mod/page/view.php?id=5', 'Impressum', 'globe'],
     ];
 }
 ?>
@@ -34,7 +31,7 @@ if (Auth::istEingeloggt()) {
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="/"><img src="/img/mhn-logo-small.png" id="mhn-logo"><span class="logo-text"> Mein MHN
+            <a class="navbar-brand" href="/"><img src="/img/mhn-logo-small.png" id="mhn-logo"><span class="logo-text"> Mitglieder
             </span>
                 <span class='pull-right showopacity glyphicon'><img src="/img/mhn-logo-small.png" id="mhn-icon"></span>
             </a>

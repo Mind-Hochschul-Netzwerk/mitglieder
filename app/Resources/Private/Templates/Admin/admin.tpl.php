@@ -1,10 +1,10 @@
 <?php declare(strict_types=1); namespace MHN\Mitglieder; ?>
 <h2>Mitgliederdaten bearbeiten</h2>
-<p>Suche das zu bearbeitende Mitglied mit der <a href="suche.php">Mitgliedersuche</a> und klicke im Profil auf "Daten bearbeiten".</p>
+<p>Suche das zu bearbeitende Mitglied mit der <a href="/">Mitgliedersuche</a> und klicke im Profil auf "Daten bearbeiten".</p>
 
 <?php if (Auth::hatRecht('rechte')): ?>
 <h2>Rollen verwalten</h2>
-<p>Suche das zu bearbeitende Mitglied mit der <a href="suche.php">Mitgliedersuche</a> und klicke im Profil auf "Daten bearbeiten".</p>
+<p>Suche das zu bearbeitende Mitglied mit der <a href="/">Mitgliedersuche</a> und klicke im Profil auf "Daten bearbeiten".</p>
 <p>Aktuell implementierte Rollen:</p>
 <ul>
 <?php
@@ -15,7 +15,7 @@
 </ul>
 <h3>Übersicht über gesetzte Rollen</h3>
 <div id="panels" class="row">
-<?php 
+<?php
     $recht_prev = null;
     foreach ($roles as $n=>$role) {
         echo "<div class='col-sm-2'><div class='panel panel-default'><div class='panel-heading'>$role[name]</div><div id='panel-$n' class='panel-body'>\n";
@@ -24,7 +24,7 @@
         }
         echo '</div></div></div>';
     }
-    
+
 ?>
 </div>
 <?php endif; ?>
