@@ -26,3 +26,6 @@ prod: .env check-traefik
 
 adminer: .env check-traefik
 	docker-compose -f docker-compose.base.yml -f docker-compose.dev.yml up -d mitglieder-adminer
+
+database: .env
+	docker-compose -f docker-compose.base.yml -f docker-compose.prod.yml up -d --force-recreate mitglieder-database
