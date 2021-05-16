@@ -64,7 +64,7 @@ class Password
     {
         // $5$ = SHA256 (LDAP compatible)
         // salt length = 8
-        return crypt($password, '$5$rounds=' . Config::passwordIterations . '$'. self::randomString(8) . '$'); 
+        return crypt($password, '$5$rounds=' . Config::passwordIterations . '$'. self::randomString(8) . '$');
     }
 
     /**
