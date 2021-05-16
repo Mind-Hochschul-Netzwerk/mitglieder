@@ -8,16 +8,16 @@ if (Auth::istEingeloggt()) {
         'admin' => Auth::hatRecht('mvedit') ? ['admin.php', 'Mitgliederverwaltung', 'wrench'] : null,
         'logout' => ['logout.php', 'Logout', 'log-out'],
         'homepage' => ['https://www.' . getenv('DOMAINNAME'), 'MHN-Webseite', 'home'],
-        'datenschutz' => ['https://www.' . getenv('DOMAINNAME') . '/mod/page/view.php?id=12', 'Datenschutz', 'paragraph'],
-        'impressum' => ['https://www.' . getenv('DOMAINNAME') . '/mod/page/view.php?id=5', 'Impressum', 'globe'],
+        'datenschutz' => ['https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=4', 'Datenschutz', 'paragraph'],
+        'impressum' => ['https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=5', 'Impressum', 'globe'],
     ];
 } else {
     $navItems = [
         'homepage' => ['https://www.' . getenv('DOMAINNAME'), 'Startseite', 'home'],
         'login' => ['/', 'Login', 'log-in'],
         'logout' => ['logout.php', 'Logout', 'log-out'],
-        'datenschutz' => ['https://www.' . getenv('DOMAINNAME') . '/mod/page/view.php?id=12', 'Datenschutz', 'paragraph'],
-        'impressum' => ['https://www.' . getenv('DOMAINNAME') . '/mod/page/view.php?id=5', 'Impressum', 'globe'],
+        'datenschutz' => ['https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=4', 'Datenschutz', 'paragraph'],
+        'impressum' => ['https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=5', 'Impressum', 'globe'],
     ];
 }
 ?>

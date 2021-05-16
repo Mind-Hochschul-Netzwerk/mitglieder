@@ -34,7 +34,6 @@
         <p><button class="link btn btn-secondary" onclick="return check_username();" name="passwort_vergessen">Ich habe mein Passwort vergessen.</button></p>
       </div>
       <div class="modal-footer">
-        <a class="btn btn-secondary" role="button" href="https://mind-hochschul-netzwerk.de/index.php/aufnahme/">Mitglied werden</a>
         <button type="submit" onclick="return check_username();" class="btn btn-primary">Login</button>
       </div>
 </form>
