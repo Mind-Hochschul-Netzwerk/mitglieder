@@ -566,7 +566,7 @@ class Mitglied
     public function sendEmail($subject, $body)
     {
         if (!(EmailService::getInstance()->send($this->get('email'), $subject, $body))) {
-            throw new \RuntimeException('Beim Versand der E-Mail an ' . $TO . ' (ID ' . $this->data['id'] . ') ist ein Fehler aufgetreten.', 1522422201);
+            throw new \RuntimeException('Beim Versand der E-Mail an ' . $this->get('email') . ' (ID ' . $this->data['id'] . ') ist ein Fehler aufgetreten.', 1522422201);
         }
     }
 }

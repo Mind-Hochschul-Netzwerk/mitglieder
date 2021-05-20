@@ -75,6 +75,7 @@ $body
             $this->mailer->addAddress($address);
             return $this->mailer->send();
         } catch (\Exception $e) {
+            error_log($e->getMessage());
             return false;
         }
     }
