@@ -41,8 +41,6 @@ services:
       - traefik.docker.network=traefik
       - traefik.http.routers.mitglieder.entrypoints=websecure
       - traefik.http.routers.mitglieder.rule=Host(`mitglieder.${DOMAINNAME}`)
-      - traefik.http.routers.mitglieder.tls=true
-      - traefik.http.routers.mitglieder.tls.certresolver=myresolver
       - traefik.http.routers.mitglieder.middlewares=secheader@file
     depends_on:
       - mitglieder-database
