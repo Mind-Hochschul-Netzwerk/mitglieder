@@ -265,8 +265,8 @@ class AufnahmeController
         $m->save();
 
         $ldap = Ldap::getInstance();
-        $ldap->addMoodleCourse($member['username'], 'alleMitglieder');
-        $ldap->addMoodleCourse($member['username'], 'listen');
+        $ldap->addMoodleCourse($this->username, 'alleMitglieder');
+        $ldap->addMoodleCourse($this->username, 'listen');
 
         $curl = curl_init('http://aufnahme:8080/get-antrag.php?action=finish&token=' . $this->token);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
