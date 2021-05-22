@@ -406,6 +406,9 @@ class Mitglied
         return Ldap::getInstance()->getRolesByUsername($this->get('username'));
     }
 
+    /**
+     * @throws \OutOfRangeException one of the new roles is invalid
+     */
     public function setRoles(array $roles): void
     {
         // shortcuts

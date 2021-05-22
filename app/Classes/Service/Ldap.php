@@ -78,7 +78,7 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
         }
     }
 
-    private function setAttributes($entry, array $data): void 
+    private function setAttributes($entry, array $data): void
     {
         if (!empty($data['firstname'])) {
             $entry->setAttribute('givenName', [$data['firstname']]);
@@ -124,7 +124,7 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
         return $entry;
     }
 
-    public function modifyUser(string $username, array $data): bool 
+    public function modifyUser(string $username, array $data): bool
     {
         $this->bind();
         $entry = $this->getEntryByUsername($username);
@@ -145,8 +145,8 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
 
         }
     }
-    
-    public function hasRole(string $username, string $role) 
+
+    public function hasRole(string $username, string $role)
     {
         $this->bind();
         $query = '(&(objectclass=groupOfNames)(cn=' . ldap_escape($role) . ')(member=' . $this->getDnByUsername($username) . '))';
@@ -154,19 +154,23 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
         return !empty($entry);
     }
 
-    private function getDnByUsername($username) 
+    private function getDnByUsername($username)
     {
         return 'cn=' . ldap_escape($username) . ',' . getenv('LDAP_PEOPLE_DN');
     }
-    
-    public function addRole($username, $role) 
+
+    /**
+     * @throws \InvalidArgumentException username does not exist
+     * @throws \OutOfRangeException role does not exist
+     */
+    public function addRole($username, $role)
     {
         if ($this->hasRole($username, $role)) {
             return;
         }
         $userEntry = $this->getEntryByUsername($username);
         if (!$userEntry) {
-            throw new \InvalidArgumentException('no such user: ' . $username, 1612375712);            
+            throw new \InvalidArgumentException('no such user: ' . $username, 1612375712);
         }
         $entry = $this->ldap->query(getenv('LDAP_ROLES_DN'), '(&(objectclass=groupOfNames)(cn=' . ldap_escape($role) . '))')->execute()[0];
         if (!$entry) {
@@ -178,7 +182,7 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
         $this->ldap->getEntryManager()->update($entry);
     }
 
-    public function removeRole($username, $role) 
+    public function removeRole($username, $role)
     {
         $this->bind();
         $query = '(&(objectclass=groupOfNames)(cn=' . ldap_escape($role) . ')(member=' . $this->getDnByUsername($username) . '))';
@@ -195,6 +199,7 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
                 break;
             }
         }
+        $member = array_values($member);
         $entry->setAttribute('member', $member);
         $this->ldap->getEntryManager()->update($entry);
     }
@@ -225,12 +230,12 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
 
     /**
      * @return array [
-     *  ['name' => role name, 
+     *  ['name' => role name,
      *   'description' => description,
      *    'users' => [
      *        ['id' => uid, 'username' => username, 'firstname' => first name, 'lastname' => last name],
      *         ...
-     *        ], 
+     *        ],
      *    ...
      *  ], ... ]
      */
@@ -261,7 +266,7 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
                 return $entry !== null;
             });
             $roles[] = [
-                    'name' => $role->getAttribute('cn')[0], 
+                    'name' => $role->getAttribute('cn')[0],
                     'description' => $role->getAttribute('description')[0],
                     'users' => $members
             ];
