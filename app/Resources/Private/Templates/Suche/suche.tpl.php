@@ -23,7 +23,7 @@
         <p>Die Suche erbrachte kein Ergebnis.</p>
     <?php else: ?>
         <div class="table-responsive"><table class="table vertical-center" id="suchergebnisse">
-            <tr><th>#</th><th>Profilbild</th><th>Name</th><th>Ort</th><th>Benutzerseite im Wiki</th></tr>
+            <tr><th>#</th><th>Profilbild</th><th>Name</th><th>Ort</th></tr>
             <?php
 
             $n = 0;
@@ -41,7 +41,6 @@
                     <td>$thumbnail</td>
                     <td><a href='profil.php?id=$e[id]'>$e[fullName]</a></td>
                     <td>$e[orte]</td>
-                    <td><a href='https://wiki.mind-hochschul-netzwerk.de/wiki/Benutzer:$e[username]'>$e[username]</a></td>
                 </tr>\n";
             }
             ?>

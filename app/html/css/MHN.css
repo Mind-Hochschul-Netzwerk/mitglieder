@@ -184,6 +184,17 @@ button.hidden-default-button {
 #suchergebnisse .inaktiv, #suchergebnisse .inaktiv * {
     color: #bbb;
 }
+#suchergebnisse th:nth-child(1) {
+    width: 30px;
+    text-align: center;
+}
+#suchergebnisse th:nth-child(2) {
+    width: 120px;
+    text-align: center;
+}
+#suchergebnisse th:nth-child(3) {
+    width: 400px;
+}
 
 .thumbnail-container {
     width: 100px;

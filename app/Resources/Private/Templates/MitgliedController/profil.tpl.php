@@ -35,12 +35,6 @@ function row($label, $value, $sichtbarkeit = true)
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-xs-6">Benutzerseite im Wiki</div>
-                <div class="col-xs-6">
-                        <a href="https://wiki.mind-hochschul-netzwerk.de/wiki/Benutzer:<?=$username?>"><?=$username?></a>
-                </div>
-            </div>
             <?php if ($mensa_nr): ?>
                 <div class="row <?=sichtbarkeit($sichtbarkeit_mensa_nr)?>">
                     <div class="col-xs-6">Mensa-Mitgliedsnummer:</div>
