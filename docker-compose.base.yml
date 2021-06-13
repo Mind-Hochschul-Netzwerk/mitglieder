@@ -3,6 +3,7 @@ services:
   mitglieder-database:
     image: mariadb
     restart: unless-stopped
+    container_name: mitglieder-database
     environment:
       - MYSQL_USER=user
       - MYSQL_PASSWORD
@@ -17,6 +18,7 @@ services:
   mitglieder:
     image: mindhochschulnetzwerk/mitglieder
     restart: unless-stopped
+    container_name: mitglieder
     environment:
       - DOMAINNAME
       - MYSQL_HOST=mitglieder-database

@@ -9,6 +9,7 @@ services:
   mitglieder-adminer:
     image: adminer
     restart: unless-stopped
+    container_name: mitglieder-adminer
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik
