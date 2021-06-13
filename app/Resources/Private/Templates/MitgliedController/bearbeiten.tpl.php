@@ -152,9 +152,7 @@ if (!empty($errorMessage)) {
     <li <?=$active_pane === 'ausbildungberuf' ? 'class="active"' : ''?> ><a data-toggle="tab" href="#ausbildungberuf">Ausbildung und Beruf</a></li>
     <li <?=$active_pane === 'profilbild' ? 'class="active"' : ''?> ><a data-toggle="tab" href="#profilbild">Profilbild</a></li>
     <li <?=$active_pane === 'settings' ? 'class="active"' : ''?> ><a data-toggle="tab" href="#settings">Netzwerk</a></li>
-    <?php if (\MHN\Mitglieder\Auth::hatRecht('mvedit')): ?>
-    <li <?=$active_pane === 'mvedit' ? 'class="active"' : ''?> ><a data-toggle="tab" href="#mvedit">Mitgliederverwaltung</a></li>
-    <?php endif; ?>
+    <li <?=$active_pane === 'account' ? 'class="active"' : ''?> ><a data-toggle="tab" href="#account">MHN-Mitgliedskonto</a></li>
 </ul>
 
 <form enctype="multipart/form-data" method="post" id="profile-form">
@@ -187,22 +185,10 @@ if (!empty($errorMessage)) {
             Beauftragten der Mitgliederverwaltung sichtbar sind. Bei einigen Angaben kann die Sichtbarkeit nicht geändert werden. Weitere Informationen findest du in der Datenschutzerklärung (Link in der Navigation).
         </p>
 
-        <?=form_row('Mitgliedsnr. + Benutzername', [
-            ['id', $id, 'disabled' => true, 'title' => 'Die Mitgliedsnummer ist nicht änderbar.', 'sichtbarkeit' => true],
-            ['username', $username, 'disabled' => true, 'title' => 'Der Benutzername ist nicht änderbar.', 'sichtbarkeit' => true],
-        ])?>
-        <?=form_row('Aufnahmedatum', [['aufnahmedatum', $aufnahmedatum === null ? '0000-00-00' : $aufnahmedatum->format('Y-m-d'), 'date', 'disabled' => true, 'title' => 'Das Aufnahmedatum ist nicht änderbar.', 'sichtbarkeit' => true]])?>
-
-        <?=form_row('Geburtsdatum', [
-            ['geburtstag', $geburtstag === null ? '0000-00-00' : $geburtstag->format('Y-m-d'), 'date', 'placeholder' => 'Geburtsdatum', 'disabled' => $disableMitgliederverwaltung, 'sichtbarkeit' => ['sichtbarkeit_geburtstag', $sichtbarkeit_geburtstag]],
-        ])?>
         <?=form_row('Vorname(n) + Nachname', [
             ['vorname', $vorname, 'text', 5, 'disabled' => $disableMitgliederverwaltung, 'sichtbarkeit' => true],
             ['nachname', $nachname, 'text', 5, 'disabled' => $disableMitgliederverwaltung, 'sichtbarkeit' => true],
         ])?>
-
-        <?=form_row('E-Mail' . ((!empty($email_auth_info)) ? ' (wird geändert)' : '') , [['email', $email, 'email', 'error' => $email_error, 'sichtbarkeit' => ['sichtbarkeit_email', $sichtbarkeit_email]]])?>
-        <?=form_row('Telefon', [['telefon', $telefon, 'tel', 'sichtbarkeit' => ['sichtbarkeit_telefon', $sichtbarkeit_telefon]]])?>
 
         <?=form_row('Straße + Hausnummer', [['strasse', $strasse, 'sichtbarkeit' => ['sichtbarkeit_strasse', $sichtbarkeit_strasse]]])?>
         <?=form_row('ggf. Adresszusatz', [['adresszusatz', $adresszusatz, 'sichtbarkeit' => ['sichtbarkeit_adresszusatz', $sichtbarkeit_adresszusatz]]])?>
@@ -227,6 +213,13 @@ if (!empty($errorMessage)) {
             };
         </script>
 
+        <?=form_row('Geburtsdatum', [
+            ['geburtstag', $geburtstag === null ? '0000-00-00' : $geburtstag->format('Y-m-d'), 'date', 'placeholder' => 'Geburtsdatum', 'disabled' => $disableMitgliederverwaltung, 'sichtbarkeit' => ['sichtbarkeit_geburtstag', $sichtbarkeit_geburtstag]],
+        ])?>
+
+        <?=form_row('E-Mail' . ((!empty($email_auth_info)) ? ' (wird geändert)' : '') , [['email', $email, 'email', 'error' => $email_error, 'sichtbarkeit' => ['sichtbarkeit_email', $sichtbarkeit_email]]])?>
+        <?=form_row('Telefon', [['telefon', $telefon, 'tel', 'sichtbarkeit' => ['sichtbarkeit_telefon', $sichtbarkeit_telefon]]])?>
+
         <?=form_row('Beschäftigung', [['beschaeftigung', $beschaeftigung, 'select', 'options' => [
             'Schueler' => $geschlecht === 'w' ? 'Schülerin' : 'Schüler',
             'Hochschulstudent' => $geschlecht === 'w' ? 'Hochschulstudentin' : 'Hochschulstudent',
@@ -234,15 +227,7 @@ if (!empty($errorMessage)) {
             'Berufstaetig' => 'berufstätig',
             'Sonstiges' => 'sonstiges',
         ], 'sichtbarkeit' => ['sichtbarkeit_beschaeftigung', $sichtbarkeit_beschaeftigung]]])?>
-
-        <h4>Passwort ändern</h4>
-        <?=form_row('Neues Passwort', [['new_password', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '', 'autocomplete' => 'new-password']])?>
-        <?=form_row('Passwort wiederholen', [['new_password2', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '']])?>
-        <?php if (!\MHN\Mitglieder\Auth::hatRecht('mvedit') || \MHN\Mitglieder\Auth::ist($id)): ?>
-            <?=form_row('Altes Passwort', [['password', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '', 'autocomplete' => 'current-password']])?>
-        <?php endif; ?>
     </div>
-
 
     <div class="tab-pane <?=$active_pane === 'uebermich' ? 'active' : ''?>" id="uebermich">
         <h3>Über mich</h3>
@@ -405,60 +390,87 @@ if (!empty($errorMessage)) {
         </div>
     </div>
 
-    <?php if (\MHN\Mitglieder\Auth::hatRecht('mvedit')): ?>
-    <div class="tab-pane <?=$active_pane === 'mvedit' ? 'active' : ''?>" id="mvedit">
-            <h3>Mitgliederverwaltung</h3>
+    <div class="tab-pane <?=$active_pane === 'account' ? 'active' : ''?>" id="account">
+            <h3>Mitgliedskonto</h3>
 
             <div class="row">
-                <div class="col-sm-2">Benutzerkonto aktiviert</div>
-                <div class="col-sm-10"><?=$aktiviert ? 'ja' : 'nein'?></div>
+                <div class="col-sm-2">MHN-Mitgliedsnummer</div>
+                <div class="col-sm-10"><?=$id?></div>
             </div>
 
             <div class="row">
-                <div class="col-sm-2">Kenntnisnahme zur Datenverarbeitung (Mitgliederverwaltung)</div>
-                <div class="col-sm-10"><?= ($kenntnisnahme_datenverarbeitung === null) ? 'nein' : ('zur Kenntnis genommen am ' .  $kenntnisnahme_datenverarbeitung->format('d.m.Y, H:i:s') . ' Uhr.')?></div>
-            </div>
-            <div class="row">
-                <div class="col-sm-2">Kenntnisnahme zur Datenverarbeitung (Mitgliederverwaltung): Text</div>
-                <div class="col-sm-10"><textarea disabled class="small" style="width:100%;"><?=$kenntnisnahme_datenverarbeitung_text?></textarea></div>
-            </div>
-            <div class="row">
-                <div class="col-sm-2">Kenntnisnahme zur Datenverarbeitung (Aufnahmetool)</div>
-                <div class="col-sm-10"><?= ($kenntnisnahme_datenverarbeitung_aufnahme === null) ? 'nein' : ('zur Kenntnis genommen am ' .  $kenntnisnahme_datenverarbeitung_aufnahme->format('d.m.Y, H:i:s') . ' Uhr.')?></div>
-            </div>
-            <div class="row">
-                <div class="col-sm-2">Kenntnisnahme zur Datenverarbeitung (Aufnahmetool): Text</div>
-                <div class="col-sm-10"><textarea disabled class="small" style="width:100%;"><?=$kenntnisnahme_datenverarbeitung_aufnahme_text?></textarea></div>
-            </div>
-            <div class="row">
-                <div class="col-sm-2">Einwilligung zur Datenverarbeitung (Aufnahmetool)</div>
-                <div class="col-sm-10"><?= ($einwilligung_datenverarbeitung_aufnahme === null) ? 'nein' : ('eingewilligt am ' .  $einwilligung_datenverarbeitung_aufnahme->format('d.m.Y, H:i:s') . ' Uhr.')?></div>
-            </div>
-            <div class="row">
-                <div class="col-sm-2">Einwilligung zur Datenverarbeitung (Aufnahmetool): Text</div>
-                <div class="col-sm-10"><textarea disabled class="small" style="width:100%;"><?=$einwilligung_datenverarbeitung_aufnahme_text?></textarea></div>
+                <div class="col-sm-2">Anmeldename</div>
+                <div class="col-sm-10"><?=$username?></div>
             </div>
 
-            <?php if (\MHN\Mitglieder\Auth::hatRecht('rechte')): ?>
-                <?=form_row('Rollen', [['rechte', implode(', ', $roles), 'placeholder' => 'Trennen durch Komma. Mögliche Werte siehe Menüpunkt „Mitgliederverwaltung”', 'sichtbarkeit' => false]])?>
-            <?php endif; ?>
-
-            <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Mitglied löschen</label>
-                <div class="col-sm-10"><label><input name="delete" type="checkbox" id="delete"
-                    onclick="return confirm(&quot;Bist du ganz sicher?&quot; + (!$(&quot;#delete&quot;).get(0).checked ? &quot;&quot; : &quot; Daten werden unwiederbringlich gelöscht!&quot;));"
-                    >
-                    </label>
-                    Die Daten werden SOFORT endgültig und unwiederbringlich gelöscht! Die Mitglieder der Mitgliederbetreuung werden informiert.
-                </div>
+            <div class="row">
+                <div class="col-sm-2">Mitglied seit</div>
+                <div class="col-sm-10"><?=($aufnahmedatum === null ? 'unbekannt' : $aufnahmedatum->format('d.m.Y'))?></div>
             </div>
 
             <div class="row">
                 <div class="col-sm-2">Letzte Bearbeitung</div>
                 <div class="col-sm-10"><?= $db_modified === null ? 'unbekannt' : $db_modified->format('d.m.Y H:i:s') ?> durch <?= $db_modified_user === null ? 'unbekannt' : $db_modified_user->get('profilLink') ?></div>
             </div>
+
+            <h4>Passwort ändern</h4>
+            <?php if (!\MHN\Mitglieder\Auth::hatRecht('mvedit') || \MHN\Mitglieder\Auth::ist($id)): ?>
+                <?=form_row('Altes Passwort', [['password', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '', 'autocomplete' => 'current-password']])?>
+            <?php endif; ?>
+            <?=form_row('Neues Passwort', [['new_password', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '', 'autocomplete' => 'new-password']])?>
+            <?=form_row('Passwort wiederholen', [['new_password2', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '']])?>
+
+            <h4>Mitgliedschaft beenden</h4>
+            <p>Bitte schreibe eine E-Mail an <a href="mailto:vorstand@mind-hochschul-netzwerk.de">vorstand@mind-hochschul-netzwerk.de</a>, wenn du deine Mitgliedschaft im MHN beenden möchtest. Wir werden dann deine Daten aus der Datenbank löschen.</p>
+
+            <?php if (\MHN\Mitglieder\Auth::hatRecht('mvedit')): ?>
+                <h4>Mitgliederverwaltung</h4>
+
+                <div class="row">
+                    <div class="col-sm-2">Benutzerkonto aktiviert</div>
+                    <div class="col-sm-10"><?=$aktiviert ? 'ja' : 'nein'?></div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-2">Kenntnisnahme zur Datenverarbeitung (Mitgliederverwaltung)</div>
+                    <div class="col-sm-10"><?= ($kenntnisnahme_datenverarbeitung === null) ? 'nein' : ('zur Kenntnis genommen am ' .  $kenntnisnahme_datenverarbeitung->format('d.m.Y, H:i:s') . ' Uhr.')?></div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-2">Kenntnisnahme zur Datenverarbeitung (Mitgliederverwaltung): Text</div>
+                    <div class="col-sm-10"><textarea disabled class="small" style="width:100%;"><?=$kenntnisnahme_datenverarbeitung_text?></textarea></div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-2">Kenntnisnahme zur Datenverarbeitung (Aufnahmetool)</div>
+                    <div class="col-sm-10"><?= ($kenntnisnahme_datenverarbeitung_aufnahme === null) ? 'nein' : ('zur Kenntnis genommen am ' .  $kenntnisnahme_datenverarbeitung_aufnahme->format('d.m.Y, H:i:s') . ' Uhr.')?></div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-2">Kenntnisnahme zur Datenverarbeitung (Aufnahmetool): Text</div>
+                    <div class="col-sm-10"><textarea disabled class="small" style="width:100%;"><?=$kenntnisnahme_datenverarbeitung_aufnahme_text?></textarea></div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-2">Einwilligung zur Datenverarbeitung (Aufnahmetool)</div>
+                    <div class="col-sm-10"><?= ($einwilligung_datenverarbeitung_aufnahme === null) ? 'nein' : ('eingewilligt am ' .  $einwilligung_datenverarbeitung_aufnahme->format('d.m.Y, H:i:s') . ' Uhr.')?></div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-2">Einwilligung zur Datenverarbeitung (Aufnahmetool): Text</div>
+                    <div class="col-sm-10"><textarea disabled class="small" style="width:100%;"><?=$einwilligung_datenverarbeitung_aufnahme_text?></textarea></div>
+                </div>
+
+                <?php if (\MHN\Mitglieder\Auth::hatRecht('rechte')): ?>
+                    <?=form_row('Rollen ändern', [['rechte', implode(', ', $roles), 'placeholder' => 'Trennen durch Komma. Mögliche Werte siehe Menüpunkt „Mitgliederverwaltung”', 'sichtbarkeit' => false]])?>
+                <?php endif; ?>
+
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">Mitglied löschen</label>
+                    <div class="col-sm-10"><label><input name="delete" type="checkbox" id="delete"
+                        onclick="return confirm(&quot;Bist du ganz sicher?&quot; + (!$(&quot;#delete&quot;).get(0).checked ? &quot;&quot; : &quot; Daten werden unwiederbringlich gelöscht!&quot;));"
+                        >
+                        </label>
+                        Die Daten werden SOFORT endgültig und unwiederbringlich gelöscht! Die Mitglieder der Mitgliederbetreuung werden informiert.
+                    </div>
+                </div>
+            <?php endif; ?>
     </div>
-    <?php endif; ?>
 </div>
 
 <div class="form-group row">
