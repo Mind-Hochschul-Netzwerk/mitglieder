@@ -32,7 +32,7 @@ function form_row($label, $inputs)
             $disabled = 'disabled="disabled"';
             $placeholder = '';
             if (!isset($input['title'])) {
-                $input['title'] = 'Bitte wende dich an die Mitgliederverwaltung, wenn dieses Feld geändert werden muss.';
+                $input['title'] = 'Bitte wende dich an die Mitgliederbetreuung, wenn dieses Feld geändert werden muss.';
             }
         }
 
