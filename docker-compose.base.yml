@@ -3,7 +3,7 @@ services:
   mitglieder-database:
     image: mariadb
     restart: unless-stopped
-    container_name: mitglieder-database
+    container_name: ${SERVICENAME}-database
     environment:
       - MYSQL_USER=user
       - MYSQL_PASSWORD
@@ -13,15 +13,15 @@ services:
       - "./docker/sql:/docker-entrypoint-initdb.d:ro"
       - "${VOLUMES_DIR}/mariadb:/var/lib/mysql"
     networks:
-      - mitglieder
+      - ${SERVICENAME}
 
   mitglieder:
-    image: mindhochschulnetzwerk/mitglieder
+    image: mindhochschulnetzwerk/${SERVICENAME}
     restart: unless-stopped
-    container_name: mitglieder
+    container_name: ${SERVICENAME}
     environment:
       - DOMAINNAME
-      - MYSQL_HOST=mitglieder-database
+      - MYSQL_HOST=${SERVICENAME}-database
       - MYSQL_USER=user
       - MYSQL_PASSWORD
       - MYSQL_DATABASE=database
@@ -41,14 +41,14 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik
-      - traefik.http.routers.mitglieder.entrypoints=websecure
-      - traefik.http.routers.mitglieder.rule=Host(`mitglieder.${DOMAINNAME}`)
-      - traefik.http.routers.mitglieder.middlewares=secheader@file
+      - traefik.http.routers.${SERVICENAME}.entrypoints=websecure
+      - traefik.http.routers.${SERVICENAME}.rule=Host(`${SERVICENAME}.${DOMAINNAME}`)
+      - traefik.http.routers.${SERVICENAME}.middlewares=secheader@file
     depends_on:
-      - mitglieder-database
+      - ${SERVICENAME}-database
     networks:
       - traefik
-      - mitglieder
+      - ${SERVICENAME}
       - ldap
 
 networks:
@@ -59,4 +59,4 @@ networks:
     name: ldap
     external: true
   mitglieder:
-    name: mitglieder
+    name: ${SERVICENAME}

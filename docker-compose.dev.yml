@@ -9,15 +9,15 @@ services:
   mitglieder-adminer:
     image: adminer
     restart: unless-stopped
-    container_name: mitglieder-adminer
+    container_name: ${SERVICENAME}-adminer
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik
-      - traefik.http.routers.mitglieder-adminer.entrypoints=websecure
-      - traefik.http.routers.mitglieder-adminer.rule=Host(`mitglieder-adminer.${DOMAINNAME}`)
-      - traefik.http.routers.mitglieder-adminer.middlewares=secheader@file
+      - traefik.http.routers.${SERVICENAME}-adminer.entrypoints=websecure
+      - traefik.http.routers.${SERVICENAME}-adminer.rule=Host(`${SERVICENAME}-adminer.${DOMAINNAME}`)
+      - traefik.http.routers.${SERVICENAME}-adminer.middlewares=secheader@file
     depends_on:
-      - mitglieder-database
+      - ${SERVICENAME}-database
     networks:
       - traefik
-      - mitglieder
+      - ${SERVICENAME}
