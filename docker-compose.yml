@@ -19,6 +19,8 @@ services:
     image: mindhochschulnetzwerk/${SERVICENAME}
     restart: unless-stopped
     container_name: ${SERVICENAME}
+    volumes:
+      - "${VOLUMES_DIR}/profilbilder:/var/www/html/profilbilder"
     environment:
       - DOMAINNAME
       - MYSQL_HOST=${SERVICENAME}-database
@@ -50,6 +52,21 @@ services:
       - traefik
       - ${SERVICENAME}
       - ldap
+
+  mitglieder-adminer:
+    image: adminer
+    container_name: ${SERVICENAME}-adminer
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.${SERVICENAME}-adminer.entrypoints=websecure
+      - traefik.http.routers.${SERVICENAME}-adminer.rule=Host(`${SERVICENAME}-adminer.${DOMAINNAME}`)
+      - traefik.http.routers.${SERVICENAME}-adminer.middlewares=secheader@file
+    depends_on:
+      - ${SERVICENAME}-database
+    networks:
+      - traefik
+      - ${SERVICENAME}
 
 networks:
   traefik:

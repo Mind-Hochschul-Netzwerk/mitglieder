@@ -3,21 +3,4 @@ services:
   mitglieder:
     volumes:
       - "./app:/var/www"
-      - "./update.d:/update.d"
       - "${VOLUMES_DIR}/profilbilder:/var/www/html/profilbilder"
-
-  mitglieder-adminer:
-    image: adminer
-    restart: unless-stopped
-    container_name: ${SERVICENAME}-adminer
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=traefik
-      - traefik.http.routers.${SERVICENAME}-adminer.entrypoints=websecure
-      - traefik.http.routers.${SERVICENAME}-adminer.rule=Host(`${SERVICENAME}-adminer.${DOMAINNAME}`)
-      - traefik.http.routers.${SERVICENAME}-adminer.middlewares=secheader@file
-    depends_on:
-      - ${SERVICENAME}-database
-    networks:
-      - traefik
-      - ${SERVICENAME}
