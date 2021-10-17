@@ -9,9 +9,10 @@ namespace MHN\Mitglieder;
 
 use MHN\Mitglieder\Config;
 use MHN\Mitglieder\Mitglied;
+use MHN\Mitglieder\Service\Db;
+use MHN\Mitglieder\Service\Ldap;
 use MHN\Mitglieder\Service\Session;
 use MHN\Mitglieder\Tpl;
-use MHN\Mitglieder\Service\Ldap;
 
 Auth::init();
 
@@ -180,7 +181,7 @@ class Auth
             return true;
         }
 
-        $hash = DB::query('SELECT password FROM mitglieder WHERE id=%d', $uid)->get();
+        $hash = Db::getInstance()->query('SELECT password FROM mitglieder WHERE id=:id', ['id' => $uid])->get();
         if (Password::check((string)$hash, $password, $uid)) {
             // store password in ldap
             $u->set('password', $password);

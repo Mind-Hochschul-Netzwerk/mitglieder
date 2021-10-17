@@ -11,7 +11,7 @@ namespace MHN\Mitglieder;
 
 use MHN\Mitglieder\Auth;
 use MHN\Mitglieder\Tpl;
-use MHN\Mitglieder\DB;
+use MHN\Mitglieder\Service\Db;
 
 require_once '../lib/base.inc.php';
 
@@ -24,7 +24,7 @@ if (!Auth::hatRecht('wahlleitung')) {
     die('Fehlende Rechte.');
 }
 
-$emails = DB::query('SELECT email FROM mitglieder WHERE aktiviert = true ORDER BY email')->get_column();
+$emails = Db::getInstance()->query('SELECT email FROM mitglieder WHERE aktiviert = true ORDER BY email')->getColumn();
 
 Tpl::pause();
 

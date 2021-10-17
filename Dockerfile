@@ -7,7 +7,6 @@ COPY app/ /var/www/
 
 RUN set -ex \
   && apk --no-cache add \
-    php7-mysqli \
     php7-xml \
     php7-zip \
     php7-curl \
@@ -15,6 +14,7 @@ RUN set -ex \
     php7-ldap \  
     php7-session \
     php7-ctype \
+    php7-pdo_mysql \
   && mkdir /var/www/vendor && chown www-data:www-data /var/www/vendor \
   && su www-data -s /bin/sh -c "composer install -d /var/www --optimize-autoloader --no-dev --no-interaction --no-progress --no-cache" \
   && chown -R nobody:nobody /var/www \

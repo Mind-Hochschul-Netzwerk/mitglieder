@@ -11,6 +11,8 @@ namespace MHN\Mitglieder;
 
 include '../lib/base.inc.php';
 
+use \MHN\Mitglieder\Service\Db;
+
 Auth::intern();
 
 Tpl::set('htmlTitle', 'MHN-Mitgliederverzeichnis');
@@ -48,10 +50,11 @@ if ($_GET['q']) {
     });
 
     $AND = ['(1=1)'];
+    $values = [];
     foreach ($begriffe as $b) {
         $OR = [];
         foreach (felder as $feld) {
-            $f = '(';
+            $f = '';
             if (strpos($feld, '|')) {
                 list($feld, $sichtbarkeitsfeld) = explode('|', $feld);
                 if ($sichtbarkeitsfeld === 's') {
@@ -60,22 +63,28 @@ if ($_GET['q']) {
                 $f .= "$sichtbarkeitsfeld = 1 AND ";
             }
             if (in_array($feld, felder_eq, true)) {
-                $f .= "$feld = '" . DB::_($b) . "')";
+                $f .= "$feld = :$feld";
+                $values[$feld] = $b;
             } else {
-                $f .= "$feld LIKE '%" . DB::_($b) . "%')";
+                $f .= "$feld LIKE :$feld";
+                $values[$feld] = "%$b%";
             }
-            $OR[] = $f;
+            $OR[] = "($f)";
         }
 
         $AND[] = '(' . implode(' OR ', $OR) . ')';
     }
 
     // TODO Pagination?? oder einfach suche einschränken lassen und die erst 50 zeigen...
-    $ids = DB::query('SELECT id FROM mitglieder WHERE aktiviert = true AND ' . implode(' AND ', $AND) . ' ORDER BY nachname, vorname LIMIT 50')->get_column();
+    $db = Db::getInstance();
+    $ids = $db->query('SELECT id FROM mitglieder WHERE aktiviert = true AND ' . implode(' AND ', $AND) . ' ORDER BY nachname, vorname LIMIT 50', $values)->getColumn();
 
     // Die Mitgliederverwaltung darf auch nach nicht aktivierten Mitgliedern suchen
     if (Auth::hatRecht('mvedit')) {
-        $id = DB::query('SELECT id FROM mitglieder WHERE id=%d OR username="%s"', (int)$_GET['q'], $_GET['q'])->get();
+        $id = DB::getInstance()->query('SELECT id FROM mitglieder WHERE id=:id OR username=:username', [
+            'id' => (int)$_GET['q'],
+            'username' => $_GET['q']
+        ])->get();
         if ($id) {
             array_unshift($ids, $id);
         }

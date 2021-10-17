@@ -8,11 +8,11 @@ namespace MHN\Mitglieder;
 
 use DateTime;
 use MHN\Mitglieder\Config;
-use MHN\Mitglieder\DB;
 use MHN\Mitglieder\Domain\Repository\ChangeLog;
 use MHN\Mitglieder\Domain\Model\ChangeLogEntry;
-use MHN\Mitglieder\Service\Ldap;
 use MHN\Mitglieder\Service\EmailService;
+use MHN\Mitglieder\Service\Ldap;
+use MHN\Mitglieder\Service\Db;
 
 /**
  * Repräsentiert ein Mitglied
@@ -51,7 +51,7 @@ class Mitglied
             return;
         }
 
-        $data = DB::query('SELECT '. implode(',', array_keys(self::felder)) . ' FROM mitglieder WHERE id=%d ' . ($auchDeaktivierte ? '' : 'AND aktiviert=true'), $uid)->get_row();
+        $data = Db::getInstance()->query('SELECT '. implode(',', array_keys(self::felder)) . ' FROM mitglieder WHERE id=:id ' . ($auchDeaktivierte ? '' : 'AND aktiviert=true'), ['id' => $uid])->getRow();
         if (!$data) {
             return;
         }
@@ -264,7 +264,7 @@ class Mitglied
         if ($existingId !== null) {
             return false;
         }
-        $id = DB::query('SELECT id FROM deleted_usernames WHERE username = "%s"', $username)->get();
+        $id = Db::getInstance()->query('SELECT id FROM deleted_usernames WHERE username = :username', ['username' => $username])->get();
         if ($id) {
             return false;
         }
@@ -389,7 +389,7 @@ class Mitglied
      */
     public static function getIdByUsername(string $username): ?int
     {
-        $id = DB::query('SELECT id FROM mitglieder WHERE username="%s"', $username)->get();
+        $id = Db::getInstance()->query('SELECT id FROM mitglieder WHERE username=:username', ['username' => $username])->get();
         if ($id === null) {
             return null;
         }
@@ -486,8 +486,12 @@ class Mitglied
 
         ChangeLog::getInstance()->deleteByUserId($this->get('id'));
 
-        DB::query('INSERT INTO deleted_usernames SET id = %d, username = "%s"', $this->get('id'), $this->get('username'));
-        DB::query('DELETE FROM mitglieder WHERE id = %d', $this->get('id'));
+        $db = Db::getInstance();
+        $db->query('INSERT INTO deleted_usernames SET id = :id, username = :username', [
+            'id' => $this->get('id'),
+            'username' => $this->get('username')
+        ]);
+        $db->query('DELETE FROM mitglieder WHERE id = :id', ['id' => $this->get('id')]);
 
         $this->deleted = true;
 
@@ -513,7 +517,7 @@ class Mitglied
         ];
 
         // Query bauen
-        $key_value_pairs = [];
+        $values = [];
         foreach (array_keys(self::felder) as $feld) {
             if (in_array($feld, ['id'], true)) {
                 continue;
@@ -526,31 +530,24 @@ class Mitglied
                 $value = 'in ldap';
             }
 
-            if ($value === false) {
-                $key_value_pairs[] = "$feld = 0";
-            } elseif ($value === true) {
-                $key_value_pairs[] = "$feld = 1";
-            } elseif ($value === null) {
-                $key_value_pairs[] = "$feld = NULL";
-            } elseif (gettype($value) === 'integer' || gettype($value) === 'double') {
-                $key_value_pairs[] = "$feld = $value";
-            } elseif (gettype($value) === 'string') {
-                $key_value_pairs[] = sprintf("$feld = '%s'", DB::_($value));
-            } elseif (gettype($value) === 'object' && get_class($value) === 'DateTime') {
-                $key_value_pairs[] = sprintf("$feld = '%s'", $value->format('Y-m-d H:i:s'));
-            }
+            $values[$feld] = $value;
         }
+
+        $setQuery = implode(', ', array_map(function($i) {
+            return "$i = :$i";
+        }, array_keys($values)));
 
         // neuen Benutzer anlegen
         if ($this->data['id'] === null) {
             $this->changeLog = [];
-            DB::actualQuery("INSERT INTO mitglieder SET \n" . implode(",\n    ", $key_value_pairs));
-            $this->setData('id', DB::insert_id());
+            $id = (int) Db::getInstance()->query("INSERT INTO mitglieder SET $setQuery", $values)->getInsertId();
+            $this->setData('id', $id);
 
             $ldapData['id'] = $this->get('id');
             $this->ldapEntry = Ldap::getInstance()->addUser($this->get('username'), $ldapData);
         } else {
-            DB::actualQuery("UPDATE mitglieder SET \n" . implode(",\n    ", $key_value_pairs) . "\nWHERE id=" . ((int)$this->get('id')));
+            $values['id'] = (int)$this->get('id');
+            Db::getInstance()->query("UPDATE mitglieder SET $setQuery WHERE id=:id", $values);
             Ldap::getInstance()->modifyUser($this->get('username'), $ldapData);
         }
 

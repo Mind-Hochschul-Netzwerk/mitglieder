@@ -9,12 +9,12 @@ namespace MHN\Mitglieder;
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
-use MHN\Mitglieder\Auth;
-use MHN\Mitglieder\DB;
-use MHN\Mitglieder\Mitglied;
-use MHN\Mitglieder\Tpl;
-use MHN\Mitglieder\Service\Ldap;
-use MHN\Mitglieder\Service\Token;
+use \MHN\Mitglieder\Auth;
+use \MHN\Mitglieder\Mitglied;
+use \MHN\Mitglieder\Tpl;
+use \MHN\Mitglieder\Service\Db;
+use \MHN\Mitglieder\Service\Ldap;
+use \MHN\Mitglieder\Service\Token;
 
 require_once '../lib/base.inc.php';
 
@@ -29,7 +29,11 @@ if (!$_REQUEST['id'] && !empty($_REQUEST['password'])) {
 }
 
 if ($_REQUEST['id']) {
-    $id = DB::query('SELECT id FROM mitglieder WHERE id=%d OR username="%s" OR email="%s"', (int)$_REQUEST['id'], $_REQUEST['id'], $_REQUEST['id'])->get();
+    $id = DB::getInstance()->query('SELECT id FROM mitglieder WHERE id=:id OR username=:username OR email=:email', [
+        'id' => (int)$_REQUEST['id'],
+        'username' => $_REQUEST['id'],
+        'email' => $_REQUEST['id'],
+    ])->get();
 
     // keinen Hinweis geben, ob die ID gefunden wurde!
 

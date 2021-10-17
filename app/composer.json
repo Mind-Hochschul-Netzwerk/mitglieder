@@ -5,7 +5,8 @@
     "require": {
         "php": "^7.4",
         "symfony/ldap": "^5.2",
-        "phpmailer/phpmailer": "^6.3"
+        "phpmailer/phpmailer": "^6.3",
+        "hengeb/db": "^0.0.4"
     },
     "autoload": {
         "psr-4": {

@@ -8,8 +8,7 @@ namespace MHN\Mitglieder\Domain\Repository;
  */
 
 use MHN\Mitglieder\Domain\Model\ChangeLogEntry;
-use MHN\Mitglieder\DB;
-use MHN\Mitglieder\DB_Result;
+use MHN\Mitglieder\Service\Db;
 
 /**
  * Ein Log mit den Änderungen der Mitgliedsdaten
@@ -27,7 +26,7 @@ class ChangeLog implements \MHN\Mitglieder\Interfaces\Singleton
      */
     public function getEntryById(int $id) : ChangeLogEntry
     {
-        $row = DB::query('SELECT id, userId, changerUserId, dataTimestamp, dataName, oldValue, newValue, info FROM userdata_changelog WHERE id=%d', $id)->get_row();
+        $row = Db::getInstance()->query('SELECT id, userId, changerUserId, dataTimestamp, dataName, oldValue, newValue, info FROM userdata_changelog WHERE id=:id', ['id' => $id])->getRow();
         if ($row === null) {
             throw new \OutOfRangeException('entry not found in userdata_changelog. requested id = ' . $id, 1526591186);
         }
@@ -54,7 +53,7 @@ class ChangeLog implements \MHN\Mitglieder\Interfaces\Singleton
     public function getEntriesByUserId(int $userId) : array
     {
         $entries = [];
-        while ($row = DB::query('SELECT id, userId, changerUserId, dataTimestamp, dataName, oldValue, newValue, info FROM userdata_changelog WHERE userId=%d ORDER BY dataTimestamp, id', $userId)->get_row()) {
+        while ($row = Db::getInstance()->query('SELECT id, userId, changerUserId, dataTimestamp, dataName, oldValue, newValue, info FROM userdata_changelog WHERE userId=:userId ORDER BY dataTimestamp, id', ['userId' => $userId])->getRow()) {
             $entries[] = makeEntryFromArray($row);
         }
         return $entries;
@@ -70,11 +69,21 @@ class ChangeLog implements \MHN\Mitglieder\Interfaces\Singleton
         if ($entry->getId() !== 0) {
             throw new \UnexpectedValueexception('tried to update existing log entry. not yet implemented', 1526591991);
         }
-        DB::query('DELETE FROM userdata_changelog WHERE userId = %d AND dataName = "%s"', $entry->getUserId(), $entry->getDataName());
-        DB::query('INSERT INTO userdata_changelog SET userId = %d, changerUserId = %d, dataTimestamp = "%s", dataName = "%s", oldValue = "%s", newValue = "%s", info = "%s"',
-            $entry->getUserId(), $entry->getChangerUserId(), $entry->getTimestamp()->format('Y-m-d H:i:s'), $entry->getDataName(), $entry->getOldValue(), $entry->getNewValue(), $entry->getInfo()
-        );
-        $entry->setId(DB::insert_id());
+        $db = Db::getInstance();
+        $db->query('DELETE FROM userdata_changelog WHERE userId = :userId AND dataName = :dataName', [
+            'userId' => $entry->getUserId(),
+            'dataName' => $entry->getDataName()
+        ]);
+        $id = (int) $db->query('INSERT INTO userdata_changelog SET userId = :userId, changerUserId = :changerUserId, dataTimestamp = :dataTimestamp, dataName = :dataName, oldValue = :oldValue, newValue = :newValue, info = :info', [
+            'userId' => $entry->getUserId(),
+            'changerUserId' => $entry->getChangerUserId(),
+            'dataTimestamp' => $entry->getTimestamp(),
+            'dataName' => $entry->getDataName(),
+            'oldValue' => $entry->getOldValue(),
+            'newValue' => $entry->getNewValue(),
+            'info' => $entry->getInfo(),
+        ])->getInsertId();
+        $entry->setId($id);
     }
 
     /**
@@ -84,6 +93,6 @@ class ChangeLog implements \MHN\Mitglieder\Interfaces\Singleton
      * @return void
      */
     public function deleteByUserId(int $userId) {
-        DB::query('DELETE FROM userdata_changelog WHERE userId = %d', $userId);
+        Db::getInstance()->query('DELETE FROM userdata_changelog WHERE userId = :userId', ['userId' => $userId]);
     }
 }
