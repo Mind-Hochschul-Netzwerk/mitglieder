@@ -11,7 +11,7 @@ namespace MHN\Mitglieder;
 
 use MHN\Mitglieder\Auth;
 use MHN\Mitglieder\Tpl;
-use MHN\Mitglieder\Service\Token;
+use \Hengeb\Token\Token;
 
 require_once '../lib/base.inc.php';
 

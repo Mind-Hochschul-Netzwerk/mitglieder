@@ -14,7 +14,7 @@ use \MHN\Mitglieder\Mitglied;
 use \MHN\Mitglieder\Tpl;
 use \MHN\Mitglieder\Service\Db;
 use \MHN\Mitglieder\Service\Ldap;
-use \MHN\Mitglieder\Service\Token;
+use \Hengeb\Token\Token;
 
 require_once '../lib/base.inc.php';
 
@@ -44,7 +44,7 @@ if ($_REQUEST['id']) {
             $token = Token::encode([
                 time(),
                 $m->get('id')
-            ], $m->get('hashedPassword'));
+            ], $m->get('hashedPassword'), getenv('TOKEN_KEY'));
 
             Tpl::set('fullName', $m->get('fullName'), false);
             Tpl::set('url', 'https://mitglieder.' . getenv('DOMAINNAME') . '/lost-password.php?token=' . $token);

@@ -12,7 +12,7 @@ namespace MHN\Mitglieder;
 use MHN\Mitglieder\Auth;
 use MHN\Mitglieder\Mitglied;
 use MHN\Mitglieder\Tpl;
-use MHN\Mitglieder\Service\Token;
+use \Hengeb\Token\Token;
 use MHN\Mitglieder\Service\EmailService;
 
 require_once '../lib/base.inc.php';

@@ -15,7 +15,7 @@ use MHN\Mitglieder\Mitglied;
 use MHN\Mitglieder\Tpl;
 use MHN\Mitglieder\Domain\Repository\ChangeLog;
 use MHN\Mitglieder\Domain\Model\ChangeLogEntry;
-use MHN\Mitglieder\Service\Token;
+use \Hengeb\Token\Token;
 use MHN\Mitglieder\Service\EmailService;
 
 // Liste der vom Mitglied änderbaren Strings, deren Werte nicht geprüft werden
@@ -121,7 +121,7 @@ if (isset($_REQUEST['email'])) {
             time(),
             $m->get('id'),
             $_REQUEST['email']
-        ], $m->get('email'));
+        ], $m->get('email'), getenv('TOKEN_KEY'));
         Tpl::set('fullName', $m->get('fullName'));
         Tpl::set('token', $token);
         $text = Tpl::render('mails/email-auth', false);

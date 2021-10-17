@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b9d8c0e124745824b297eb1ee8cd0b0b",
+    "content-hash": "7a2e352d570b6648d2e4d564ac93e1ce",
     "packages": [
         {
             "name": "hengeb/db",
@@ -48,6 +48,48 @@
                 "source": "https://github.com/hengeb/db/tree/0.0.4"
             },
             "time": "2021-10-17T21:00:21+00:00"
+        },
+        {
+            "name": "hengeb/token",
+            "version": "v0.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/hengeb/token.git",
+                "reference": "fdcc9be815715bea4f35c7acd05e3ba100ea4af0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/hengeb/token/zipball/fdcc9be815715bea4f35c7acd05e3ba100ea4af0",
+                "reference": "fdcc9be815715bea4f35c7acd05e3ba100ea4af0",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.4.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Hengeb\\Token\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Henrik Gebauer",
+                    "email": "code@henrik-gebauer.de",
+                    "homepage": "https://www.henrik-gebauer.de",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A small webtoken",
+            "support": {
+                "issues": "https://github.com/hengeb/token/issues",
+                "source": "https://github.com/hengeb/token/tree/v0.0.1"
+            },
+            "time": "2021-10-17T22:40:19+00:00"
         },
         {
             "name": "phpmailer/phpmailer",
