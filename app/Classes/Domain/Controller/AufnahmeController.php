@@ -10,6 +10,7 @@ use MHN\Mitglieder\Tpl;
 use MHN\Mitglieder\Auth;
 use MHN\Mitglieder\Mitglied;
 use MHN\Mitglieder\Service\Ldap;
+use MHN\Mitglieder\Service\EmailService;
 
 /**
  * Aufnahme neuer Mitglieder
@@ -261,7 +262,6 @@ class AufnahmeController
 
         $m->set('aktiviert', true);
 
-        // Alles klar!
         $m->save();
 
         $ldap = Ldap::getInstance();
@@ -273,5 +273,11 @@ class AufnahmeController
         curl_exec($curl);
 
         Auth::logIn($m->get('id')); // Status neu laden
+
+        Tpl::set('id', $m->get('id'));
+        Tpl::set('fullName', $m->get('fullName'));
+        Tpl::set('email', $m->get('email'));
+        $text = Tpl::render('mails/account-activated', false);
+        EmailService::getInstance()->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', 'Neues Mitglied', $text);
     }
 }

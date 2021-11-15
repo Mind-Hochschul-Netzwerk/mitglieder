@@ -6,7 +6,7 @@ Gemäß der Satzung ist ein Austritt zum Ende des Kalenderjahres möglich.
 
 Das Profil muss daher von der Mitgliederbetreuung zum Ende des Kalenderjahres gelöscht werden.
 
-https://mitglieder.<?=getenv('DOMAINNAME')?>/profil.php?id=<?=$id?>
+https://mitglieder.<?=getenv('DOMAINNAME')?>/profil.php?id=<?="$id\n"?>
 
 Eine Auflistung aller noch nicht gelöschten Profile von Mitgliedern, die ihren Austritt erklärt haben, findest du hier:
 
