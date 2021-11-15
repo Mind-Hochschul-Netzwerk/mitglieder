@@ -56,7 +56,8 @@ class Auth
     {
         if (!self::istEingeloggt()) {
             Tpl::pause();
-            header('Location: /login.php');
+            $query = ($_SERVER['REQUEST_URI'] === '/') ? '' : ('?uri=' . urlencode($_SERVER['REQUEST_URI']));
+            header('Location: /login.php' . $query);
             exit;
         } elseif (!self::istAktiviert()) {
             if ($context === 'aktivieren') {

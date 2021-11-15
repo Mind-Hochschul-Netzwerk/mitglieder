@@ -64,10 +64,14 @@ if ($_REQUEST['id']) {
             if (Auth::checkPassword($_REQUEST['password'], (int)$id)) {
                 $u = Auth::logIn((int)$id);
 
-                // zur Startseite. Von dort aus wird ggf. auf aktivieren.php weiter geleitet (Auth::intern()).
                 Tpl::pause();
 
-                header('Location: /');
+                $uri = empty($_GET['uri']) ? '/' : ((string) $_GET['uri']);
+                $uri = preg_replace('/[\r\n]/', '', $uri); // prohibit header insertion
+                if ($uri[0] !== '/') {
+                    $uri = '/';
+                }
+                header('Location: ' . $uri);
                 exit;
             }
         }
