@@ -421,7 +421,21 @@ if (!empty($errorMessage)) {
             <?=form_row('Passwort wiederholen', [['new_password2', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '']])?>
 
             <h4>Mitgliedschaft beenden</h4>
-            <p>Bitte schreibe eine E-Mail an <a href="mailto:vorstand@mind-hochschul-netzwerk.de">vorstand@mind-hochschul-netzwerk.de</a>, wenn du deine Mitgliedschaft im MHN beenden möchtest. Wir werden dann deine Daten aus der Datenbank löschen.</p>
+            <div class="row">
+                <div class="col-sm-2"><label for="resignPassword">Austritt erklären<label></div>
+                <div class="col-sm-10">
+                    <?php if ($resignation): ?>
+                        <p>Du hast deinen Austritt am <?=$resignation->format('d.m.Y')?> erklärt. Wenn du ihn zurücknehmen möchtest, wende dich bitte an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>. Der Austritt wird gemäß unserer Satzung zum Ende des Kalenderjahres wirksam.</p>
+                    <?php else: ?>
+                        <p>Mit einer Erklärung an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>, kannst du deine MHN-Mitgliedschaft beenden. Mit dem Ende deiner Mitgliedschaft werden wir deine persönlichen Daten aus der Mitgliederdatenbank löschen.</p>
+                        <p class="resign__button"><button id="resign" class="btn btn-danger">Austritt erklären</button></p>
+                        <div class="resign__password hidden">
+                            <p>Gib hier dein Passwort ein, wenn du deine Mitgliedschaft wirklich beenden möchtest, und klicke dann auf speichern.</p>
+                            <div><input id="resignPassword" name="resignPassword" type="password" class="form-control" autocomplete="current-password" placeholder="Passwort"></div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
 
             <?php if (\MHN\Mitglieder\Auth::hatRecht('mvedit')): ?>
                 <h4>Mitgliederverwaltung</h4>
@@ -474,7 +488,7 @@ if (!empty($errorMessage)) {
 </div>
 
 <div class="form-group row">
-    <div class="col-sm-offset-2 col-sm-10">
+    <div class="col-sm-12">
         <button type="submit" class="btn btn-success">Speichern</button>
         <button type="reset" class="btn btn-default">Zurücksetzen</button>
     </div>
@@ -536,6 +550,14 @@ document.getElementById("profile-form").addEventListener("submit", e => {
         e.preventDefault();
     }
 });
+
+if (resign) {
+    resign.addEventListener("click", e => {
+        e.preventDefault();
+        document.querySelector(".resign__password").classList.remove("hidden");
+        document.querySelector(".resign__button").classList.add("hidden");
+    });
+}
 </script>
 
 <?php \MHN\Mitglieder\Tpl::footEnd(); ?>

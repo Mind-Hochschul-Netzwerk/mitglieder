@@ -240,6 +240,18 @@ if (isset($_REQUEST['email'])) {
         }
     }
 
+    // Austritt erklären
+    if (!empty($_POST['resignPassword'])) {
+        if (!Auth::ist($m->get('id'))) {
+            die("Der Austritt kann nur durch das Mitglied selbst erklärt werden.");
+        }
+        if (!Auth::checkPassword($_REQUEST['resignPassword'])) {
+            Tpl::set('errorMessage', 'Das eingebene Passwort ist nicht korrekt.');
+        } else {
+            $m->set('resignation', 'now');
+        }
+    }
+
     // Speichern
     $m->set('db_modified', 'now', $changerUserId);
     $m->set('db_modified_user_id', $changerUserId, $changerUserId);
