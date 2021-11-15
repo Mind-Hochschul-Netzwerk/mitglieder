@@ -28,9 +28,13 @@ const felder_eq = ['id', 'mensa_nr', 'plz', 'plz2'];
 // TODO filter einbauen über beschaeftigung, auskunft_* und für mvread für aufgabe_*
 
 ensure($_GET['q'], ENSURE_STRING);
-Tpl::set('query', $_GET['q']);
+
+$ids = [];
+$db = Db::getInstance();
 
 if ($_GET['q']) {
+    Tpl::set('query', $_GET['q']);
+
     // Strings die in Anführungszeichen stehen, müssen wirklich genau so vorkommen -> vor dem aufsplitten an Leerzeichen ersetzen
     $literalMap = [];
     $_GET['q'] = preg_replace_callback('/"([^"]+)"/', function ($matches) use (&$literalMap) {
@@ -76,48 +80,49 @@ if ($_GET['q']) {
     }
 
     // TODO Pagination?? oder einfach suche einschränken lassen und die erst 50 zeigen...
-    $db = Db::getInstance();
     $ids = $db->query('SELECT id FROM mitglieder WHERE aktiviert = true AND ' . implode(' AND ', $AND) . ' ORDER BY nachname, vorname LIMIT 50', $values)->getColumn();
 
     // Die Mitgliederverwaltung darf auch nach nicht aktivierten Mitgliedern suchen
     if (Auth::hatRecht('mvedit')) {
-        $id = DB::getInstance()->query('SELECT id FROM mitglieder WHERE id=:id OR username=:username', [
+        $id = $db->query('SELECT id FROM mitglieder WHERE id=:id OR username=:username', [
             'id' => (int)$_GET['q'],
             'username' => $_GET['q']
         ])->get();
         if ($id) {
             array_unshift($ids, $id);
         }
-        $ids = array_unique($ids);
     }
-
-    // Alle Mitglieder laden
-    $ergebnisse = [];
-    foreach ($ids as $id) {
-        $m = Mitglied::lade((int)$id, true);
-
-        $orte = [];
-        if ($m->get('ort') && $m->get('sichtbarkeit_plz_ort')) {
-            $orte[] = $m->get('ort');
-        }
-        if ($m->get('ort2')) {
-            $orte[] = $m->get('ort2');
-        }
-
-        // auszugebende Daten speichern und an Tpl übergeben
-        $e = [
-            'id' => $m->get('id'),
-            'last_login' => $m->get('last_login'),
-            'fullName' => $m->get('fullName'),
-            'username' => $m->get('username'),
-            'orte' => implode(', ', $orte),
-            'profilbild' => $m->get('profilbild') ? ('thumbnail-' . $m->get('profilbild')) : null,
-        ];
-
-        $ergebnisse[] = $e;
-    }
-    Tpl::set('ergebnisse', $ergebnisse);
+} elseif (!empty($_GET['resigned']) && Auth::hatRecht('mvread')) {
+    $ids = $db->query('SELECT id FROM mitglieder WHERE resignation IS NOT NULL')->getColumn();
 }
+
+// Alle Mitglieder laden
+$ergebnisse = [];
+$ids = array_unique($ids);
+foreach ($ids as $id) {
+    $m = Mitglied::lade((int)$id, true);
+
+    $orte = [];
+    if ($m->get('ort') && $m->get('sichtbarkeit_plz_ort')) {
+        $orte[] = $m->get('ort');
+    }
+    if ($m->get('ort2')) {
+        $orte[] = $m->get('ort2');
+    }
+
+    // auszugebende Daten speichern und an Tpl übergeben
+    $e = [
+        'id' => $m->get('id'),
+        'last_login' => $m->get('last_login'),
+        'fullName' => $m->get('fullName'),
+        'username' => $m->get('username'),
+        'orte' => implode(', ', $orte),
+        'profilbild' => $m->get('profilbild') ? ('thumbnail-' . $m->get('profilbild')) : null,
+    ];
+
+    $ergebnisse[] = $e;
+}
+Tpl::set('ergebnisse', $ergebnisse);
 
 Tpl::render('Suche/suche');
 

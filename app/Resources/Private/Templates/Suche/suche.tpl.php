@@ -6,7 +6,7 @@
 
 <div class="form-group row">
     <div class="col-sm-10">
-        <input name="q" type="search" placeholder="Suche" class="form-control" value="<?=$query?>" />
+        <input name="q" type="search" placeholder="Suche" class="form-control" value="<?=!empty($query)?$query:""?>" />
     </div>
     <div class="col-sm-2">
         <button type="submit" class="btn btn-success" onclick="return suchen();"><span class="glyphicon glyphicon-search"></span> Suchen</button>
@@ -15,7 +15,7 @@
 
 </form>
 
-<?php if (isset($ergebnisse)): ?>
+<?php if (!empty($query) || count($ergebnisse)): ?>
     <div id="suchergebnisse">
     <h2>Suchergebnisse</h2>
 

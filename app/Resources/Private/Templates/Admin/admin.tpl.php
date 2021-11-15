@@ -2,6 +2,9 @@
 <h2>Mitgliederdaten bearbeiten</h2>
 <p>Suche das zu bearbeitende Mitglied mit der <a href="/">Mitgliedersuche</a> und klicke im Profil auf "Daten bearbeiten".</p>
 
+<h2>Austrittsersuchen bearbeiten</h2>
+<p>Zeige die <a href="/?resigned=1">Liste der ausgetretenen Mitglieder</a> und klicke im Profil auf "Daten bearbeiten".</p>
+
 <?php if (Auth::hatRecht('rechte')): ?>
 <h2>Rollen verwalten</h2>
 <p>Suche das zu bearbeitende Mitglied mit der <a href="/">Mitgliedersuche</a> und klicke im Profil auf "Daten bearbeiten".</p>
