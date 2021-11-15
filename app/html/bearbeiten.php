@@ -83,6 +83,8 @@ if (isset($_REQUEST['email'])) {
     $m->set($key, $_REQUEST[$key], $changerUserId);
     Tpl::set($key, $_REQUEST[$key]);
 
+    Tpl::set('fullName', $m->get('fullName'));
+
     // Passwort ändern
     ensure($_REQUEST['new_password'], ENSURE_SET); // nicht ENSURE_STRING, weil dabei ein trim() durchgeführt wird
     $_REQUEST['new_password'] = (string) $_REQUEST['new_password'];
@@ -122,7 +124,6 @@ if (isset($_REQUEST['email'])) {
             $m->get('id'),
             $_REQUEST['email']
         ], $m->get('email'), getenv('TOKEN_KEY'));
-        Tpl::set('fullName', $m->get('fullName'));
         Tpl::set('token', $token);
         $text = Tpl::render('mails/email-auth', false);
         EmailService::getInstance()->send($_REQUEST['email'], 'E-Mail-Änderung', $text);
@@ -249,6 +250,10 @@ if (isset($_REQUEST['email'])) {
             Tpl::set('errorMessage', 'Das eingebene Passwort ist nicht korrekt.');
         } else {
             $m->set('resignation', 'now');
+
+            $text = Tpl::render('mails/resignation', false);
+            EmailService::getInstance()->send('vorstand@mind-hochschul-netzwerk.de', 'Austrittserklärung', $text);
+            EmailService::getInstance()->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', 'Austrittserklärung', $text);
         }
     }
 

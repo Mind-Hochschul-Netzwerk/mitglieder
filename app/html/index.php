@@ -93,6 +93,7 @@ if ($_GET['q']) {
         }
     }
 } elseif (!empty($_GET['resigned']) && Auth::hatRecht('mvread')) {
+    Tpl::set('query', ' '); // show the "search results" title even if the list is empty
     $ids = $db->query('SELECT id FROM mitglieder WHERE resignation IS NOT NULL')->getColumn();
 }
 
