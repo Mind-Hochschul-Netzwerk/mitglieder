@@ -278,6 +278,6 @@ class AufnahmeController
         Tpl::set('fullName', $m->get('fullName'));
         Tpl::set('email', $m->get('email'));
         $text = Tpl::render('mails/account-activated', false);
-        EmailService::getInstance()->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', 'Neues Mitglied', $text);
+        EmailService::getInstance()->send('aktivierung@mind-hochschul-netzwerk.de', 'Neues Mitglied', $text);
     }
 }
