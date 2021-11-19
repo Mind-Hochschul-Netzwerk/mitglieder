@@ -420,7 +420,21 @@ if (!empty($errorMessage)) {
             <?=form_row('Neues Passwort', [['new_password', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '', 'autocomplete' => 'new-password']])?>
             <?=form_row('Passwort wiederholen', [['new_password2', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '']])?>
 
-            <h4>Mitgliedschaft beenden</h4>
+            <h4>Verein</h4>
+            <div class="row">
+                <div class="col-sm-2"><label for="resignPassword">Mitgliedschaft bestätigen<label></div>
+                <div class="col-sm-10">
+                    <?php if ($membership_confirmation): ?>
+                        <p>Du hast deine Mitgliedschaft am <?=$resignation->format('d.m.Y')?> bestätigt.</p>
+                    <?php elseif ($aufnahmedatum && $aufnahmedatum > new \DateTime('2018-10-15')): ?>
+                        <p>Da du erst nach der offiziellen MHN-Gründungsversammlung (Oktober 2018) aufgenommen wurdest, bist du bereits Vereinsmitglied und musst deine Mitgliedschaft nicht bestätigen.</p>
+                    <?php else: ?>
+                        <p>Das MHN besteht zwar schon seit 2001, aber erst im Oktober 2018 fand eine offizielle Gründungsversammlung mit dem Ziel einer Eintragungs ins Vereinsregisters statt. Alle, die vor diesem Datum ins MHN aufgenommen wurden, sind aus rechtlichen Gründen nicht automatisch Vereinsmitglied, sondern müssen ihren Eintritt erklären. Nach der Entscheidung der Mitgliederversammlung am 25.9.2021 kann dies an dieser Stelle bis zum 31.3.2022 geschehen. Wer seine Mitgliedschaft nicht bestätigt, muss aus der Mitgliederdatenbank gelöscht werden.</p>
+                        <p><strong>Du hast deine Mitgliedschaft noch nicht bestätigt! Bitte bestätige sie bis zum 31.3.2022, indem du das folgende Häkchen setzt und auf Speichern klickst:</strong></p>
+                        <p><input id="membership_confirmation" name="membership_confirmation" type="checkbox"> <label for="membership_confirmation">Hiermit erkenne ich die <a href="https://www.mind-hochschul-netzwerk.de/mod/book/view.php?id=253&chapterid=6">Vereinssatzung und Ordnungen</a> an und möchte Mitglied im Verein werden.</label></p>
+                    <?php endif; ?>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-sm-2"><label for="resignPassword">Austritt erklären<label></div>
                 <div class="col-sm-10">

@@ -241,6 +241,14 @@ if (isset($_REQUEST['email'])) {
         }
     }
 
+    //
+    if (!empty($_POST['membership_confirmation'])) {
+        if (!Auth::ist($m->get('id'))) {
+            die("Der Vereinseintritt kann nur durch das Mitglied selbst erklärt werden.");
+        }
+        $m->set('membership_confirmation', 'now');
+    }
+
     // Austritt erklären
     if (!empty($_POST['resignPassword'])) {
         if (!Auth::ist($m->get('id'))) {

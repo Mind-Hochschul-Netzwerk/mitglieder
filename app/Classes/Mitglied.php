@@ -35,7 +35,7 @@ class Mitglied
         'auskunft_studiengang' => false, 'auskunft_stipendien' => false, 'auskunft_auslandsaufenthalte' => false, 'auskunft_praktika' => false, 'auskunft_beruf' => false, 'mentoring' => false, 'aufgabe_ma' => false, 'aufgabe_orte' => false, 'aufgabe_vortrag' => false, 'aufgabe_koord' => false, 'aufgabe_graphisch' => false, 'aufgabe_computer' => false, 'aufgabe_texte_schreiben' => false, 'aufgabe_texte_lesen' => false, 'aufgabe_vermittlung' => false, 'aufgabe_ansprechpartner' => false, 'aufgabe_hilfe' => false, 'aufgabe_sonstiges' => false, 'aufgabe_sonstiges_beschreibung' => '',
         'db_modified' => null, 'last_login' => null, 'aktiviert' => false,
         'db_modified_user_id' => null, 'kenntnisnahme_datenverarbeitung_aufnahme' => null, 'kenntnisnahme_datenverarbeitung_aufnahme_text' => '', 'einwilligung_datenverarbeitung_aufnahme' => null, 'einwilligung_datenverarbeitung_aufnahme_text' => '', 'kenntnisnahme_datenverarbeitung' => null, 'kenntnisnahme_datenverarbeitung_text' => '',
-        'resignation' => null,
+        'resignation' => null, 'membership_confirmation' => null,
     ];
 
     private $hashedPassword = '';
@@ -211,6 +211,7 @@ class Mitglied
             case 'kenntnisnahme_datenverarbeitung_aufnahme':
             case 'einwilligung_datenverarbeitung_aufnahme':
             case 'resignation':
+            case 'membership_confirmation':
                 $this->data[$key] = $this->makeDateTime($value);
                 return;
             default:
