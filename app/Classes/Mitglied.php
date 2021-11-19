@@ -438,19 +438,15 @@ class Mitglied
     }
 
     /**
-     * Löscht ein Mitglied.
+     * Remove user data
      *
-     * @return string $fehler
+     * @throws \RuntimeException if the user is a privileged user (cannot be deleted) or if there is a problem with sending mails
+     * @return void
      */
-    public function delete()
+    public function delete(): void
     {
-        $fehler = '';
-
-        if (Auth::ist($this->get('id'))) {
-            return 'Du kannst dich nicht selbst löschen!';
-        }
         if ($this->hasRole('rechte')) {
-            return 'Ein Benutzer mit den Rechten zur Rechteverwaltung darf nicht gelöscht werden.';
+            throw new \RuntimeException('Ein Benutzer mit den Rechten zur Rechteverwaltung darf nicht gelöscht werden.', 1637336416);
         }
 
         $admin = Mitglied::lade(Auth::getUID());
@@ -473,7 +469,7 @@ class Mitglied
             try {
                 $user->sendEmail('Information über gelöschtes Mitglied', $mailText);
             } catch (\RuntimeException $e) {
-                $fehler .= 'Fehler beim Versand von E-Mails an die Mitgliederbetreuung: ' . $e->getMessage();
+                throw $e;
             }
         }
 
@@ -497,8 +493,6 @@ class Mitglied
         $db->query('DELETE FROM mitglieder WHERE id = :id', ['id' => $this->get('id')]);
 
         $this->deleted = true;
-
-        return $fehler;
     }
 
     /**

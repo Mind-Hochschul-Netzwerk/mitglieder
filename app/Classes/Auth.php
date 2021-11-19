@@ -99,12 +99,16 @@ class Auth
      * @return void
      * @throws \UnexpectedValueException, wenn $redirectUrl nicht mit / beginnt
      */
-    public static function logOut(string $redirectUrl)
+    public static function logOut(string $redirectUrl = '')
     {
         $_SESSION = [];
         self::init();
 
-        if ($redirectUrl === '' || $redirectUrl{0} !== '/') {
+        if (!$redirectUrl) {
+            return;
+        }
+
+        if ($redirectUrl[0] !== '/') {
             throw new \UnexpectedValueException('$redirectUrl has to start with /', 1494925574);
         }
 
@@ -139,7 +143,8 @@ class Auth
             return true;
         }
 
-        return Mitglied::lade($uid, true)->hasRole($recht);
+        $m = Mitglied::lade($uid, true);
+        return $m ? $m->hasRole($recht) : false;
     }
 
     /**

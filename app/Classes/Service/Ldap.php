@@ -266,9 +266,9 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
                 return $entry !== null;
             });
             $roles[] = [
-                    'name' => $role->getAttribute('cn')[0],
-                    'description' => $role->getAttribute('description')[0],
-                    'users' => $members
+                'name' => $role->getAttribute('cn')[0],
+                'description' => $role->getAttribute('description')[0],
+                'users' => $members
             ];
         }
         return $roles;
