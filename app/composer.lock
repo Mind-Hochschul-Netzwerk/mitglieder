@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7a2e352d570b6648d2e4d564ac93e1ce",
+    "content-hash": "c840f1130c715cede409c1bfadf9ab63",
     "packages": [
         {
             "name": "hengeb/db",
-            "version": "0.0.4",
+            "version": "v0.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/hengeb/db.git",
-                "reference": "4774f649a2b2de6ba11e4f1936f7c10b0c5f97aa"
+                "reference": "3de95d95426a5ba105ed1a2c51af70c269c227f2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hengeb/db/zipball/4774f649a2b2de6ba11e4f1936f7c10b0c5f97aa",
-                "reference": "4774f649a2b2de6ba11e4f1936f7c10b0c5f97aa",
+                "url": "https://api.github.com/repos/hengeb/db/zipball/3de95d95426a5ba105ed1a2c51af70c269c227f2",
+                "reference": "3de95d95426a5ba105ed1a2c51af70c269c227f2",
                 "shasum": ""
             },
             "require": {
@@ -45,9 +45,9 @@
             "description": "A simple mysql library (PDO wrapper)",
             "support": {
                 "issues": "https://github.com/hengeb/db/issues",
-                "source": "https://github.com/hengeb/db/tree/0.0.4"
+                "source": "https://github.com/hengeb/db/tree/v0.0.5"
             },
-            "time": "2021-10-17T21:00:21+00:00"
+            "time": "2021-11-19T11:23:02+00:00"
         },
         {
             "name": "hengeb/token",
