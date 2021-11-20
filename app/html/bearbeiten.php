@@ -37,6 +37,10 @@ Tpl::set('navId', 'bearbeiten');
 Tpl::sendHead();
 
 ensure($_REQUEST['id'], ENSURE_INT_GT, 0, Auth::getUID());
+ensure($_GET['tab'], ENSURE_STRING);
+if ($_GET['tab'] && in_array($_GET['tab'], ['basisdaten', 'uebermich', 'ausbildungberuf', 'profilbild', 'settings', 'account'])) {
+    Tpl::set('active_pane', $_GET['tab']);
+}
 
 $m = laden($_REQUEST['id']);
 

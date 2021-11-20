@@ -91,7 +91,10 @@ function form_row($label, $inputs)
 }
 
 $disableMitgliederverwaltung = !\MHN\Mitglieder\Auth::hatRecht('mvedit');
-$active_pane = 'basisdaten';
+
+if (empty($active_pane)) {
+    $active_pane = 'basisdaten';
+}
 
 $changes = $error = $password_error = false;
 
