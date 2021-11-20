@@ -477,14 +477,6 @@ if (!empty($errorMessage)) {
                 </div>
 
                 <div class="row">
-                    <div class="col-sm-2">Kenntnisnahme zur Datenverarbeitung (Mitgliederverwaltung)</div>
-                    <div class="col-sm-10"><?= ($kenntnisnahme_datenverarbeitung === null) ? 'nein' : ('zur Kenntnis genommen am ' .  $kenntnisnahme_datenverarbeitung->format('d.m.Y, H:i:s') . ' Uhr.')?></div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-2">Kenntnisnahme zur Datenverarbeitung (Mitgliederverwaltung): Text</div>
-                    <div class="col-sm-10"><textarea disabled class="small" style="width:100%;"><?=$kenntnisnahme_datenverarbeitung_text?></textarea></div>
-                </div>
-                <div class="row">
                     <div class="col-sm-2">Kenntnisnahme zur Datenverarbeitung (Aufnahmetool)</div>
                     <div class="col-sm-10"><?= ($kenntnisnahme_datenverarbeitung_aufnahme === null) ? 'nein' : ('zur Kenntnis genommen am ' .  $kenntnisnahme_datenverarbeitung_aufnahme->format('d.m.Y, H:i:s') . ' Uhr.')?></div>
                 </div>
