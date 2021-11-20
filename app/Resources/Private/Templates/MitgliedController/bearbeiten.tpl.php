@@ -425,7 +425,7 @@ if (!empty($errorMessage)) {
                 <div class="col-sm-2"><label for="resignPassword">Mitgliedschaft bestätigen</label></div>
                 <div class="col-sm-10">
                     <?php if ($membership_confirmation): ?>
-                        <p>Du hast deine Mitgliedschaft am <?=$resignation->format('d.m.Y')?> bestätigt.</p>
+                        <p>Du hast deine Mitgliedschaft am <?=$membership_confirmation->format('d.m.Y')?> bestätigt.</p>
                     <?php elseif ($aufnahmedatum && $aufnahmedatum > new \DateTime('2018-10-15')): ?>
                         <p>Da du erst nach der offiziellen MHN-Gründungsversammlung (Oktober 2018) aufgenommen wurdest, bist du bereits Vereinsmitglied und musst deine Mitgliedschaft nicht bestätigen.</p>
                     <?php else: ?>
