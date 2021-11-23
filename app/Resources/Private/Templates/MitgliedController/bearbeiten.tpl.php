@@ -434,7 +434,7 @@ if (!empty($errorMessage)) {
                     <?php else: ?>
                         <p>Das MHN besteht zwar schon seit 2001, aber erst im Oktober 2018 fand eine offizielle Gründungsversammlung mit dem Ziel einer Eintragung ins Vereinsregister statt. Alle, die vor diesem Datum ins MHN aufgenommen wurden, sind aus rechtlichen Gründen nicht automatisch Vereinsmitglied, sondern müssen ihren Eintritt erklären. Nach der Entscheidung der Mitgliederversammlung am 25.9.2021 kann dies an dieser Stelle bis zum 31.3.2022 geschehen. Wer seine Mitgliedschaft nicht bestätigt, muss aus der Mitgliederdatenbank gelöscht werden.</p>
                         <p><strong>Du hast deine Mitgliedschaft noch nicht bestätigt! Bitte bestätige sie bis zum 31.3.2022, indem du das folgende Häkchen setzt und auf Speichern klickst:</strong></p>
-                        <p><input id="membership_confirmation" name="membership_confirmation" type="checkbox"> <label for="membership_confirmation">Hiermit erkenne ich die <a href="https://www.mind-hochschul-netzwerk.de/mod/book/view.php?id=253&chapterid=6">Vereinssatzung und Ordnungen</a> an und möchte Mitglied im Verein werden.</label></p>
+                        <p><input id="membership_confirmation" name="membership_confirmation" type="checkbox"> <label for="membership_confirmation">Ich erkenne hiermit die <a href="https://www.mind-hochschul-netzwerk.de/mod/book/view.php?id=253&chapterid=6">Vereinssatzung und Ordnungen</a> an und möchte Mitglied im Verein werden.</label></p>
                     <?php endif; ?>
                 </div>
             </div>
@@ -458,7 +458,7 @@ if (!empty($errorMessage)) {
                 <div class="row">
                     <div class="col-sm-2"><label for="resignPassword">Mitgliedschaft beenden</label></div>
                     <div class="col-sm-10">
-                        <p>Durch die Beendigung deiner MHN-Mitgliedschaft werden deine persönlichen Daten <strong>sofort</strong> und <strong>unwiderbringlich</strong> aus der Mitgliederdatenbank gelöscht. Du wirst nicht mehr auf den Mitgliederbereich zugreifen können und wirst keine E-Mail-Nachrichten mehr erhalten.</p>
+                        <p>Durch die Beendigung deiner MHN-Mitgliedschaft werden deine persönlichen Daten <strong>sofort</strong> und <strong>unwiederbringlich</strong> aus der Mitgliederdatenbank gelöscht. Du wirst nicht mehr auf den Mitgliederbereich zugreifen können und wirst keine E-Mail-Nachrichten mehr erhalten.</p>
                         <p class="resign__button"><button id="resign" class="btn btn-danger">Mitgliedschaft beenden</button></p>
                         <div class="resign__password hidden">
                             <p>Gib hier dein Passwort ein, wenn du deine Mitgliedschaft wirklich beenden möchtest, und klicke dann auf speichern.</p>
