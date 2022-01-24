@@ -446,7 +446,7 @@ if (!empty($errorMessage)) {
                             <p>Du hast deinen Austritt am <?=$resignation->format('d.m.Y')?> erklärt. Wenn du ihn zurücknehmen möchtest, wende dich bitte an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>. Der Austritt wird gemäß unserer Satzung zum Ende des Kalenderjahres wirksam.</p>
                         <?php else: ?>
                             <p>Mit einer Erklärung an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>, kannst du deine MHN-Mitgliedschaft beenden. Mit dem Ende deiner Mitgliedschaft werden wir deine persönlichen Daten aus der Mitgliederdatenbank löschen.</p>
-                            <p class="resign__button"><button id="resign" class="btn btn-danger">Austritt erklären</button></p>
+                            <p class="resign__button"><button type="button" id="resign" class="btn btn-danger">Austritt erklären</button></p>
                             <div class="resign__password hidden">
                                 <p>Gib hier dein Passwort ein, wenn du deine Mitgliedschaft wirklich beenden möchtest, und klicke dann auf speichern.</p>
                                 <div><input id="resignPassword" name="resignPassword" type="password" class="form-control" autocomplete="current-password" placeholder="Passwort"></div>
@@ -459,7 +459,7 @@ if (!empty($errorMessage)) {
                     <div class="col-sm-2"><label for="resignPassword">Mitgliedschaft beenden</label></div>
                     <div class="col-sm-10">
                         <p>Durch die Beendigung deiner MHN-Mitgliedschaft werden deine persönlichen Daten <strong>sofort</strong> und <strong>unwiederbringlich</strong> aus der Mitgliederdatenbank gelöscht. Du wirst nicht mehr auf den Mitgliederbereich zugreifen können und wirst keine E-Mail-Nachrichten mehr erhalten.</p>
-                        <p class="resign__button"><button id="resign" class="btn btn-danger">Mitgliedschaft beenden</button></p>
+                        <p class="resign__button"><button type="button" id="resign" class="btn btn-danger">Mitgliedschaft beenden</button></p>
                         <div class="resign__password hidden">
                             <p>Gib hier dein Passwort ein, wenn du deine Mitgliedschaft wirklich beenden möchtest, und klicke dann auf speichern.</p>
                             <div><input id="resignPassword" name="resignPassword" type="password" class="form-control" autocomplete="current-password" placeholder="Passwort"></div>
