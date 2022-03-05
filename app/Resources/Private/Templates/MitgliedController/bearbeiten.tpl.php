@@ -449,7 +449,7 @@ if (!empty($errorMessage)) {
                             <p class="resign__button"><button type="button" id="resign" class="btn btn-danger">Austritt erklären</button></p>
                             <div class="resign__password hidden">
                                 <p>Gib hier dein Passwort ein, wenn du deine Mitgliedschaft wirklich beenden möchtest, und klicke dann auf speichern.</p>
-                                <div><input id="resignPassword" name="resignPassword" type="password" class="form-control" autocomplete="current-password" placeholder="Passwort"></div>
+                                <div><input id="resignPassword" name="resignPassword" type="password" class="form-control" autocomplete="new-password" placeholder="Passwort"></div>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -462,7 +462,7 @@ if (!empty($errorMessage)) {
                         <p class="resign__button"><button type="button" id="resign" class="btn btn-danger">Mitgliedschaft beenden</button></p>
                         <div class="resign__password hidden">
                             <p>Gib hier dein Passwort ein, wenn du deine Mitgliedschaft wirklich beenden möchtest, und klicke dann auf speichern.</p>
-                            <div><input id="resignPassword" name="resignPassword" type="password" class="form-control" autocomplete="current-password" placeholder="Passwort"></div>
+                            <div><input id="resignPassword" name="resignPassword" type="password" class="form-control" autocomplete="new-password" placeholder="Passwort"></div>
                         </div>
                     </div>
                 </div>
