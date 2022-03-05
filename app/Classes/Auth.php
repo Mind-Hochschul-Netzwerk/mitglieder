@@ -69,6 +69,15 @@ class Auth
         }
     }
 
+    public static function requirePermission(string $permissionName)
+    {
+        if (!self::hatRecht($permissionName)) {
+            Tpl::pause();
+            http_response_code(403);
+            exit;
+        }
+    }
+
     /**
      * Loggt den User $uid ein
      * @param int $uid

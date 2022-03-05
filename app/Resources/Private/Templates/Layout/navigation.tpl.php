@@ -5,6 +5,7 @@ if (Auth::istEingeloggt()) {
     $navItems = [
         'suche' => ['/', 'Mitgliedersuche', 'search'],
         'bearbeiten' => ['bearbeiten.php', 'Meine Daten', 'user'],
+        'statistics' => Auth::hatRecht('mvread') ? ['statistics.php', 'Statistik', 'stats'] : null,
         'admin' => Auth::hatRecht('mvedit') ? ['admin.php', 'Mitgliederverwaltung', 'wrench'] : null,
         'logout' => ['logout.php', 'Logout', 'log-out'],
         'homepage' => ['https://www.' . getenv('DOMAINNAME'), 'MHN-Webseite', 'home'],

@@ -63,6 +63,21 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
         }
     }
 
+    public function getInvalidEmailsList(): array
+    {
+        $this->bind();
+        try {
+            $result = $this->ldap->query(getenv('LDAP_PEOPLE_DN'), '(&(objectclass=inetOrgPerson)(mail=*.invalid))')->execute();
+        } catch (\Exception $e) {
+            return [];
+        }
+        $list = [];
+        foreach ($result as $user) {
+            $list[] = (int) $user->getAttribute('employeeNumber')[0];
+        }
+        return $list;
+    }
+
     public function getEntryByEmail(string $email): ?Entry
     {
         $this->bind();
