@@ -398,41 +398,41 @@ class Mitglied
         return (int)$id;
     }
 
-    public function hasRole(string $role): bool
+    public function isMemberOfGroup(string $groupName): bool
     {
-        return Ldap::getInstance()->hasRole($this->get('username'), $role);
+        return Ldap::getInstance()->isUserMemberOfGroup($this->get('username'), $groupName);
     }
 
-    public function getRoles(): array
+    public function getGroups(): array
     {
-        return Ldap::getInstance()->getRolesByUsername($this->get('username'));
+        return Ldap::getInstance()->getGroupsByUsername($this->get('username'));
     }
 
     /**
-     * @throws \OutOfRangeException one of the new roles is invalid
+     * @throws \OutOfRangeException one of the new groups is invalid
      */
-    public function setRoles(array $roles): void
+    public function setGroups(array $groupNames): void
     {
         // shortcuts
         $ldap = Ldap::getInstance();
         $username = $this->get('username');
 
         $changed = false;
-        $roles = array_map('strtolower', $roles);
-        $oldRoles = array_map('strtolower', $this->getRoles());
+        $groupNames = array_map('strtolower', $groupNames);
+        $oldGroupNames = array_map('strtolower', $this->getGroups());
 
-        foreach(array_diff($oldRoles, $roles) as $role) {
-            $ldap->removeRole($username, $role);
+        foreach(array_diff($oldGroupNames, $groupNames) as $groupName) {
+            $ldap->removeUserFromGroup($username, $groupName);
             $changed = true;
         }
 
-        foreach(array_diff($roles, $oldRoles) as $role) {
+        foreach(array_diff($groupNames, $oldGroupNames) as $groupName) {
             $changed = true;
-            $ldap->addRole($username, $role);
+            $ldap->addUserToGroup($username, $groupName);
         }
 
         if ($changed) {
-            $this->changeLog[] = new ChangeLogEntry(0, $this->get('id'), Auth::getUid(), new \DateTime(), 'roles', implode(', ', $oldRoles), implode(', ', $roles), '');
+            $this->changeLog[] = new ChangeLogEntry(0, $this->get('id'), Auth::getUid(), new \DateTime(), 'groups', implode(', ', $oldGroupNames), implode(', ', $groupNames), '');
         }
     }
 
@@ -444,7 +444,7 @@ class Mitglied
      */
     public function delete(): void
     {
-        if ($this->hasRole('rechte')) {
+        if ($this->isMemberOfGroup('rechte')) {
             throw new \RuntimeException('Ein Benutzer mit den Rechten zur Rechteverwaltung darf nicht gelöscht werden.', 1637336416);
         }
 
@@ -459,7 +459,7 @@ class Mitglied
         $mailText = Tpl::render('mails/MvEdit-Info-Mitglied-Geloescht', false);
 
         // Alle Mitglieder der Mitgliederbetreuung (mvedit) informieren
-        $ids = Ldap::getInstance()->getIdsByRole('mvedit');
+        $ids = Ldap::getInstance()->getIdsByGroup('mvedit');
         foreach ($ids as $id) {
             $user = Mitglied::lade($id, false);
             if ($user === null) {
@@ -478,7 +478,7 @@ class Mitglied
             unlink('profilbilder/thumbnail-' . $this->get('profilbild'));
         }
 
-        // delete LDAP entry (will also delete roles and memberships in groups)
+        // delete LDAP entry (will also delete memberships in groups)
         Ldap::getInstance()->deleteUser($this->get('username'));
         $this->ldapEntry = null;
 

@@ -27,12 +27,12 @@ if (!Auth::hatRecht('mvedit')) {
     die('Fehlende Rechte.');
 }
 
-$roles = Ldap::getInstance()->getRoles();
-usort($roles, function ($a, $b) {
+$groups = Ldap::getInstance()->getAllGroups();
+usort($groups, function ($a, $b) {
     return strnatcasecmp($a['name'], $b['name']);
 });
 
-Tpl::set('roles', $roles);
+Tpl::set('groups', $groups);
 
 Tpl::render('Admin/admin');
 

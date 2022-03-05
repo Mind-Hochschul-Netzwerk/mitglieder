@@ -229,22 +229,22 @@ if (isset($_REQUEST['email'])) {
         $m->set('profilbild', '', $changerUserId);
     }
 
-    // Rechte aktualisieren
+    // Gruppen aktualisieren
     if (Auth::hatRecht('rechte')) {
-        ensure($_REQUEST['rechte'], ENSURE_STRING);
-        $_REQUEST['rechte'] = trim($_REQUEST['rechte'], ", \n\r\t\v\0");
-        $_REQUEST['rechte'] = preg_replace('/\s+/', ',', $_REQUEST['rechte']);
-        $_REQUEST['rechte'] = preg_replace('/,+/', ',', $_REQUEST['rechte']);
-        $rechte = $_REQUEST['rechte'] ? array_unique(explode(',', $_REQUEST['rechte'])) : [];
+        ensure($_REQUEST['groups'], ENSURE_STRING);
+        $_REQUEST['groups'] = trim($_REQUEST['groups'], ", \n\r\t\v\0");
+        $_REQUEST['groups'] = preg_replace('/\s+/', ',', $_REQUEST['groups']);
+        $_REQUEST['groups'] = preg_replace('/,+/', ',', $_REQUEST['groups']);
+        $groups = $_REQUEST['groups'] ? array_unique(explode(',', $_REQUEST['groups'])) : [];
 
-        if (Auth::ist($m->get('id')) && (!in_array('rechte', $rechte, true))) {
+        if (Auth::ist($m->get('id')) && (!in_array('rechte', $groups, true))) {
             die('Du kannst dir das Recht zur Rechtverwaltung nicht selbst entziehen.');
         }
 
         try {
-            $m->setRoles($rechte);
+            $m->setGroups($groups);
         } catch (\Exception $e) {
-            Tpl::set('errorMessage', 'Beim Setzen der Rollen ist ein Fehler aufgetreten.');
+            Tpl::set('errorMessage', 'Beim Setzen der Gruppen ist ein Fehler aufgetreten.');
         }
     }
 
@@ -298,7 +298,7 @@ if (isset($_REQUEST['email'])) {
     $m = laden($m->get('id'));
 }
 
-Tpl::set('roles', $m->getRoles());
+Tpl::set('groups', $m->getGroups());
 Tpl::set('db_modified_user', Mitglied::lade((int)$m->get('db_modified_user_id')), false);
 
 Tpl::render('MitgliedController/bearbeiten');

@@ -131,7 +131,7 @@ class Auth
      * @param string $recht
      * @param int|null $uid User-ID oder null für den Session-Benutzer
      */
-    public static function hatRecht(string $recht, $uid = null)
+    public static function hatRecht(string $recht, $uid = null): bool
     {
         if ($uid === null) {
             $uid = self::getUID();
@@ -153,7 +153,7 @@ class Auth
         }
 
         $m = Mitglied::lade($uid, true);
-        return $m ? $m->hasRole($recht) : false;
+        return $m ? $m->isMemberOfGroup($recht) : false;
     }
 
     /**

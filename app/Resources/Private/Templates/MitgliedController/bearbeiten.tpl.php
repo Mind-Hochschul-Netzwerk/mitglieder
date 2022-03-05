@@ -494,7 +494,7 @@ if (!empty($errorMessage)) {
                 </div>
 
                 <?php if (\MHN\Mitglieder\Auth::hatRecht('rechte')): ?>
-                    <?=form_row('Rollen ändern', [['rechte', implode(', ', $roles), 'placeholder' => 'Trennen durch Komma. Mögliche Werte siehe Menüpunkt „Mitgliederverwaltung”', 'sichtbarkeit' => false]])?>
+                    <?=form_row('Gruppen ändern', [['groups', implode(', ', $groups), 'placeholder' => 'Trennen durch Komma. Mögliche Werte siehe Menüpunkt „Mitgliederverwaltung”', 'sichtbarkeit' => false]])?>
                 <?php endif; ?>
 
                 <div class="form-group row">

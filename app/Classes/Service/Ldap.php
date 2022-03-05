@@ -161,35 +161,35 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
         }
     }
 
-    public function hasRole(string $username, string $role)
-    {
-        $this->bind();
-        $query = '(&(objectclass=groupOfNames)(cn=' . ldap_escape($role) . ')(member=' . $this->getDnByUsername($username) . '))';
-        $entry = $this->ldap->query(getenv('LDAP_ROLES_DN'), $query)->execute()[0];
-        return !empty($entry);
-    }
-
     private function getDnByUsername($username)
     {
         return 'cn=' . ldap_escape($username) . ',' . getenv('LDAP_PEOPLE_DN');
     }
 
+    public function isUserMemberOfGroup(string $username, string $group): bool
+    {
+        $this->bind();
+        $query = '(&(objectclass=groupOfNames)(cn=' . ldap_escape($group) . ')(member=' . $this->getDnByUsername($username) . '))';
+        $entry = $this->ldap->query(getenv('LDAP_GROUPS_DN'), $query)->execute()[0];
+        return !empty($entry);
+    }
+
     /**
      * @throws \InvalidArgumentException username does not exist
-     * @throws \OutOfRangeException role does not exist
+     * @throws \OutOfRangeException group does not exist
      */
-    public function addRole($username, $role)
+    public function addUserToGroup(string $username, string $group): void
     {
-        if ($this->hasRole($username, $role)) {
+        if ($this->isUserMemberOfGroup($username, $group)) {
             return;
         }
         $userEntry = $this->getEntryByUsername($username);
         if (!$userEntry) {
             throw new \InvalidArgumentException('no such user: ' . $username, 1612375712);
         }
-        $entry = $this->ldap->query(getenv('LDAP_ROLES_DN'), '(&(objectclass=groupOfNames)(cn=' . ldap_escape($role) . '))')->execute()[0];
+        $entry = $this->ldap->query(getenv('LDAP_GROUPS_DN'), '(&(objectclass=groupOfNames)(cn=' . ldap_escape($group) . '))')->execute()[0];
         if (!$entry) {
-            throw new \OutOfRangeException('invalid role: ' . $role, 1612375711);
+            throw new \OutOfRangeException('invalid group name: ' . $group, 1612375711);
         }
         $member = $entry->getAttribute('member');
         $member[] = $this->getDnByUsername($username);
@@ -197,11 +197,11 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
         $this->ldap->getEntryManager()->update($entry);
     }
 
-    public function removeRole($username, $role)
+    public function removeUserFromGroup(string $username, string $group): void
     {
         $this->bind();
-        $query = '(&(objectclass=groupOfNames)(cn=' . ldap_escape($role) . ')(member=' . $this->getDnByUsername($username) . '))';
-        $entry = $this->ldap->query(getenv('LDAP_ROLES_DN'), $query)->execute()[0];
+        $query = '(&(objectclass=groupOfNames)(cn=' . ldap_escape($group) . ')(member=' . $this->getDnByUsername($username) . '))';
+        $entry = $this->ldap->query(getenv('LDAP_GROUPS_DN'), $query)->execute()[0];
         if (!$entry) {
             return;
         }
@@ -219,33 +219,34 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
         $this->ldap->getEntryManager()->update($entry);
     }
 
-    public function getRolesByUsername($username): array
+    public function getGroupsByUsername(string $username): array
     {
         $this->bind();
         $query = '(&(objectclass=groupOfNames)(member=' . $this->getDnByUsername($username) . '))';
-        $result = $this->ldap->query(getenv('LDAP_ROLES_DN'), $query)->execute();
-        $roles = [];
-        foreach ($result as $role) {
-            $roles[] = $role->getAttribute('cn')[0];
+        $result = $this->ldap->query(getenv('LDAP_GROUPS_DN'), $query)->execute();
+        $groups = [];
+        foreach ($result as $group) {
+            $groups[] = $group->getAttribute('cn')[0];
         }
-        return $roles;
+        return $groups;
     }
 
-    public function getIdsByRole(string $roleName): array
+    public function getIdsByGroup(string $groupName): array
     {
-        $roles = $this->getRoles();
-        foreach ($roles as $role) {
-            if ($role['name'] !== $roleName) {
+        foreach ($this->getAllGroups() as $group) {
+            if ($group['name'] !== $groupName) {
                 continue;
             }
-            return array_map(function ($user) {return (int)$user['id'];}, $role['users']);
+            return array_map(function ($user) {
+                return (int)$user['id'];
+            }, $group['users']);
         }
-        throw new \OutOfRangeException('invalid role name', 1614374821);
+        throw new \OutOfRangeException('invalid group name: ' . $groupName, 1614374821);
     }
 
     /**
      * @return array [
-     *  ['name' => role name,
+     *  ['name' => group name,
      *   'description' => description,
      *    'users' => [
      *        ['id' => uid, 'username' => username, 'firstname' => first name, 'lastname' => last name],
@@ -254,13 +255,13 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
      *    ...
      *  ], ... ]
      */
-    public function getRoles(): array
+    public function getAllGroups(): array
     {
         $this->bind();
         $query = '(&(objectclass=groupOfNames))';
-        $result = $this->ldap->query(getenv('LDAP_ROLES_DN'), $query)->execute();
-        $roles = [];
-        foreach ($result as $role) {
+        $result = $this->ldap->query(getenv('LDAP_GROUPS_DN'), $query)->execute();
+        $groups = [];
+        foreach ($result as $group) {
             $members = array_map(function ($dn) {
                 if (substr($dn, 0, strlen('cn=')) !== 'cn=') {
                     return null;
@@ -276,135 +277,16 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
                     'firstname' => $user->getAttribute('givenName')[0],
                     'lastname' => $user->getAttribute('sn')[0],
                 ];
-            }, $role->getAttribute('member'));
+            }, $group->getAttribute('member'));
             $members = array_filter($members, function ($entry) {
                 return $entry !== null;
             });
-            $roles[] = [
-                'name' => $role->getAttribute('cn')[0],
-                'description' => $role->getAttribute('description')[0],
+            $groups[] = [
+                'name' => $group->getAttribute('cn')[0],
+                'description' => $group->getAttribute('description')[0],
                 'users' => $members
             ];
         }
-        return $roles;
-    }
-
-
-    public function hasMoodleCourse(string $username, string $moodleCourse)
-    {
-        $this->bind();
-        $query = '(&(objectclass=groupOfNames)(cn=' . ldap_escape($moodleCourse) . ')(member=' . $this->getDnByUsername($username) . '))';
-        $entry = $this->ldap->query(getenv('LDAP_COURSES_DN'), $query)->execute()[0];
-        return !empty($entry);
-    }
-
-    public function addMoodleCourse($username, $moodleCourse)
-    {
-        if ($this->hasMoodleCourse($username, $moodleCourse)) {
-            return;
-        }
-        $userEntry = $this->getEntryByUsername($username);
-        if (!$userEntry) {
-            throw new \InvalidArgumentException('no such user: ' . $username, 1612375712);
-        }
-        $entry = $this->ldap->query(getenv('LDAP_COURSES_DN'), '(&(objectclass=groupOfNames)(cn=' . ldap_escape($moodleCourse) . '))')->execute()[0];
-        if (!$entry) {
-            throw new \OutOfRangeException('invalid moodleCourse: ' . $moodleCourse, 1612375711);
-        }
-        $member = $entry->getAttribute('member');
-        $member[] = $this->getDnByUsername($username);
-        $entry->setAttribute('member', $member);
-        $this->ldap->getEntryManager()->update($entry);
-    }
-
-    public function removeMoodleCourse($username, $moodleCourse)
-    {
-        $this->bind();
-        $query = '(&(objectclass=groupOfNames)(cn=' . ldap_escape($moodleCourse) . ')(member=' . $this->getDnByUsername($username) . '))';
-        $entry = $this->ldap->query(getenv('LDAP_COURSES_DN'), $query)->execute()[0];
-        if (!$entry) {
-            return;
-        }
-        $member = $entry->getAttribute('member');
-        $lowerUsername = strtolower($username);
-        foreach ($member as $i=>$dn) {
-            preg_match('/^cn=(.*?),/', $dn, $matches);
-            if ($lowerUsername === strtolower($matches[1])) {
-                unset($member[$i]);
-                break;
-            }
-        }
-        $entry->setAttribute('member', $member);
-        $this->ldap->getEntryManager()->update($entry);
-    }
-
-    public function getMoodleCoursesByUsername($username): array
-    {
-        $this->bind();
-        $query = '(&(objectclass=groupOfNames)(member=' . $this->getDnByUsername($username) . '))';
-        $result = $this->ldap->query(getenv('LDAP_COURSES_DN'), $query)->execute();
-        $moodleCourses = [];
-        foreach ($result as $moodleCourse) {
-            $moodleCourses[] = $moodleCourse->getAttribute('cn')[0];
-        }
-        return $moodleCourses;
-    }
-
-    public function getIdsByMoodleCourse(string $moodleCourseName): array
-    {
-        $moodleCourses = $this->getMoodleCourses();
-        foreach ($moodleCourses as $moodleCourse) {
-            if ($moodleCourse['name'] !== $moodleCourseName) {
-                continue;
-            }
-            return array_map(function ($user) {return (int)$user['id'];}, $moodleCourse['users']);
-        }
-        throw new \OutOfRangeException('invalid moodleCourse name', 1614374821);
-    }
-
-    /**
-     * @return array [
-     *  ['name' => course name,
-     *   'description' => description,
-     *    'users' => [
-     *        ['id' => uid, 'username' => username, 'firstname' => first name, 'lastname' => last name],
-     *         ...
-     *        ],
-     *    ...
-     *  ], ... ]
-     */
-    public function getMoodleCourses(): array
-    {
-        $this->bind();
-        $query = '(&(objectclass=groupOfNames))';
-        $result = $this->ldap->query(getenv('LDAP_COURSES_DN'), $query)->execute();
-        $moodleCourses = [];
-        foreach ($result as $moodleCourse) {
-            $members = array_map(function ($dn) {
-                if (substr($dn, 0, strlen('cn=')) !== 'cn=') {
-                    return null;
-                }
-                if (substr($dn, -strlen(getenv('LDAP_PEOPLE_DN'))) !== getenv('LDAP_PEOPLE_DN')) {
-                    return null;
-                }
-                $username = substr(substr($dn, strlen('cn=')), 0, -1-strlen(getenv('LDAP_PEOPLE_DN')));
-                $user = $this->getEntryByUsername($username);
-                return [
-                    'id' => $user->getAttribute('employeeNumber')[0],
-                    'username' => $user->getAttribute('cn')[0],
-                    'firstname' => $user->getAttribute('givenName')[0],
-                    'lastname' => $user->getAttribute('sn')[0],
-                ];
-            }, $moodleCourse->getAttribute('member'));
-            $members = array_filter($members, function ($entry) {
-                return $entry !== null;
-            });
-            $moodleCourses[] = [
-                    'name' => $moodleCourse->getAttribute('cn')[0],
-                    'description' => $moodleCourse->getAttribute('description')[0],
-                    'users' => $members
-            ];
-        }
-        return $moodleCourses;
+        return $groups;
     }
 }
