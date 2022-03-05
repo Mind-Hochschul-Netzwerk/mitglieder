@@ -91,7 +91,7 @@ Tpl::set('countAfterOct2018', $db->query('SELECT COUNT(id) FROM mitglieder WHERE
 Tpl::set('countConfirmedMembership', $db->query('SELECT COUNT(id) FROM mitglieder WHERE aktiviert=1 AND aufnahmedatum < 20181005 AND membership_confirmation IS NOT NULL')->get());
 Tpl::set('countDeletionCandidates', $db->query('SELECT COUNT(id) FROM mitglieder WHERE aktiviert=1 AND aufnahmedatum < 20181005 AND membership_confirmation IS NULL')->get());
 Tpl::set('countMembers', $db->query('SELECT COUNT(id) FROM mitglieder WHERE aktiviert=1 AND (aufnahmedatum >= 20181005 OR membership_confirmation IS NOT NULL)')->get());
-Tpl::set('countResignations', $db->query('SELECT COUNT(id) FROM mitglieder WHERE aktiviert=1 AND (aufnahmedatum >= 20181005 OR membership_confirmation IS NOT NULL) AND resignation = 1')->get());
+Tpl::set('countResignations', $db->query('SELECT COUNT(id) FROM mitglieder WHERE aktiviert=1 AND (aufnahmedatum >= 20181005 OR membership_confirmation IS NOT NULL) AND resignation IS NOT NULL')->get());
 
 Tpl::render('StatisticsController/main');
 
