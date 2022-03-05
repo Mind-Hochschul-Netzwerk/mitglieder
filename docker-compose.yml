@@ -31,7 +31,7 @@ services:
       - LDAP_HOST=ldap://ldap:389/
       - LDAP_ROLES_DN=ou=roles,dc=mind-hochschul-netzwerk,dc=de
       - LDAP_PEOPLE_DN=ou=people,dc=mind-hochschul-netzwerk,dc=de
-      - LDAP_COURSES_DN=ou=moodleCourses,dc=mind-hochschul-netzwerk,dc=de
+      - LDAP_COURSES_DN=ou=groups,dc=mind-hochschul-netzwerk,dc=de
       - LDAP_BIND_DN=cn=admin,dc=mind-hochschul-netzwerk,dc=de
       - LDAP_BIND_PASSWORD
       - SMTP_HOST
