@@ -27,7 +27,7 @@ if (!Auth::hatRecht('mvedit')) {
     die('Fehlende Rechte.');
 }
 
-$groups = Ldap::getInstance()->getAllGroups();
+$groups = Ldap::getInstance()->getAllGroups($skipMembersOfGroups = ['alleMitglieder', 'listen']);
 usort($groups, function ($a, $b) {
     return strnatcasecmp($a['name'], $b['name']);
 });

@@ -233,15 +233,29 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
 
     public function getIdsByGroup(string $groupName): array
     {
-        foreach ($this->getAllGroups() as $group) {
-            if ($group['name'] !== $groupName) {
-                continue;
-            }
-            return array_map(function ($user) {
-                return (int)$user['id'];
-            }, $group['users']);
+        $this->bind();
+
+        $result = $this->ldap->query(getenv('LDAP_GROUPS_DN'), '(cn=' . ldap_escape($groupName) . ')')->execute();
+
+        if (!$result) {
+            throw new \OutOfRangeException('invalid group name: ' . $groupName, 1614374821);
         }
-        throw new \OutOfRangeException('invalid group name: ' . $groupName, 1614374821);
+
+        $members = $result[0]->getAttribute('member');
+
+        $ids = array_map(function ($dn) {
+            if (substr($dn, 0, strlen('cn=')) !== 'cn=') {
+                return null;
+            }
+            if (substr($dn, -strlen(getenv('LDAP_PEOPLE_DN'))) !== getenv('LDAP_PEOPLE_DN')) {
+                return null;
+            }
+            $username = substr(substr($dn, strlen('cn=')), 0, -1-strlen(getenv('LDAP_PEOPLE_DN')));
+            $user = $this->getEntryByUsername($username);
+            return $user->getAttribute('employeeNumber')[0];
+        }, $members);
+
+        return array_filter($ids);
     }
 
     /**
@@ -255,34 +269,39 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
      *    ...
      *  ], ... ]
      */
-    public function getAllGroups(): array
+    public function getAllGroups(array $skipMembersOfGroups = []): array
     {
         $this->bind();
         $query = '(&(objectclass=groupOfNames))';
         $result = $this->ldap->query(getenv('LDAP_GROUPS_DN'), $query)->execute();
         $groups = [];
         foreach ($result as $group) {
-            $members = array_map(function ($dn) {
-                if (substr($dn, 0, strlen('cn=')) !== 'cn=') {
-                    return null;
-                }
-                if (substr($dn, -strlen(getenv('LDAP_PEOPLE_DN'))) !== getenv('LDAP_PEOPLE_DN')) {
-                    return null;
-                }
-                $username = substr(substr($dn, strlen('cn=')), 0, -1-strlen(getenv('LDAP_PEOPLE_DN')));
-                $user = $this->getEntryByUsername($username);
-                return [
-                    'id' => $user->getAttribute('employeeNumber')[0],
-                    'username' => $user->getAttribute('cn')[0],
-                    'firstname' => $user->getAttribute('givenName')[0],
-                    'lastname' => $user->getAttribute('sn')[0],
-                ];
-            }, $group->getAttribute('member'));
-            $members = array_filter($members, function ($entry) {
-                return $entry !== null;
-            });
+            $groupName = $group->getAttribute('cn')[0];
+            if (in_array($groupName, $skipMembersOfGroups, true)) {
+                $members = [];
+            } else {
+                $members = array_map(function ($dn) {
+                    if (substr($dn, 0, strlen('cn=')) !== 'cn=') {
+                        return null;
+                    }
+                    if (substr($dn, -strlen(getenv('LDAP_PEOPLE_DN'))) !== getenv('LDAP_PEOPLE_DN')) {
+                        return null;
+                    }
+                    $username = substr(substr($dn, strlen('cn=')), 0, -1-strlen(getenv('LDAP_PEOPLE_DN')));
+                    $user = $this->getEntryByUsername($username);
+                    return [
+                        'id' => $user->getAttribute('employeeNumber')[0],
+                        'username' => $user->getAttribute('cn')[0],
+                        'firstname' => $user->getAttribute('givenName')[0],
+                        'lastname' => $user->getAttribute('sn')[0],
+                    ];
+                }, $group->getAttribute('member'));
+                $members = array_filter($members, function ($entry) {
+                    return $entry !== null;
+                });
+            }
             $groups[] = [
-                'name' => $group->getAttribute('cn')[0],
+                'name' => $groupName,
                 'description' => $group->getAttribute('description')[0],
                 'users' => $members
             ];
