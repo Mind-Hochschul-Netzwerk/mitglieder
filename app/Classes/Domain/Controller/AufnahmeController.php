@@ -39,14 +39,7 @@ class AufnahmeController
         'sprachen' => 'mhn_sprachen',
         'hobbys' => 'mhn_hobbies',
         'interessen' => 'mhn_interessen',
-        'beschaeftigung' => 'mhn_beschaeftigung',
-        'studienort' => 'mhn_studienort',
         'studienfach' => 'mhn_studienfach',
-        'unityp' => 'mhn_unityp',
-        'schwerpunkt' => 'mhn_schwerpunkt',
-        'nebenfach' => 'mhn_nebenfach',
-        'abschluss' => 'mhn_abschluss',
-        'zweitstudium' => 'mhn_zweitstudium',
         'hochschulaktivitaeten' => 'mhn_hochschulaktivitaet',
         'stipendien' => 'mhn_stipendien',
         'auslandsaufenthalte' => 'mhn_ausland',
@@ -82,7 +75,6 @@ class AufnahmeController
      'aufgabe_texte_lesen' => '',
      'aufgabe_vermittlung' => '',
      'aufgabe_sonstiges' => '',
-
     */
 
 

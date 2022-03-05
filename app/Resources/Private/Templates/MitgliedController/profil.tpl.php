@@ -154,23 +154,23 @@ function row($label, $value, $sichtbarkeit = true)
                 </div>
                 <?=row('Hochschultyp', $unityp, $sichtbarkeit_unityp)?>
                 <?=row('Studienort', $studienort, $sichtbarkeit_studienort)?>
-                <?=row('Studienfach', $studienfach, $sichtbarkeit_studienfach)?>
+                <?=row('Studiengang, Ausbildung', $studienfach, $sichtbarkeit_studienfach)?>
                 <?=row('Schwerpunkt', $schwerpunkt, $sichtbarkeit_schwerpunkt)?>
                 <?=row('Nebenfach', $nebenfach, $sichtbarkeit_nebenfach)?>
                 <?=row('Abschluss', $abschluss, $sichtbarkeit_abschluss)?>
                 <?=row('Zweitstudium', $zweitstudium, $sichtbarkeit_zweitstudium)?>
-                <?=row('Hochschulaktivitäten', $hochschulaktivitaeten, $sichtbarkeit_hochschulaktivitaeten)?>
+                <?=row('Ehrenamtliches Engagement', $hochschulaktivitaeten, $sichtbarkeit_hochschulaktivitaeten)?>
                 <?=row('Stipendien', $stipendien, $sichtbarkeit_stipendien)?>
                 <?=row('Auslandsaufenthalte', $auslandsaufenthalte, $sichtbarkeit_auslandsaufenthalte)?>
-                <?=row('Praktika', $praktika, $sichtbarkeit_praktika)?>
+                <?=row('Praktika, Fort- und Weiterbildung', $praktika, $sichtbarkeit_praktika)?>
                 <?=row('Beruf', $beruf, $sichtbarkeit_beruf)?>
             </div>
             <div class="col-sm-6">
                 <h4><?=$vorname?> gibt Auskunft über</h4>
-                <div class="profil-checkbox"><?=checkbox($auskunft_studiengang)?> Studiengang</div>
+                <div class="profil-checkbox"><?=checkbox($auskunft_studiengang)?> Studiengang, Ausbildung</div>
                 <div class="profil-checkbox"><?=checkbox($auskunft_stipendien)?> Stipendien</div>
                 <div class="profil-checkbox"><?=checkbox($auskunft_auslandsaufenthalte)?> Auslandsaufenthalte</div>
-                <div class="profil-checkbox"><?=checkbox($auskunft_praktika)?> Praktika</div>
+                <div class="profil-checkbox"><?=checkbox($auskunft_praktika)?> Praktika, Fort- und Weiterbildung</div>
                 <div class="profil-checkbox"><?=checkbox($auskunft_beruf)?> Beruf</div>
                 <div><?=$vorname?> ist <?=$mentoring ? 'prinzipiell' : 'nicht'?> bereit zu beruflichem Mentoring.</div>
             </div>

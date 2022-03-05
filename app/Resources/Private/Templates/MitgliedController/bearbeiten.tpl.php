@@ -306,8 +306,8 @@ if (!empty($errorMessage)) {
             ['unityp', $unityp, 'placeholder' => 'Hochschultyp (Universität, Fachhochschule, ...)', 'sichtbarkeit' => ['sichtbarkeit_unityp', $sichtbarkeit_unityp]],
             ['studienort', $studienort, 'placeholder' => 'Studienort', 'sichtbarkeit' => ['sichtbarkeit_studienort', $sichtbarkeit_studienort]],
         ])?>
-        <?=form_row('Studienfach + Schwerpunkt', [
-            ['studienfach', $studienfach, 'placeholder' => 'Studienfach', 'sichtbarkeit' => ['sichtbarkeit_studienfach', $sichtbarkeit_studienfach]],
+        <?=form_row('Studienfach, Ausbildung + Schwerpunkt', [
+            ['studienfach', $studienfach, 'placeholder' => 'Studiengang, Ausbildung', 'sichtbarkeit' => ['sichtbarkeit_studienfach', $sichtbarkeit_studienfach]],
             ['schwerpunkt', $schwerpunkt, 'placeholder' => 'Schwerpunkt', 'sichtbarkeit' => ['sichtbarkeit_schwerpunkt', $sichtbarkeit_schwerpunkt]],
         ])?>
         <?=form_row('ggf. Nebenfach', [['nebenfach', $nebenfach, 'placeholder' => 'Nebenfach', 'sichtbarkeit' => ['sichtbarkeit_nebenfach', $sichtbarkeit_nebenfach]]])?>
@@ -316,7 +316,7 @@ if (!empty($errorMessage)) {
         <?=form_row('Hochschulaktivitäten', [['hochschulaktivitaeten', $hochschulaktivitaeten,  'placeholder' => 'Hochschulaktivitäten (Fachschaftsarbeit, ...)', 'sichtbarkeit' => ['sichtbarkeit_hochschulaktivitaeten', $sichtbarkeit_hochschulaktivitaeten]]])?>
         <?=form_row('Stipendien', [['stipendien', $stipendien, 'sichtbarkeit' => ['sichtbarkeit_stipendien', $sichtbarkeit_stipendien]]])?>
         <?=form_row('Auslandsaufenthalte', [['auslandsaufenthalte', $auslandsaufenthalte, 'sichtbarkeit' => ['sichtbarkeit_auslandsaufenthalte', $sichtbarkeit_auslandsaufenthalte]]])?>
-        <?=form_row('Praktika', [['praktika', $praktika, 'sichtbarkeit' => ['sichtbarkeit_praktika', $sichtbarkeit_praktika]]])?>
+        <?=form_row('Praktika, Fort- und Weiterbildungen', [['praktika', $praktika, 'sichtbarkeit' => ['sichtbarkeit_praktika', $sichtbarkeit_praktika]]])?>
         <?=form_row('Beruf', [['beruf', $beruf, 'sichtbarkeit' => ['sichtbarkeit_beruf', $sichtbarkeit_beruf]]])?>
 
     </div>
