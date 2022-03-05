@@ -36,9 +36,9 @@ if ($_GET['a'] === 'deletionCandidates') {
             'fullName' => $m->get('fullName'),
             'ort' => $m->get('ort'),
             'email' => $m->get('email'),
-            'aufnahmedatum' => $m->get('aufnahmedatum')->format('d.m.Y'),
-            'lastLogin' => $m->get('last_login')->format('d.m.Y'),
-            'moodle' => $m->get('last_login') > new \DateTime('2021-05-22') ? 'ja' : 'nein',
+            'aufnahmedatum' => $m->get('aufnahmedatum') ? $m->get('aufnahmedatum')->format('d.m.Y') : 'unbekannt',
+            'lastLogin' => $m->get('last_login') ? $m->get('last_login')->format('d.m.Y') : 'vor 2014',
+            'moodle' => ($m->get('last_login') && $m->get('last_login') > new \DateTime('2021-05-22')) ? 'ja' : 'nein',
         ];
     }, $ids);
 
@@ -65,9 +65,9 @@ if ($_GET['a'] === 'invalidEmails') {
             'fullName' => $m->get('fullName'),
             'ort' => $m->get('ort'),
             'email' => substr($m->get('email'), 0, -strlen('.invalid')),
-            'aufnahmedatum' => $m->get('aufnahmedatum')->format('d.m.Y'),
-            'lastLogin' => $m->get('last_login')->format('d.m.Y'),
-            'moodle' => $m->get('last_login') > new \DateTime('2021-05-22') ? 'ja' : 'nein',
+            'aufnahmedatum' => $m->get('aufnahmedatum') ? $m->get('aufnahmedatum')->format('d.m.Y') : 'unbekannt',
+            'lastLogin' => $m->get('last_login') ? $m->get('last_login')->format('d.m.Y') : 'vor 2014',
+            'moodle' => ($m->get('last_login') && $m->get('last_login') > new \DateTime('2021-05-22')) ? 'ja' : 'nein',
         ];
     }
 
