@@ -266,10 +266,26 @@ class AufnahmeController
 
         Auth::logIn($m->get('id')); // Status neu laden
 
-        Tpl::set('id', $m->get('id'));
-        Tpl::set('fullName', $m->get('fullName'));
-        Tpl::set('email', $m->get('email'));
+        $this->sendMailToActivationTeam($m);
+    }
+
+    /**
+     * @throws RuntimeException on error
+     */
+    private function sendMailToActivationTeam(Mitglied $newMember): void
+    {
+        Tpl::set('id', $newMember->get('id'));
+        Tpl::set('fullName', $newMember->get('fullName'));
+        Tpl::set('email', $newMember->get('email'));
         $text = Tpl::render('mails/account-activated', false);
-        EmailService::getInstance()->send('aktivierung@mind-hochschul-netzwerk.de', 'Neues Mitglied', $text);
+
+        $ids = Ldap::getInstance()->getIdsByGroup('aktivierung');
+        foreach ($ids as $id) {
+            $user = Mitglied::lade($id, false);
+            if ($user === null) {
+                continue;
+            }
+            $user->sendEmail('Neues Mitglied', $text);
+        }
     }
 }
