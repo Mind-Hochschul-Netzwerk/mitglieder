@@ -1,7 +1,7 @@
 <pre>
 <?=<<<EOT
 Einträge in der Mitgliedertabelle: $countAllEntries
-... davon $countNotActivated vor 2021 aus dem Aufnahmetool übernommen, aber bisher nicht aktiviert
+... davon $countNotActivated vor 2021 aus dem Aufnahmetool übernommen, aber bisher nicht aktiviert (<a href="?a=inactiveList">Liste</a>)
    (seit 2021 werden nicht aktivierte Mitglieder bis zur Aktivierung nicht aus dem Aufnahmetool übernommen)
 ... also $countActivated aktivierte Mitglieder.
 zusätzlich $countDeleted gesperrte Benutzernamen (= gelöschte Mitglieder)

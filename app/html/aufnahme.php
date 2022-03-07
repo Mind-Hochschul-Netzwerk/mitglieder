@@ -1,6 +1,5 @@
 <?php
 declare(strict_types=1);
-namespace MHN\Mitglieder;
 
 /**
  * Nimmt einen neuen Benutzer vom Aufnahmetool entgegen
@@ -11,6 +10,4 @@ namespace MHN\Mitglieder;
 
 require_once '../lib/base.inc.php';
 
-use MHN\Mitglieder\Domain\Controller\AufnahmeController;
-$controller = new AufnahmeController();
-$controller->run();
+(new \MHN\Mitglieder\Domain\Controller\AufnahmeController())->run();
