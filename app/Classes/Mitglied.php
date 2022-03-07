@@ -8,8 +8,6 @@ namespace MHN\Mitglieder;
 
 use DateTime;
 use MHN\Mitglieder\Config;
-use MHN\Mitglieder\Domain\Repository\ChangeLog;
-use MHN\Mitglieder\Domain\Model\ChangeLogEntry;
 use MHN\Mitglieder\Service\EmailService;
 use MHN\Mitglieder\Service\Ldap;
 use MHN\Mitglieder\Service\Db;
@@ -20,9 +18,6 @@ use MHN\Mitglieder\Service\Db;
 class Mitglied
 {
     private $data = null;
-
-    /** @var ChangeLogEntry[] Änderungen in dieser Sitzung */
-    private $changeLog = [];
 
     private $ldapEntry = null;
     private $passwordChanged = false;
@@ -234,11 +229,10 @@ class Mitglied
      *
      * @param string $feld
      * @param mixed $wert
-     * @param int $changerUserId ID des Benutzers, der die Daten ändert (für das Protokoll)
      * @throws \LogicException wenn versucht wird, eine schreibgeschützte Eigenschaft zu ändern
      * @throws \OutOfRangeException wenn die Eigenschaft unbekannt ist
      */
-    public function set(string $feld, $wert, int $changerUserId = 0)
+    public function set(string $feld, $wert)
     {
         switch ($feld) {
         case 'id':
@@ -248,12 +242,10 @@ class Mitglied
             throw new \LogicException("Verwende setEmail(), um den Wert zu ändern.", 1494002758);
             break;
         case 'password':
-            $this->logChange($feld, '', $changerUserId);
             $this->setData('password', $wert);
             $this->passwordChanged = true;
             break;
         default:
-            $this->logChange($feld, $wert, $changerUserId);
             $this->setData($feld,  $wert);
             break;
         }
@@ -294,55 +286,14 @@ class Mitglied
      * @throws \RuntimeException falls schon ein anderes Mitglied diese Adresse verwendet.
      * @return void
      */
-    public function setEmail(string $email, int $changerUserId = 0): void
+    public function setEmail(string $email): void
     {
         $id = self::getIdByEmail($email);
         if ($id !== null && $id !== $this->get('id')) {
             throw new \RuntimeException('Doppelte Verwendung der E-Mail-Adresse ' . $email, 1494003025);
         }
 
-        $this->logChange('email', $email, $changerUserId);
         $this->setData('email', $email);
-    }
-
-    /**
-     * Anweisung, eine Änderung zu loggen, falls sich ihr Wert geändert hat
-     *
-     * @var string $dataName Name des Feldes, das geändert wird
-     * @var mixed $newValue neuer Wert (wird mit altem Wert verglichen)
-     * @var id|null $changerUserId ID des Benutzers, der die Änderung veranlasst hat (0 für System)
-     * @var string $info ggf. zusätzliche Infos, die gespeichert werden soll
-     * @return bool hat sich der Wert geändert?
-     * @throws \OutOfRangeException wenn $dataName einen ungültigen Wert hat
-     */
-    public function logChange(string $dataName, $newValue, int $changerUserId, string $info = '') : bool
-    {
-        if (!in_array($dataName, array_keys($this->data), true)) { // nicht über isset(), da dann Einträge mit Wert null nicht gefunden werden
-            throw new \OutOfRangeException('unknown data name: '.  $dataName, 1526594511);
-        }
-
-        $oldValue = $this->data[$dataName];
-
-        if (empty($oldValue) && empty($newValue)) {
-            return false;
-        }
-
-        if (in_array($dataName, ['geburtstag', 'aufnahmedatum', 'db_modified', 'last_login', 'kenntnisnahme_datenverarbeitung_aufnahme', 'einwilligung_datenverarbeitung_aufnahme'], true)) {
-            $newValue = $this->makeDateTime($newValue)->format('Y-m-d H:i:s');
-            if ($oldValue !== null) {
-                $oldValue = $oldValue->format('Y-m-d H:i:s');
-            }
-        }
-
-        $oldValue = (string)$oldValue;
-        $newValue = (string)$newValue;
-        if ($oldValue === $newValue) {
-            return false;
-        }
-
-        $this->changeLog[] = new ChangeLogEntry(0, $this->get('id'), $changerUserId, new \DateTime(), $dataName, $oldValue, $newValue);
-
-        return true;
     }
 
     /**
@@ -430,10 +381,6 @@ class Mitglied
             $changed = true;
             $ldap->addUserToGroup($username, $groupName);
         }
-
-        if ($changed) {
-            $this->changeLog[] = new ChangeLogEntry(0, $this->get('id'), Auth::getUid(), new \DateTime(), 'groups', implode(', ', $oldGroupNames), implode(', ', $groupNames), '');
-        }
     }
 
     /**
@@ -481,8 +428,6 @@ class Mitglied
         // delete LDAP entry (will also delete memberships in groups)
         Ldap::getInstance()->deleteUser($this->get('username'));
         $this->ldapEntry = null;
-
-        ChangeLog::getInstance()->deleteByUserId($this->get('id'));
 
         $db = Db::getInstance();
         $db->query('INSERT INTO deleted_usernames SET id = :id, username = :username', [
@@ -535,7 +480,6 @@ class Mitglied
 
         // neuen Benutzer anlegen
         if ($this->data['id'] === null) {
-            $this->changeLog = [];
             $id = (int) Db::getInstance()->query("INSERT INTO mitglieder SET $setQuery", $values)->getInsertId();
             $this->setData('id', $id);
 
@@ -546,11 +490,6 @@ class Mitglied
             Db::getInstance()->query("UPDATE mitglieder SET $setQuery WHERE id=:id", $values);
             Ldap::getInstance()->modifyUser($this->get('username'), $ldapData);
         }
-
-        foreach ($this->changeLog as $entry) {
-            ChangeLog::getInstance()->save($entry);
-        }
-        $this->changeLog = [];
     }
 
     /**

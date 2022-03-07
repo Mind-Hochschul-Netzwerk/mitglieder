@@ -106,18 +106,6 @@ ALTER TABLE `mitglieder`
 ALTER TABLE `mitglieder`
   MODIFY `id` int(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
-CREATE TABLE userdata_changelog (
-    id int(5) UNSIGNED NOT NULL AUTO_INCREMENT,
-    userId int(5) UNSIGNED NOT NULL,
-    changerUserId int(5) UNSIGNED NOT NULL DEFAULT 0,
-    dataTimestamp datetime NOT NULL DEFAULT NOW(),
-    dataName varchar(255) NOT NULL,
-    oldValue text NOT NULL,
-    newValue text NOT NULL,
-    info text DEFAULT NULL,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PACK_KEYS=0;
-
 CREATE TABLE deleted_usernames (
     id int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     `username` varchar(255) CHARACTER SET utf8 NOT NULL,

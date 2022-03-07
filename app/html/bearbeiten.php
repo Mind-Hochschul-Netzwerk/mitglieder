@@ -13,8 +13,6 @@ use MHN\Mitglieder\Auth;
 use MHN\Mitglieder\DB;
 use MHN\Mitglieder\Mitglied;
 use MHN\Mitglieder\Tpl;
-use MHN\Mitglieder\Domain\Repository\ChangeLog;
-use MHN\Mitglieder\Domain\Model\ChangeLogEntry;
 use \Hengeb\Token\Token;
 use MHN\Mitglieder\Service\EmailService;
 
@@ -63,19 +61,17 @@ function laden(int $uid)
     return $m;
 }
 
-$changerUserId = Auth::getUID();
-
 // wenn irgendein Feld (z.B. E-Mail) gesendet wurde, soll gespeichert werden
 if (isset($_REQUEST['email'])) {
     foreach (bearbeiten_strings_ungeprueft as $key) {
         ensure($_REQUEST[$key], ENSURE_STRING);
-        $m->set($key, $_REQUEST[$key], $changerUserId);
+        $m->set($key, $_REQUEST[$key]);
         Tpl::set($key, $_REQUEST[$key]);
     }
 
     foreach (bearbeiten_bool_ungeprueft as $key) {
         ensure($_REQUEST[$key], ENSURE_BOOL);
-        $m->set($key, $_REQUEST[$key], $changerUserId);
+        $m->set($key, $_REQUEST[$key]);
         Tpl::set($key, $_REQUEST[$key]);
     }
 
@@ -84,7 +80,7 @@ if (isset($_REQUEST['email'])) {
     if (!preg_match('/^(Schueler|Hochschulstudent|Doktorand|Berufstaetig|Sonstiges)$/', $_REQUEST[$key])) {
         die("Wert für $key ungültig.");
     }
-    $m->set($key, $_REQUEST[$key], $changerUserId);
+    $m->set($key, $_REQUEST[$key]);
     Tpl::set($key, $_REQUEST[$key]);
 
     Tpl::set('fullName', $m->get('fullName'));
@@ -106,9 +102,9 @@ if (isset($_REQUEST['email'])) {
         } else {
             // Die Benutzerverwaltung darf Passwörter ohne Angabe des eigenen Passworts ändern, außer das eigene
             if (Auth::hatRecht('mvedit') && !Auth::ist($m->get('id'))) {
-                $m->set('password', $_REQUEST['new_password'], $changerUserId);
+                $m->set('password', $_REQUEST['new_password']);
             } elseif (Auth::checkPassword($_REQUEST['password'])) {
-                $m->set('password', $_REQUEST['new_password'], $changerUserId);
+                $m->set('password', $_REQUEST['new_password']);
             } else {
                 Tpl::set('old_password_error', true);
             }
@@ -137,7 +133,7 @@ if (isset($_REQUEST['email'])) {
     if (Auth::hatRecht('mvedit')) {
         foreach (bearbeiten_strings_admin as $key) {
             ensure($_REQUEST[$key], ENSURE_STRING);
-            $m->set($key, $_REQUEST[$key], $changerUserId);
+            $m->set($key, $_REQUEST[$key]);
             Tpl::set($key, $_REQUEST[$key]);
         }
 
@@ -166,7 +162,7 @@ if (isset($_REQUEST['email'])) {
             if (!$_REQUEST[$key]) {
                 $_REQUEST[$key] = null;
             }
-            $m->set($key, $_REQUEST[$key], $changerUserId);
+            $m->set($key, $_REQUEST[$key]);
             Tpl::set($key, $_REQUEST[$key]);
         }
 
@@ -175,7 +171,7 @@ if (isset($_REQUEST['email'])) {
         if (!preg_match('/^[mwud]$/', $_REQUEST[$key])) {
             die("Wert für $key ungültig.");
         }
-        $m->set($key, $_REQUEST[$key], $changerUserId);
+        $m->set($key, $_REQUEST[$key]);
         Tpl::set($key, $_REQUEST[$key]);
     }
 
@@ -210,9 +206,9 @@ if (isset($_REQUEST['email'])) {
                 unlink('profilbilder/thumbnail-' . $m->get('profilbild'));
             }
 
-            $m->set('profilbild', $fileName, $changerUserId);
-            $m->set('profilbild_x', $size_x, $changerUserId);
-            $m->set('profilbild_y', $size_y, $changerUserId);
+            $m->set('profilbild', $fileName);
+            $m->set('profilbild_x', $size_x);
+            $m->set('profilbild_y', $size_y);
         } else {
             Tpl::set('profilbild_format_unbekannt', true);
         }
@@ -226,7 +222,7 @@ if (isset($_REQUEST['email'])) {
             unlink('profilbilder/' . $m->get('profilbild'));
             unlink('profilbilder/thumbnail-' . $m->get('profilbild'));
         }
-        $m->set('profilbild', '', $changerUserId);
+        $m->set('profilbild', '');
     }
 
     // Gruppen aktualisieren
@@ -289,8 +285,8 @@ if (isset($_REQUEST['email'])) {
     }
 
     // Speichern
-    $m->set('db_modified', 'now', $changerUserId);
-    $m->set('db_modified_user_id', $changerUserId, $changerUserId);
+    $m->set('db_modified', 'now');
+    $m->set('db_modified_user_id', Auth::getUID());
     Tpl::set('data_saved_info', true);
     $m->save();
 
