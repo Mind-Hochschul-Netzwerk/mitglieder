@@ -37,9 +37,6 @@ class StatisticsController {
         $invalidEmailsList = Ldap::getInstance()->getInvalidEmailsList();
 
         switch ($_GET['a']) {
-            case 'inactiveList':
-                $this->showInactiveList();
-                break;
             case 'deletionCandidates':
                 $this->showDeletionCandidates();
                 break;
@@ -54,20 +51,9 @@ class StatisticsController {
         Tpl::submit();
     }
 
-    private function showInactiveList(): void
-    {
-        $list = $this->db->query('SELECT id, vorname, nachname, aufnahmedatum FROM mitglieder WHERE aktiviert=0')->getAll();
-        Tpl::set('list', $list);
-
-        Tpl::set('htmlTitle', 'Nicht aktivierte Konten');
-        Tpl::set('title', 'Nicht aktivierte Konten');
-
-        Tpl::render('StatisticsController/inactiveList');
-    }
-
     private function showDeletionCandidates(): void
     {
-        $ids = array_map('intval', $this->db->query('SELECT id FROM mitglieder WHERE aktiviert=1 AND aufnahmedatum < 20181005 AND membership_confirmation IS NULL')->getColumn());
+        $ids = array_map('intval', $this->db->query('SELECT id FROM mitglieder WHERE aufnahmedatum < 20181005 AND membership_confirmation IS NULL')->getColumn());
         $users = array_map(function ($id) {
             $m = Mitglied::lade($id);
             return [
@@ -120,15 +106,13 @@ class StatisticsController {
         Tpl::set('countInvalidEmails', count($invalidEmailsList));
 
         Tpl::set('countAllEntries', $this->db->query('SELECT COUNT(id) FROM mitglieder')->get());
-        Tpl::set('countActivated', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE aktiviert=1')->get());
-        Tpl::set('countNotActivated', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE aktiviert=0')->get());
         Tpl::set('countDeleted', $this->db->query('SELECT COUNT(id) FROM deleted_usernames')->get());
 
-        Tpl::set('countAfterOct2018', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE aktiviert=1 AND aufnahmedatum >= 20181005')->get());
-        Tpl::set('countConfirmedMembership', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE aktiviert=1 AND aufnahmedatum < 20181005 AND membership_confirmation IS NOT NULL')->get());
-        Tpl::set('countDeletionCandidates', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE aktiviert=1 AND aufnahmedatum < 20181005 AND membership_confirmation IS NULL')->get());
-        Tpl::set('countMembers', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE aktiviert=1 AND (aufnahmedatum >= 20181005 OR membership_confirmation IS NOT NULL)')->get());
-        Tpl::set('countResignations', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE aktiviert=1 AND (aufnahmedatum >= 20181005 OR membership_confirmation IS NOT NULL) AND resignation IS NOT NULL')->get());
+        Tpl::set('countAfterOct2018', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE aufnahmedatum >= 20181005')->get());
+        Tpl::set('countConfirmedMembership', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE aufnahmedatum < 20181005 AND membership_confirmation IS NOT NULL')->get());
+        Tpl::set('countDeletionCandidates', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE aufnahmedatum < 20181005 AND membership_confirmation IS NULL')->get());
+        Tpl::set('countMembers', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE aufnahmedatum >= 20181005 OR membership_confirmation IS NOT NULL')->get());
+        Tpl::set('countResignations', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE (aufnahmedatum >= 20181005 OR membership_confirmation IS NOT NULL) AND resignation IS NOT NULL')->get());
 
         Tpl::render('StatisticsController/main');
     }

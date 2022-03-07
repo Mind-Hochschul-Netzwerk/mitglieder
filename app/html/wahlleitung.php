@@ -24,7 +24,7 @@ if (!Auth::hatRecht('wahlleitung')) {
     die('Fehlende Rechte.');
 }
 
-$emails = Db::getInstance()->query('SELECT email FROM mitglieder WHERE aktiviert = true ORDER BY email')->getColumn();
+$emails = Db::getInstance()->query('SELECT email FROM mitglieder ORDER BY email')->getColumn();
 
 Tpl::pause();
 

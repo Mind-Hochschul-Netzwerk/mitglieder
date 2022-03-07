@@ -185,10 +185,6 @@ function row($label, $value, $sichtbarkeit = true)
                 <div class="col-xs-6">Letzter Login</div>
                 <div class="col-xs-6"><?= $last_login === null ? 'nie' : $last_login->format('d.m.Y') ?></div>
             </div>
-            <div class="row">
-                <div class="col-xs-6">Benutzerkonto aktiviert</div>
-                <div class="col-xs-6"><?=$aktiviert ? 'ja' : 'nein'?></div>
-            </div>
         </div>
         <div class="col-sm-6">
             <h4 class="unsichtbar">Ich könnte bei folgenden Aufgaben helfen</h4>

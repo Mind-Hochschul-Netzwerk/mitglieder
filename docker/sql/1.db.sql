@@ -89,7 +89,6 @@ CREATE TABLE `mitglieder` (
   `aufgabe_sonstiges_beschreibung` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `db_modified` datetime DEFAULT NULL,
   `last_login` datetime DEFAULT NULL,
-  `aktiviert` tinyint(1) NOT NULL DEFAULT '0',
    db_modified_user_id int UNSIGNED DEFAULT NULL,
    kenntnisnahme_datenverarbeitung_aufnahme datetime DEFAULT NULL,
    kenntnisnahme_datenverarbeitung_aufnahme_text text NOT NULL,

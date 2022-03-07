@@ -252,8 +252,6 @@ class AufnahmeController
             $m->set('geburtstag', $this->data->mhn_geburtstag);
         }
 
-        $m->set('aktiviert', true);
-
         $m->save();
 
         $ldap = Ldap::getInstance();

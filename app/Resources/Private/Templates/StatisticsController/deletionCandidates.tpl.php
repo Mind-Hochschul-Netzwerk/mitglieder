@@ -1,4 +1,4 @@
-<p>Alle nicht aktivierten Einträge und außerdem die folgenden <?=count($deletionCandidates)?> Personen:</p>
+<p>Die folgenden <?=count($deletionCandidates)?> Personen:</p>
 <table class="table">
     <tr><th>ID</th><th>Profil / Name</th><th>Ort</th><th>E-Mail</th><th>Aufnahmedatum</th><th>letzter Login</th><th>Moodle freigeschaltet</th></tr>
 <?php foreach($deletionCandidates as $u) {

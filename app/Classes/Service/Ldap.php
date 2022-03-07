@@ -110,9 +110,6 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
         if (!empty($data['id'])) {
             $entry->setAttribute('employeeNumber', [$data['id']]);
         }
-        if (!empty($data['suspended'])) {
-            $entry->setAttribute('employeeType', [$data['suspended']]);
-        }
         if (!empty($data['password'])) {
             $entry->setAttribute('userPassword', ['{CRYPT}' .  Password::hash($data['password'])]);
         }
@@ -132,7 +129,6 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
             'mail' => ['no@mail.invalid'],
             'userPassword' => ['{CRYPT}! no login'],
             'employeeNumber' => ['0'],
-            'employeeType' => ['0'],
         ]);
         $this->setAttributes($entry, $data);
         $this->ldap->getEntryManager()->add($entry);

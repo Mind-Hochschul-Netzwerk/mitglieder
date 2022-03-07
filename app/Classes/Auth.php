@@ -33,18 +33,12 @@ class Auth
     {
         if (!isset($_SESSION['uid'])) {
             $_SESSION['uid'] = null;
-            $_SESSION['aktiviert'] = false;
         }
     }
 
     public static function istEingeloggt() : bool
     {
         return $_SESSION['uid'] !== null;
-    }
-
-    public static function istAktiviert() : bool
-    {
-        return $_SESSION['aktiviert'];
     }
 
     /**
@@ -58,13 +52,6 @@ class Auth
             Tpl::pause();
             $query = ($_SERVER['REQUEST_URI'] === '/') ? '' : ('?uri=' . urlencode($_SERVER['REQUEST_URI']));
             header('Location: /login.php' . $query);
-            exit;
-        } elseif (!self::istAktiviert()) {
-            if ($context === 'aktivieren') {
-                return;
-            }
-            Tpl::pause();
-            header('Location: /aktivieren.php');
             exit;
         }
     }
@@ -94,7 +81,6 @@ class Auth
         $_SESSION['uid'] = $uid;
 
         $u->set('last_login', 'now');
-        $_SESSION['aktiviert'] = ($u->get('aktiviert') === true && $u->get('username') !== '');
 
         $u->save();
 

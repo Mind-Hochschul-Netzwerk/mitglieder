@@ -28,7 +28,7 @@ class Mitglied
         'id' => null, 'username' => '', 'vorname' => '', 'nachname' => '', 'password' => '', 'email' => '', 'sichtbarkeit_email' => false, 'titel' => '', 'geschlecht' => 'u', 'sichtbarkeit_geschlecht' => false, 'geburtstag' => null, 'aufnahmedatum' => null, 'sichtbarkeit_geburtstag' => false, 'profilbild' => '', 'profilbild_x' => 0, 'profilbild_y' => 0, 'mensa_nr' => '', 'sichtbarkeit_mensa_nr' => false, 'strasse' => '', 'sichtbarkeit_strasse' => false, 'adresszusatz' => '', 'sichtbarkeit_adresszusatz' => false, 'plz' => '', 'ort' => '', 'sichtbarkeit_plz_ort' => false, 'land' => '', 'sichtbarkeit_land' => false, 'strasse2' => '', 'adresszusatz2' => '', 'plz2' => '', 'ort2' => '', 'land2' => '', 'telefon' => '', 'sichtbarkeit_telefon' => false, 'mobil' => '', 'sichtbarkeit_mobil' => false, 'homepage' => '', 'sprachen' => '', 'hobbys' => '', 'interessen' => '',
         'beschaeftigung' => 'Sonstiges', 'sichtbarkeit_beschaeftigung' => false, 'studienort' => '', 'sichtbarkeit_studienort' => false, 'studienfach' => '', 'sichtbarkeit_studienfach' => false, 'unityp' => '', 'sichtbarkeit_unityp' => false, 'schwerpunkt' => '', 'sichtbarkeit_schwerpunkt' => false, 'nebenfach' => '', 'sichtbarkeit_nebenfach' => false, 'abschluss' => '', 'sichtbarkeit_abschluss' => false, 'zweitstudium' => '', 'sichtbarkeit_zweitstudium' => false, 'hochschulaktivitaeten' => '', 'sichtbarkeit_hochschulaktivitaeten' => false, 'stipendien' => '', 'sichtbarkeit_stipendien' => false, 'auslandsaufenthalte' => '', 'sichtbarkeit_auslandsaufenthalte' => false, 'praktika' => '', 'sichtbarkeit_praktika' => false, 'beruf' => '', 'sichtbarkeit_beruf' => false,
         'auskunft_studiengang' => false, 'auskunft_stipendien' => false, 'auskunft_auslandsaufenthalte' => false, 'auskunft_praktika' => false, 'auskunft_beruf' => false, 'mentoring' => false, 'aufgabe_ma' => false, 'aufgabe_orte' => false, 'aufgabe_vortrag' => false, 'aufgabe_koord' => false, 'aufgabe_graphisch' => false, 'aufgabe_computer' => false, 'aufgabe_texte_schreiben' => false, 'aufgabe_texte_lesen' => false, 'aufgabe_vermittlung' => false, 'aufgabe_ansprechpartner' => false, 'aufgabe_hilfe' => false, 'aufgabe_sonstiges' => false, 'aufgabe_sonstiges_beschreibung' => '',
-        'db_modified' => null, 'last_login' => null, 'aktiviert' => false,
+        'db_modified' => null, 'last_login' => null,
         'db_modified_user_id' => null, 'kenntnisnahme_datenverarbeitung_aufnahme' => null, 'kenntnisnahme_datenverarbeitung_aufnahme_text' => '', 'einwilligung_datenverarbeitung_aufnahme' => null, 'einwilligung_datenverarbeitung_aufnahme_text' => '',
         'resignation' => null, 'membership_confirmation' => null,
     ];
@@ -39,15 +39,14 @@ class Mitglied
      * privater Konstruktor, um das direkte Erstellen von Objekten zu verhindern
      * Benutze die Funktion Mitglied::lade($uid)
      * @param int $uid
-     * @param bool $auchDeaktivierte
      */
-    private function __construct(int $uid, $auchDeaktivierte)
+    private function __construct(int $uid)
     {
         if ($uid === 0) { // new member
             return;
         }
 
-        $data = Db::getInstance()->query('SELECT '. implode(',', array_keys(self::felder)) . ' FROM mitglieder WHERE id=:id ' . ($auchDeaktivierte ? '' : 'AND aktiviert=true'), ['id' => $uid])->getRow();
+        $data = Db::getInstance()->query('SELECT '. implode(',', array_keys(self::felder)) . ' FROM mitglieder WHERE id=:id', ['id' => $uid])->getRow();
         if (!$data) {
             return;
         }
@@ -92,9 +91,9 @@ class Mitglied
     /**
      * Lädt ein Mitglied aus der Datenbank und gibt ein Mitglied-Objekt zurück (oder null)
      */
-    public static function lade(int $uid, bool $auchDeaktivierte = false): ?Mitglied
+    public static function lade(int $uid): ?Mitglied
     {
-        $m = new self($uid, $auchDeaktivierte);
+        $m = new self($uid);
 
         if (!$m->data) {
             return null;
@@ -454,7 +453,6 @@ class Mitglied
             'firstname' => $this->get('vorname'),
             'lastname' => $this->get('nachname'),
             'email' => $this->get('email'),
-            'suspended' => 1 - $this->get('aktiviert'),
         ];
 
         // Query bauen

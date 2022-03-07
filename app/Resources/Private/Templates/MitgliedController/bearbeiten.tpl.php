@@ -472,11 +472,6 @@ if (!empty($errorMessage)) {
                 <h4>Mitgliederverwaltung</h4>
 
                 <div class="row">
-                    <div class="col-sm-2">Benutzerkonto aktiviert</div>
-                    <div class="col-sm-10"><?=$aktiviert ? 'ja' : 'nein'?></div>
-                </div>
-
-                <div class="row">
                     <div class="col-sm-2">Kenntnisnahme zur Datenverarbeitung (Aufnahmetool)</div>
                     <div class="col-sm-10"><?= ($kenntnisnahme_datenverarbeitung_aufnahme === null) ? 'nein' : ('zur Kenntnis genommen am ' .  $kenntnisnahme_datenverarbeitung_aufnahme->format('d.m.Y, H:i:s') . ' Uhr.')?></div>
                 </div>

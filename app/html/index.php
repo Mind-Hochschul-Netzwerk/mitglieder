@@ -80,18 +80,7 @@ if ($_GET['q']) {
     }
 
     // TODO Pagination?? oder einfach suche einschränken lassen und die erst 50 zeigen...
-    $ids = $db->query('SELECT id FROM mitglieder WHERE aktiviert = true AND ' . implode(' AND ', $AND) . ' ORDER BY nachname, vorname LIMIT 50', $values)->getColumn();
-
-    // Die Mitgliederverwaltung darf auch nach nicht aktivierten Mitgliedern suchen
-    if (Auth::hatRecht('mvedit')) {
-        $id = $db->query('SELECT id FROM mitglieder WHERE id=:id OR username=:username', [
-            'id' => (int)$_GET['q'],
-            'username' => $_GET['q']
-        ])->get();
-        if ($id) {
-            array_unshift($ids, $id);
-        }
-    }
+    $ids = $db->query('SELECT id FROM mitglieder WHERE ' . implode(' AND ', $AND) . ' ORDER BY nachname, vorname LIMIT 50', $values)->getColumn();
 } elseif (!empty($_GET['resigned']) && Auth::hatRecht('mvread')) {
     Tpl::set('query', ' '); // show the "search results" title even if the list is empty
     $ids = $db->query('SELECT id FROM mitglieder WHERE resignation IS NOT NULL')->getColumn();
@@ -101,7 +90,7 @@ if ($_GET['q']) {
 $ergebnisse = [];
 $ids = array_unique($ids);
 foreach ($ids as $id) {
-    $m = Mitglied::lade((int)$id, true);
+    $m = Mitglied::lade((int)$id);
 
     $orte = [];
     if ($m->get('ort') && $m->get('sichtbarkeit_plz_ort')) {
