@@ -37,6 +37,9 @@ class StatisticsController {
         $invalidEmailsList = Ldap::getInstance()->getInvalidEmailsList();
 
         switch ($_GET['a']) {
+            case 'inactiveList':
+                $this->showInactiveList();
+                break;
             case 'deletionCandidates':
                 $this->showDeletionCandidates();
                 break;
@@ -49,6 +52,17 @@ class StatisticsController {
         }
 
         Tpl::submit();
+    }
+
+    private function showInactiveList(): void
+    {
+        $list = $this->db->query('SELECT id, vorname, nachname, aufnahmedatum FROM mitglieder WHERE aktiviert=0')->getAll();
+        Tpl::set('list', $list);
+
+        Tpl::set('htmlTitle', 'Nicht aktivierte Konten');
+        Tpl::set('title', 'Nicht aktivierte Konten');
+
+        Tpl::render('StatisticsController/inactiveList');
     }
 
     private function showDeletionCandidates(): void
