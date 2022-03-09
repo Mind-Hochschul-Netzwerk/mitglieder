@@ -197,8 +197,8 @@ if (isset($_REQUEST['email'])) {
             $fileName = $m->get('id') . '-' . urlencode(Password::randomString(16)) . '.' . $type;
 
             // Datei und Thumbnail erstellen
-            list($size_x, $size_y) = resizeImage($_FILES['profilbild']['tmp_name'], 'profilbilder/' . $fileName, $type, Config::profilbildMaxWidth, Config::profilbildMaxHeight);
-            resizeImage($_FILES['profilbild']['tmp_name'], 'profilbilder/thumbnail-' . $fileName, $type, Config::thumbnailMaxWidth, Config::thumbnailMaxHeight);
+            list($size_x, $size_y) = resizeImage($_FILES['profilbild']['tmp_name'], 'profilbilder/' . $fileName, $type, $type, Config::profilbildMaxWidth, Config::profilbildMaxHeight);
+            resizeImage($_FILES['profilbild']['tmp_name'], 'profilbilder/thumbnail-' . $fileName, $type, $type, Config::thumbnailMaxWidth, Config::thumbnailMaxHeight);
 
             // altes Profilbild löschen
             if ($m->get('profilbild') && is_file('profilbilder/' . $m->get('profilbild'))) {
