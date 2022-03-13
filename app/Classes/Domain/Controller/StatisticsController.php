@@ -109,8 +109,8 @@ class StatisticsController {
         Tpl::set('countDeleted', $this->db->query('SELECT COUNT(id) FROM deleted_usernames')->get());
 
         Tpl::set('countAfterOct2018', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE aufnahmedatum >= 20181005')->get());
-        Tpl::set('countConfirmedMembership', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE aufnahmedatum < 20181005 AND membership_confirmation IS NOT NULL')->get());
-        Tpl::set('countDeletionCandidates', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE aufnahmedatum < 20181005 AND membership_confirmation IS NULL')->get());
+        Tpl::set('countConfirmedMembership', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE (aufnahmedatum < 20181005 OR aufnahmedatum IS NULL) AND membership_confirmation IS NOT NULL')->get());
+        Tpl::set('countDeletionCandidates', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE (aufnahmedatum < 20181005 OR aufnahmedatum IS NULL) AND membership_confirmation IS NULL')->get());
         Tpl::set('countMembers', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE aufnahmedatum >= 20181005 OR membership_confirmation IS NOT NULL')->get());
         Tpl::set('countResignations', $this->db->query('SELECT COUNT(id) FROM mitglieder WHERE (aufnahmedatum >= 20181005 OR membership_confirmation IS NOT NULL) AND resignation IS NOT NULL')->get());
 
