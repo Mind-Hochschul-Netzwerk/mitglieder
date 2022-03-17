@@ -128,14 +128,9 @@ class Mitglied
         case 'id':
             return (int)$this->data['id'];
         case 'fullName':
-            $titel = $this->data['titel'];
             $vorname = $this->data['vorname'];
             $nachname = $this->data['nachname'];
-            $fn = $titel;
-            if ($fn) {
-                $fn .= ' ';
-            }
-            $fn .= $vorname;
+            $fn = $vorname;
             if ($fn) {
                 $fn .= ' ';
             }
