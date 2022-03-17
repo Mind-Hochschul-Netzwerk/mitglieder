@@ -298,7 +298,7 @@ class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
             }
             $groups[] = [
                 'name' => $groupName,
-                'description' => $group->getAttribute('description')[0],
+                'description' => empty($group->getAttribute('description')) ? '' : $group->getAttribute('description')[0],
                 'users' => $members
             ];
         }
