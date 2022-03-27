@@ -145,7 +145,7 @@ class MassDeletionController {
                     $m->sendEmail('Dein MHN-Konto wird gelöscht', $body);
                     $this->db->query('UPDATE deletion_candidates SET mail_sent = 1 WHERE id=:id', ['id' => (int)$entry['id']]);
                 } catch (\Exception $e) {
-                    echo "could not send to user " . $m->get('id') . ' <' . $m->get('email') . ">\n";
+                    echo "could not send to user " . $m->get('id') . ': ' . $m->get('email') . "\n";
                 }
             }
 
