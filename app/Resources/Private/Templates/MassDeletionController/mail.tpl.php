@@ -38,7 +38,7 @@ Eine kurze Zusammenfassung der Hintergründe:
 
 Im Oktober 2018 wurde beschlossen, das MHN mit einer neuen Satzung als Verein
 eintragen zu lassen. Die Eintragung rückwirkend zur Gründung des MHNs 2001 war
-leider nicht erfolgreich. Daher ist der Verein  aktuell mit offizieller
+leider nicht erfolgreich. Daher ist der Verein aktuell mit offizieller
 Gründung zu 2018 in Eintragung, was rechtlich einer Neugründung gleichkommt.
 Konkret bedeutet das, bist du vor dem 05.10.2018 beigetreten, kannst du nicht
 automatisch übernommen werden. Dein Eintritt muss offiziell erklärt werden.
