@@ -141,7 +141,7 @@ class MassDeletionController {
             if ($dryRun === 'dry') {
                 echo "$body\n\n";
             } else {
-                $m->sendMail('Dein MHN-Konto wird gelöscht', $body);
+                $m->sendEmail('Dein MHN-Konto wird gelöscht', $body);
                 $this->db->query('UPDATE deletion_candidates SET mail_sent = 1 WHERE id=:id', ['id' => (int)$entry['id']]);
             }
 
