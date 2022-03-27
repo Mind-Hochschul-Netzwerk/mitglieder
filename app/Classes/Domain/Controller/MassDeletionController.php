@@ -44,7 +44,7 @@ class MassDeletionController {
                 $this->sendMails('dry');
                 break;
             case 'sendMails':
-                $this->sendMails();
+                $this->sendMails('not dry');
                 break;
             default:
                 $this->showDeletionCandidates();
@@ -114,11 +114,11 @@ class MassDeletionController {
         Tpl::render('MassDeletionController/deletionCandidates');
     }
 
-    private function sendMails(string $dryRun): void
+    private function sendMails(string $dryRun = 'not dry'): void
     {
         $entries = $this->db->query('SELECT * FROM deletion_candidates WHERE mail_sent = 0 AND email NOT LIKE "%.invalid"')->getAll();
 
-        if ($dryRun) {
+        if ($dryRun === 'dry') {
             echo "<p>dry run. <a href=?a=sendMails>do it</a></p>";
         }
         $start = microtime(true);
@@ -138,7 +138,7 @@ class MassDeletionController {
 
             $body = Tpl::render('MassDeletionController/mail', false);
 
-            if ($dryRun) {
+            if ($dryRun === 'dry') {
                 echo "$body\n\n";
             } else {
                 $m->sendMail('Dein MHN-Konto wird gelöscht', $body);
