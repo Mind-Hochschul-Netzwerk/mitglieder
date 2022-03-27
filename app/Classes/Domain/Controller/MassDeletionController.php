@@ -134,7 +134,7 @@ class MassDeletionController {
             Tpl::set('vorname', $m->get('vorname'), false);
             Tpl::set('geschlecht', $m->get('geschlecht'), false);
             Tpl::set('vorname', $m->get('vorname'), false);
-            Tpl::set('aufnahmedatun', $m->get('aufnahmedatum'), false);
+            Tpl::set('aufnahmedatum', $m->get('aufnahmedatum'), false);
 
             $body = Tpl::render('MassDeletionController/mail', false);
 
