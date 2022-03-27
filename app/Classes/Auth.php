@@ -128,13 +128,8 @@ class Auth
             return false;
         }
 
-        // Rechtverwaltung impliziert alle Rechte
-        if ($recht !== 'rechte' && self::hatRecht('rechte', $uid)) {
-            return true;
-        }
-
         // schreiben impliziert lesen
-        if ($recht === 'mvread' && self::hatRecht('mvedit', $uid)) {
+        if (in_array($recht, ['rechte', 'mvread'], true) && self::hatRecht('mvedit', $uid)) {
             return true;
         }
 

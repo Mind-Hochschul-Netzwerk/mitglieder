@@ -5,3 +5,5 @@
     echo "<tr><td>$u[id]</td><td><a href='bearbeiten.php?id=$u[id]'>$u[fullName]</a></td><td>$u[ort]</td><td>$u[email]</td><td>$u[aufnahmedatum]</td><td>$u[lastLogin]</td><td>$u[moodle]</td>\n";
 }?>
 </table>
+<p><a href="?a=fillDatabase">In Datenbank übernehmen</a></p>
+<p><a href="?a=sendMailsDry">Mails senden</a></p>

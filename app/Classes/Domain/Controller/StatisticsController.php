@@ -37,9 +37,6 @@ class StatisticsController {
         $invalidEmailsList = Ldap::getInstance()->getInvalidEmailsList();
 
         switch ($_GET['a']) {
-            case 'deletionCandidates':
-                $this->showDeletionCandidates();
-                break;
             case 'invalidEmails':
                 $this->showInvalidEmails($invalidEmailsList);
                 break;
@@ -49,29 +46,6 @@ class StatisticsController {
         }
 
         Tpl::submit();
-    }
-
-    private function showDeletionCandidates(): void
-    {
-        $ids = array_map('intval', $this->db->query('SELECT id FROM mitglieder WHERE aufnahmedatum < 20181005 AND membership_confirmation IS NULL')->getColumn());
-        $users = array_map(function ($id) {
-            $m = Mitglied::lade($id);
-            return [
-                'id' => $m->get('id'),
-                'fullName' => $m->get('fullName'),
-                'ort' => $m->get('ort'),
-                'email' => $m->get('email'),
-                'aufnahmedatum' => $m->get('aufnahmedatum') ? $m->get('aufnahmedatum')->format('d.m.Y') : 'unbekannt',
-                'lastLogin' => $m->get('last_login') ? $m->get('last_login')->format('d.m.Y') : 'vor 2014',
-                'moodle' => ($m->get('last_login') && $m->get('last_login') > new \DateTime('2021-05-22')) ? 'ja' : 'nein',
-            ];
-        }, $ids);
-
-        Tpl::set('htmlTitle', 'Zum Löschen vorgesehene Personen');
-        Tpl::set('title', 'Zum Löschen vorgesehene Personen');
-
-        Tpl::set('deletionCandidates', $users);
-        Tpl::render('StatisticsController/deletionCandidates');
     }
 
     private function showInvalidEmails(array &$invalidEmailsList): void
