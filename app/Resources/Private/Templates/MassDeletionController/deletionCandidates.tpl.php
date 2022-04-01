@@ -7,3 +7,4 @@
 </table>
 <p><a href="?a=fillDatabase">In Datenbank übernehmen</a></p>
 <p><a href="?a=sendMailsDry">Mails senden</a></p>
+<p><a href="?a=deleteDry">Löschen</a></p>

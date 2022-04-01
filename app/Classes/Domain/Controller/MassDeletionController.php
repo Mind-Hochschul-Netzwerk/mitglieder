@@ -46,6 +46,12 @@ class MassDeletionController {
             case 'sendMails':
                 $this->sendMails('not dry');
                 break;
+            case 'deleteDry':
+                $this->delete('dry');
+                break;
+            case 'delete':
+                $this->delete('not dry');
+                break;
             default:
                 $this->showDeletionCandidates();
                 break;
@@ -152,6 +158,42 @@ class MassDeletionController {
             $count++;
         }
         echo "sent $count mails in $time seconds\n";
+        echo "</pre>";
+    }
+
+    function delete(string $dryRun = 'not dry'): void
+    {
+        $ids = $this->db->query('SELECT id FROM mitglieder WHERE aufnahmedatum < 20181005 AND membership_confirmation IS NULL')->getColumn();
+
+        if ($dryRun === 'dry') {
+            echo "<p>dry run. <a href=?a=delete>do it</a></p>";
+        }
+        $start = microtime(true);
+        echo "<pre>";
+        echo "will delete " . count($ids) . " users\n";
+        $count = 0;
+        foreach ($ids as $id) {
+            $time = microtime(true) - $start;
+            if ($time > 10) {
+                break;
+            }
+            $m = Mitglied::lade((int)$id);
+
+            echo 'delete user: ' . $m->get('fullName') . " (ID $id, " . $m->get('username') . ", " . $m->get('email') . ")\n";
+
+            if ($dryRun === 'not dry') {
+                try {
+                    $m->delete('quiet');
+                } catch (\Exception $e) {
+                    echo "deletion FAILED. message: " . $e->getMessage() . "\n";
+                    $count--;
+                }
+            }
+
+            $count++;
+        }
+        echo "deleted $count users in $time seconds\n";
+
         echo "</pre>";
     }
 }

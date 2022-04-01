@@ -383,33 +383,36 @@ class Mitglied
      * @throws \RuntimeException if the user is a privileged user (cannot be deleted) or if there is a problem with sending mails
      * @return void
      */
-    public function delete(): void
+    public function delete(string $quiet = 'not quiet'): void
     {
         if ($this->isMemberOfGroup('rechte')) {
             throw new \RuntimeException('Ein Benutzer mit den Rechten zur Rechteverwaltung darf nicht gelöscht werden.', 1637336416);
         }
 
         $admin = Mitglied::lade(Auth::getUID());
-        Tpl::set('adminName', $admin->get('fullName'));
-        Tpl::set('adminId', $admin->get('id'));
-        Tpl::set('adminUsername', $admin->get('username'));
-        Tpl::set('deletedName', $this->get('fullName'));
-        Tpl::set('deletedId', $this->get('id'));
-        Tpl::set('deletedUsername', $this->get('username'));
-        Tpl::set('deletedEmail', $this->get('email'));
-        $mailText = Tpl::render('mails/MvEdit-Info-Mitglied-Geloescht', false);
 
-        // Alle Mitglieder der Mitgliederbetreuung (mvedit) informieren
-        $ids = Ldap::getInstance()->getIdsByGroup('mvedit');
-        foreach ($ids as $id) {
-            $user = Mitglied::lade($id, false);
-            if ($user === null) {
-                continue;
-            }
-            try {
-                $user->sendEmail('Information über gelöschtes Mitglied', $mailText);
-            } catch (\RuntimeException $e) {
-                throw $e;
+        if ($quiet === 'not quiet') {
+            Tpl::set('adminName', $admin->get('fullName'));
+            Tpl::set('adminId', $admin->get('id'));
+            Tpl::set('adminUsername', $admin->get('username'));
+            Tpl::set('deletedName', $this->get('fullName'));
+            Tpl::set('deletedId', $this->get('id'));
+            Tpl::set('deletedUsername', $this->get('username'));
+            Tpl::set('deletedEmail', $this->get('email'));
+            $mailText = Tpl::render('mails/MvEdit-Info-Mitglied-Geloescht', false);
+
+            // Alle Mitglieder der Mitgliederbetreuung (mvedit) informieren
+            $ids = Ldap::getInstance()->getIdsByGroup('mvedit');
+            foreach ($ids as $id) {
+                $user = Mitglied::lade($id, false);
+                if ($user === null) {
+                    continue;
+                }
+                try {
+                    $user->sendEmail('Information über gelöschtes Mitglied', $mailText);
+                } catch (\RuntimeException $e) {
+                    throw $e;
+                }
             }
         }
 
