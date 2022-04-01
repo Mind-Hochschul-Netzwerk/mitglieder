@@ -79,7 +79,7 @@ class MassDeletionController {
         if ($hasData) {
             die('table has data. <a href="?">back</a> <a href="?a=clear">clear</a>');
         }
-        $this->db->query('INSERT INTO deletion_candidates (id, username, vorname, nachname, geschlecht, email) SELECT id, username, vorname, nachname, geschlecht, "" AS email FROM mitglieder WHERE aufnahmedatum < 20181005 AND membership_confirmation IS NULL');
+        $this->db->query('INSERT INTO deletion_candidates (id, username, vorname, nachname, geschlecht, email) SELECT id, username, vorname, nachname, geschlecht, "" AS email FROM mitglieder WHERE (aufnahmedatum < 20181005 OR aufnahmedatum IS NULL) AND membership_confirmation IS NULL');
         $ids = array_map('intval', $this->db->query('SELECT id FROM deletion_candidates')->getColumn());
         foreach ($ids as $id) {
             $m = Mitglied::lade($id);
@@ -99,7 +99,7 @@ class MassDeletionController {
 
     private function showDeletionCandidates(): void
     {
-        $ids = array_map('intval', $this->db->query('SELECT id FROM mitglieder WHERE aufnahmedatum < 20181005 AND membership_confirmation IS NULL')->getColumn());
+        $ids = array_map('intval', $this->db->query('SELECT id FROM mitglieder WHERE (aufnahmedatum < 20181005 OR aufnahmedatum IS NULL) AND membership_confirmation IS NULL')->getColumn());
         $users = array_map(function ($id) {
             $m = Mitglied::lade($id);
             return [
@@ -163,7 +163,7 @@ class MassDeletionController {
 
     function delete(string $dryRun = 'not dry'): void
     {
-        $ids = $this->db->query('SELECT id FROM mitglieder WHERE aufnahmedatum < 20181005 AND membership_confirmation IS NULL')->getColumn();
+        $ids = $this->db->query('SELECT id FROM mitglieder WHERE (aufnahmedatum < 20181005 OR aufnahmedatum IS NULL) AND membership_confirmation IS NULL')->getColumn();
 
         if ($dryRun === 'dry') {
             echo "<p>dry run. <a href=?a=delete>do it</a></p>";

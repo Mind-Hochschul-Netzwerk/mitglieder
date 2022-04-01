@@ -13,20 +13,17 @@ switch ($geschlecht) {
 }
 echo $vorname . ",\n";
 echo "\n";
-if ($aufnahmedatum) {
-    echo "Am " . $aufnahmedatum->format('d.m.Y') . " bist du Mitglied im Mind-Hochschul-Netzwerk (MHN) geworden, einem\nProjekt von Mensa in Deutschland e.V.\n";
-} else {
-    echo "Vor vielen Jahren bist du Mitglied im Mind-Hochschul-Netzwerk (MHN) geworden,\neinem Projekt von Mensa in Deutschland e.V.\n";
-}
 ?>
+vor vielen Jahren bist du Mitglied im Mind-Hochschul-Netzwerk (MHN) geworden,
+einem Projekt von Mensa in Deutschland e.V.
 
-Deine Mitgliedschaft wird zum 1.4.2022 beendet und deine Mitgliedsdaten werden
+Deine Mitgliedschaft wird zum 8.4. beendet und deine Mitgliedsdaten werden
 gelöscht. Falls du kein Interesse an der MHN-Mitgliedschaft mehr hast, musst du
 nichts weiter tun. Dies ist dann die letzte E-Mail, die du von uns erhältst.
 Wir würden uns natürlich freuen, später wieder von dir zu hören.
 
 Wenn du weiterhin MHN-Mitglied bleiben möchtest, kannst du deine Mitgliedschaft
-noch bis zum 31.3.2022 bestätigen:
+noch bis zum 7.4.2022 bestätigen:
 
 1. Öffne dein Mitgliedskonto unter:
    https://mitglieder.mind-hochschul-netzwerk.de/bearbeiten.php?tab=account
