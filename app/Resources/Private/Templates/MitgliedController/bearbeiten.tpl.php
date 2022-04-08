@@ -407,13 +407,34 @@ if (!empty($errorMessage)) {
             </div>
 
             <div class="row">
-                <div class="col-sm-2">Mitglied seit</div>
-                <div class="col-sm-10"><?=($aufnahmedatum === null ? 'unbekannt' : $aufnahmedatum->format('d.m.Y'))?></div>
+                <div class="col-sm-2">Aufnahmedatum</div>
+                <div class="col-sm-10"><?=($aufnahmedatum !== null ? $aufnahmedatum->format('d.m.Y') : 'unbekannt')?></div>
             </div>
 
             <div class="row">
                 <div class="col-sm-2">Letzte Bearbeitung</div>
                 <div class="col-sm-10"><?= $db_modified === null ? 'unbekannt' : $db_modified->format('d.m.Y H:i:s') ?> durch <?= $db_modified_user === null ? 'unbekannt' : $db_modified_user->get('profilLink') ?></div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-2">Vereinseintritt</div>
+                <div class="col-sm-10"><?=($dateOfJoining !== null ? $dateOfJoining->format('d.m.Y') : 'kein Mitglied')?></div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-2"><label for="resignPassword">Austritt erklären</label></div>
+                <div class="col-sm-10">
+                    <?php if ($resignation): ?>
+                        <p>Du hast deinen Austritt am <?=$resignation->format('d.m.Y')?> erklärt. Wenn du ihn zurücknehmen möchtest, wende dich bitte an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>. Der Austritt wird gemäß unserer Satzung zum Ende des Kalenderjahres wirksam.</p>
+                    <?php else: ?>
+                        <p>Mit einer Erklärung an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>, kannst du deine MHN-Mitgliedschaft beenden. Mit dem Ende deiner Mitgliedschaft werden wir deine persönlichen Daten aus der Mitgliederdatenbank löschen.</p>
+                        <p class="resign__button"><button type="button" id="resign" class="btn btn-danger">Austritt erklären</button></p>
+                        <div class="resign__password hidden">
+                            <p>Gib hier dein Passwort ein, wenn du deine Mitgliedschaft wirklich beenden möchtest, und klicke dann auf speichern.</p>
+                            <div><input id="resignPassword" name="resignPassword" type="password" class="form-control" autocomplete="new-password" placeholder="Passwort"></div>
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
 
             <h4>Passwort ändern</h4>
@@ -422,51 +443,6 @@ if (!empty($errorMessage)) {
             <?php endif; ?>
             <?=form_row('Neues Passwort', [['new_password', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '', 'autocomplete' => 'new-password']])?>
             <?=form_row('Passwort wiederholen', [['new_password2', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '']])?>
-
-            <h4>Verein</h4>
-            <div class="row">
-                <div class="col-sm-2"><label for="resignPassword">Mitgliedschaft bestätigen</label></div>
-                <div class="col-sm-10">
-                    <?php if ($membership_confirmation): ?>
-                        <p>Du hast deine Mitgliedschaft am <?=$membership_confirmation->format('d.m.Y')?> bestätigt.</p>
-                    <?php elseif ($aufnahmedatum && $aufnahmedatum > new \DateTime('2018-10-15')): ?>
-                        <p>Da du erst nach der offiziellen MHN-Gründungsversammlung (Oktober 2018) aufgenommen wurdest, bist du bereits Vereinsmitglied und musst deine Mitgliedschaft nicht bestätigen.</p>
-                    <?php else: ?>
-                        <p>Das MHN besteht zwar schon seit 2001, aber erst im Oktober 2018 fand eine offizielle Gründungsversammlung mit dem Ziel einer Eintragung ins Vereinsregister statt. Alle, die vor diesem Datum ins MHN aufgenommen wurden, sind aus rechtlichen Gründen nicht automatisch Vereinsmitglied, sondern müssen ihren Eintritt erklären. Nach der Entscheidung der Mitgliederversammlung am 25.9.2021 kann dies an dieser Stelle geschehen. Wer seine Mitgliedschaft nicht bestätigt, muss aus der Mitgliederdatenbank gelöscht werden.</p>
-                        <p><strong>Du hast deine Mitgliedschaft noch nicht bestätigt! Bitte bestätige sie bis zum 7.4.2022, indem du das folgende Häkchen setzt und auf Speichern klickst:</strong></p>
-                        <p><input id="membership_confirmation" name="membership_confirmation" type="checkbox"> <label for="membership_confirmation">Ich erkenne hiermit die <a href="https://www.mind-hochschul-netzwerk.de/mod/book/view.php?id=253&chapterid=6">Vereinssatzung und Ordnungen</a> an und möchte Mitglied im Verein werden.</label></p>
-                    <?php endif; ?>
-                </div>
-            </div>
-            <?php if ($membership_confirmation || ($aufnahmedatum && $aufnahmedatum > new \DateTime('2018-10-15'))): ?>
-                <div class="row">
-                    <div class="col-sm-2"><label for="resignPassword">Austritt erklären</label></div>
-                    <div class="col-sm-10">
-                        <?php if ($resignation): ?>
-                            <p>Du hast deinen Austritt am <?=$resignation->format('d.m.Y')?> erklärt. Wenn du ihn zurücknehmen möchtest, wende dich bitte an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>. Der Austritt wird gemäß unserer Satzung zum Ende des Kalenderjahres wirksam.</p>
-                        <?php else: ?>
-                            <p>Mit einer Erklärung an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>, kannst du deine MHN-Mitgliedschaft beenden. Mit dem Ende deiner Mitgliedschaft werden wir deine persönlichen Daten aus der Mitgliederdatenbank löschen.</p>
-                            <p class="resign__button"><button type="button" id="resign" class="btn btn-danger">Austritt erklären</button></p>
-                            <div class="resign__password hidden">
-                                <p>Gib hier dein Passwort ein, wenn du deine Mitgliedschaft wirklich beenden möchtest, und klicke dann auf speichern.</p>
-                                <div><input id="resignPassword" name="resignPassword" type="password" class="form-control" autocomplete="new-password" placeholder="Passwort"></div>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            <?php else: ?>
-                <div class="row">
-                    <div class="col-sm-2"><label for="resignPassword">Mitgliedschaft beenden</label></div>
-                    <div class="col-sm-10">
-                        <p>Durch die Beendigung deiner MHN-Mitgliedschaft werden deine persönlichen Daten <strong>sofort</strong> und <strong>unwiederbringlich</strong> aus der Mitgliederdatenbank gelöscht. Du wirst nicht mehr auf den Mitgliederbereich zugreifen können und wirst keine E-Mail-Nachrichten mehr erhalten.</p>
-                        <p class="resign__button"><button type="button" id="resign" class="btn btn-danger">Mitgliedschaft beenden</button></p>
-                        <div class="resign__password hidden">
-                            <p>Gib hier dein Passwort ein, wenn du deine Mitgliedschaft wirklich beenden möchtest, und klicke dann auf speichern.</p>
-                            <div><input id="resignPassword" name="resignPassword" type="password" class="form-control" autocomplete="new-password" placeholder="Passwort"></div>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
 
             <?php if (\MHN\Mitglieder\Auth::hatRecht('mvedit')): ?>
                 <h4>Mitgliederverwaltung</h4>

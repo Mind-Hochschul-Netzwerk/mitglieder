@@ -58,6 +58,10 @@ function laden(int $uid)
     foreach (array_keys(Mitglied::felder) as $feld) {
         Tpl::set($feld, $m->get($feld));
     }
+    Tpl::set('fullName', $m->get('fullName'));
+    Tpl::set('dateOfJoining', $m->get('dateOfJoining'));
+
+
     return $m;
 }
 
@@ -82,8 +86,6 @@ if (isset($_REQUEST['email'])) {
     }
     $m->set($key, $_REQUEST[$key]);
     Tpl::set($key, $_REQUEST[$key]);
-
-    Tpl::set('fullName', $m->get('fullName'));
 
     // Passwort ändern
     ensure($_REQUEST['new_password'], ENSURE_SET); // nicht ENSURE_STRING, weil dabei ein trim() durchgeführt wird
@@ -244,13 +246,6 @@ if (isset($_REQUEST['email'])) {
         }
     }
 
-    if (!empty($_POST['membership_confirmation'])) {
-        if (!Auth::ist($m->get('id'))) {
-            die("Der Vereinseintritt kann nur durch das Mitglied selbst erklärt werden.");
-        }
-        $m->set('membership_confirmation', 'now');
-    }
-
     // Austritt erklären
     if (!empty($_POST['resignPassword'])) {
         if (!Auth::ist($m->get('id'))) {
@@ -259,28 +254,10 @@ if (isset($_REQUEST['email'])) {
         if (!Auth::checkPassword($_REQUEST['resignPassword'])) {
             Tpl::set('errorMessage', 'Das eingegebene Passwort ist nicht korrekt.');
         } else {
-            // offizielles Vereinsmitglied: Austrittserklärung aufnehmen
-            if ($m->get('membership_confirmation') || ($m->get('aufnahmedatum') && $m->get('aufnahmedatum') > new \DateTime('2018-10-15'))) {
-                $m->set('resignation', 'now');
-
-                $text = Tpl::render('mails/resignation', false);
-                EmailService::getInstance()->send('vorstand@mind-hochschul-netzwerk.de', 'Austrittserklärung', $text);
-                EmailService::getInstance()->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', 'Austrittserklärung', $text);
-            // kein offizielles Vereinsmitglied: direkt löschen
-            } else {
-                $fehler = '';
-                try {
-                    $m->delete();
-                } catch (\RuntimeException $e) {
-                    $fehler = $e->getMessage();
-                }
-                Auth::LogOut();
-                if ($fehler) {
-                    die("Beim Löschen ist ein Fehler aufgetreten: " . $fehler);
-                } else {
-                    die("Dein Mitgliedskonto wurde gelöscht");
-                }
-            }
+            $m->set('resignation', 'now');
+            $text = Tpl::render('mails/resignation', false);
+            EmailService::getInstance()->send('vorstand@mind-hochschul-netzwerk.de', 'Austrittserklärung', $text);
+            EmailService::getInstance()->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', 'Austrittserklärung', $text);
         }
     }
 

@@ -147,6 +147,14 @@ class Mitglied
             return 'bearbeiten.php?id=' . $this->data['id'];
         case 'profilLink':
             return '<a href="' . $this->get('profilUrl') . '">' . htmlspecialchars($this->get('fullName')) . '</a>';
+        case 'dateOfJoining';
+            if ($this->get('membership_confirmation')) {
+                return $this->get('membership_confirmation');
+            }
+            if ($this->get('aufnahmedatum') && $this->get('aufnahmedatum') > new \DateTime('2018-10-05')) {
+                return $this->get('aufnahmedatum');
+            }
+            return null;
         default:
             if (in_array($feld, array_keys($this->data), true)) { // nicht über isset(), da dann Einträge mit Wert null nicht gefunden werden
                 return $this->data[$feld];
