@@ -21,7 +21,6 @@ class AufnahmeController
         'titel' => 'mhn_titel',
         'vorname' => 'mhn_vorname',
         'nachname' => 'mhn_nachname',
-        'geschlecht' => 'mhn_geschlecht',
         'mensa_nr' => 'mhn_mensa_nr',
         'strasse' => 'mhn_ws_strasse',
         'adresszusatz' => 'mhn_ws_zusatz',

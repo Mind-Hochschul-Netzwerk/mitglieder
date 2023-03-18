@@ -10,8 +10,6 @@ CREATE TABLE `mitglieder` (
   `titel` varchar(255) CHARACTER SET utf8 NOT NULL DEFAULT '',
   `vorname` varchar(255) CHARACTER SET utf8 NOT NULL DEFAULT '',
   `nachname` varchar(255) CHARACTER SET utf8 NOT NULL DEFAULT '',
-  `geschlecht` char(1) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'u',
-  sichtbarkeit_geschlecht tinyint(1) NOT NULL DEFAULT 0,
   `geburtstag` date DEFAULT NULL,
   `aufnahmedatum` date DEFAULT NULL,
   `sichtbarkeit_geburtstag` tinyint(1) NOT NULL DEFAULT 1,

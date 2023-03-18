@@ -43,34 +43,16 @@ function row($label, $value, $sichtbarkeit = true)
             <?php endif; ?>
         </div>
 
-        <?php if ($geburtstag || ($geschlecht && $geschlecht !== 'u')): ?>
+        <?php if ($geburtstag): ?>
             <div class="col-sm-6">
                 <h4>Persönliche Daten</h4>
 
-                <?php if ($geburtstag): ?>
                 <div class="row <?=sichtbarkeit($sichtbarkeit_geburtstag)?>">
                     <div class="col-xs-6">Geburtsdatum</div>
                     <div class="col-xs-6">
-                            <?= $geburtstag === null ? 'unbekannt' : $geburtstag->format('d.m.Y') ?>
+                        <?=$geburtstag->format('d.m.Y')?>
                     </div>
                 </div>
-                <?php endif; ?>
-                <?php if ($geschlecht && $geschlecht !== 'u'): ?>
-                    <div class="row <?=sichtbarkeit($sichtbarkeit_geschlecht)?>">
-                        <div class="col-xs-6">Geschlecht</div>
-                        <div class="col-xs-6">
-                                <?php
-                                    if ($geschlecht === 'm') {
-                                        echo 'männlich';
-                                    } elseif ($geschlecht === 'w') {
-                                        echo 'weiblich';
-                                    } elseif ($geschlecht === 'd') {
-                                        echo 'divers';
-                                    }
-                                ?>
-                        </div>
-                    </div>
-                <?php endif;?>
             </div>
         <?php endif; ?>
 
@@ -131,13 +113,13 @@ function row($label, $value, $sichtbarkeit = true)
                             <?php
                                 switch ($beschaeftigung) {
                                 case 'Schueler':
-                                    echo $geschlecht === 'w' ? 'Schülerin' : 'Schüler';
+                                    echo 'Schüler:in';
                                     break;
                                 case 'Hochschulstudent':
-                                    echo $geschlecht === 'w' ? 'Hochschulstudentin' : 'Hochschulstudent';
+                                    echo 'Hochschulstudent:in';
                                     break;
                                 case 'Doktorand':
-                                    echo $geschlecht === 'w' ? 'Doktorandin' : 'Doktorand';
+                                    echo 'Doktorand:in';
                                     break;
                                 case 'Berufstaetig':
                                     echo 'berufstätig';

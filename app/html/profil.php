@@ -51,7 +51,6 @@ foreach (array_keys(Mitglied::felder) as $feld) {
 }
 
 // Dann die sichtgeschützten Felder gesondert behandeln, damit das Template möglichst frei von Logik bleiben kann
-Tpl::set('geschlecht', (!$m->get('sichtbarkeit_geschlecht') && !$mvread) ? 'u' : $m->get('geschlecht'));
 Tpl::set('email', (!$m->get('sichtbarkeit_email') && !$mvread) ? '' : $m->get('email'));
 Tpl::set('geburtstag', (!$m->get('sichtbarkeit_geburtstag') && !$mvread) ? '' : $m->get('geburtstag'));
 Tpl::set('mensa_nr', (!$m->get('sichtbarkeit_mensa_nr') && !$mvread) ? '' : $m->get('mensa_nr'));

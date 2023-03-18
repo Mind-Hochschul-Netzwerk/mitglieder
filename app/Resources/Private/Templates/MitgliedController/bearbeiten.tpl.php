@@ -224,9 +224,9 @@ if (!empty($errorMessage)) {
         <?=form_row('Telefon', [['telefon', $telefon, 'tel', 'sichtbarkeit' => ['sichtbarkeit_telefon', $sichtbarkeit_telefon]]])?>
 
         <?=form_row('Beschäftigung', [['beschaeftigung', $beschaeftigung, 'select', 'options' => [
-            'Schueler' => $geschlecht === 'w' ? 'Schülerin' : 'Schüler',
-            'Hochschulstudent' => $geschlecht === 'w' ? 'Hochschulstudentin' : 'Hochschulstudent',
-            'Doktorand' => $geschlecht === 'w' ? 'Doktorandin' : 'Doktorand',
+            'Schueler' => 'Schüler:in',
+            'Hochschulstudent' => 'Hochschulstudent:in',
+            'Doktorand' => 'Doktorand:in',
             'Berufstaetig' => 'berufstätig',
             'Sonstiges' => 'sonstiges',
         ], 'sichtbarkeit' => ['sichtbarkeit_beschaeftigung', $sichtbarkeit_beschaeftigung]]])?>
@@ -240,14 +240,6 @@ if (!empty($errorMessage)) {
         </p>
 
         <?=form_row('ggf. Mensa-Mitgliedsnr.', [['mensa_nr', $mensa_nr, 'placeholder' => 'Mensa-Mitgliedsnummer', 'sichtbarkeit' => ['sichtbarkeit_mensa_nr', $sichtbarkeit_mensa_nr]]])?>
-        <?=form_row('Geschlecht', [
-            ['geschlecht', $geschlecht, 'select', 'options' => [
-                'u' => '',
-                'm' => 'männlich',
-                'w' => 'weiblich',
-                'd' => 'divers',
-            ], 'disabled' => $disableMitgliederverwaltung, 'placeholder' => 'Geschlecht', 'sichtbarkeit' => ['sichtbarkeit_geschlecht', $sichtbarkeit_geschlecht]],
-        ])?>
         <?=form_row('Titel', [
             ['titel', $titel, 'text', 2, 'placeholder' => 'Titel'],
         ])?>
