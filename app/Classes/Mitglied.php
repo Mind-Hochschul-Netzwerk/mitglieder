@@ -322,7 +322,7 @@ class Mitglied
         } elseif ($type === 'object' && get_class($dateTime) === 'DateTime') {
             return $dateTime;
         } else {
-            throw new \TypeError("Value for $key is expected to be DateTime, null, string or integer. $type given.", 1494775564);
+            throw new \TypeError("Value is expected to be DateTime, null, string or integer. $type given.", 1494775564);
         }
     }
 

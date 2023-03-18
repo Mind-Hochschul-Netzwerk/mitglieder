@@ -76,7 +76,6 @@ class AufnahmeController
      'aufgabe_sonstiges' => '',
     */
 
-
     private $token = '';
     private $data = [];
     private $action = '';
