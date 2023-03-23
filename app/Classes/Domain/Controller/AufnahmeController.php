@@ -17,7 +17,7 @@ use MHN\Mitglieder\Service\EmailService;
  */
 class AufnahmeController
 {
-    const MAP_STRINGS = [
+    const MAP = [
         'titel' => 'mhn_titel',
         'vorname' => 'mhn_vorname',
         'nachname' => 'mhn_nachname',
@@ -48,9 +48,6 @@ class AufnahmeController
         'kenntnisnahme_datenverarbeitung_aufnahme_text' => 'kenntnisnahme_datenverarbeitung_text',
         'einwilligung_datenverarbeitung_aufnahme' => 'einwilligung_datenverarbeitung',
         'einwilligung_datenverarbeitung_aufnahme_text' => 'einwilligung_datenverarbeitung_text',
-    ];
-
-    const MAP_BOOL = [
         'auskunft_studiengang' => 'mhn_auskunft_studiengang',
         'auskunft_stipendien' => 'mhn_auskunft_stipendien',
         'auskunft_auslandsaufenthalte' => 'mhn_auskunft_ausland',
@@ -122,6 +119,7 @@ class AufnahmeController
         $response = curl_exec($curl);
 
         $this->data = json_decode($response);
+
         if ($this->data === null) {
             Tpl::render('AufnahmeController/invalid');
             exit;
@@ -224,18 +222,11 @@ class AufnahmeController
     {
         $m = Mitglied::neu($this->username, $this->password, $this->data->user_email);
 
-        foreach (self::MAP_STRINGS as $key_neu => $key_alt) {
-            if (isset($this->data->$key_alt)) {
-                $m->set($key_neu, $this->data->$key_alt);
-            }
-        }
-
-        foreach (self::MAP_BOOL as $key_neu => $key_alt) {
+        foreach (self::MAP as $key_neu => $key_alt) {
             if (!isset($this->data->$key_alt)) {
-                $m->set($key_neu, false);
-            } else {
-                $m->set($key_neu, $this->data->$key_alt === 'j');
+                throw new \RuntimeException($key_alt . ' is missing');
             }
+            $m->set($key_neu, $this->data->$key_alt);
         }
 
         if (!empty($this->data->mhn_ws_hausnr)) {
