@@ -33,7 +33,6 @@ class AufnahmeController
         'ort2' => 'mhn_zws_ort',
         'land2' => 'mhn_zws_land',
         'telefon' => 'mhn_telefon',
-        'mobil' => 'mhn_mobil',
         'homepage' => 'mhn_homepage',
         'sprachen' => 'mhn_sprachen',
         'hobbys' => 'mhn_hobbies',
@@ -227,14 +226,6 @@ class AufnahmeController
                 throw new \RuntimeException($key_alt . ' is missing');
             }
             $m->set($key_neu, $this->data->$key_alt);
-        }
-
-        if (!empty($this->data->mhn_ws_hausnr)) {
-            $m->set('strasse', $m->get('strasse') . ' ' . $this->data->mhn_ws_hausnr);
-        }
-
-        if (!empty($this->data->mhn_zws_hausnr)) {
-            $m->set('strasse2', $m->get('strasse2') . ' ' . $this->data->mhn_zws_hausnr);
         }
 
         if (isset($this->data->mhn_geburtstag)) {
