@@ -246,7 +246,6 @@ if (!empty($errorMessage)) {
 
         <h4>Kontaktdaten</h4>
 
-        <?=form_row('Mobil', [['mobil', $mobil, 'tel', 'sichtbarkeit' => ['sichtbarkeit_mobil', $sichtbarkeit_mobil]]])?>
         <?=form_row('Homepage', [['homepage', $homepage]])?>
 
         <h4>Zweitwohnsitz <small>z.B. Adresse der Eltern</small></h4>

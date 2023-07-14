@@ -67,12 +67,11 @@ function row($label, $value, $sichtbarkeit = true)
     </div>
 
     <div class="row">
-        <?php if ($email or $telefon or $mobil or $homepage): ?>
+        <?php if ($email or $telefon or $homepage): ?>
             <div class="col-sm-3">
                 <h4>Kontaktdaten</h4>
                 <?php if ($email): ?><p class="<?=sichtbarkeit($sichtbarkeit_email)?>"><span class="glyphicon glyphicon-at"></span> <a href="mailto:<?=$email?>"><?=$email?></a></p><?php endif; ?>
                 <?php if ($telefon): ?><p class="<?=sichtbarkeit($sichtbarkeit_telefon)?>"><span class="glyphicon glyphicon-earphone"></span> <?=$telefon?></p><?php endif; ?>
-                <?php if ($mobil): ?><p class="<?=sichtbarkeit($sichtbarkeit_mobil)?>"><span class="glyphicon glyphicon-phone"></span> <?=$mobil?></p><?php endif; ?>
                 <?php if ($homepage): ?><p><span class="glyphicon glyphicon-globe"></span> <a href="<?=$homepage?>"><?=$homepage?></a></p><?php endif; ?>
             </div>
         <?php endif; ?>

@@ -60,7 +60,6 @@ Tpl::set('plz', (!$m->get('sichtbarkeit_plz_ort') && !$mvread) ? '' : $m->get('p
 Tpl::set('ort', (!$m->get('sichtbarkeit_plz_ort') && !$mvread) ? '' : $m->get('ort'));
 Tpl::set('land', (!$m->get('sichtbarkeit_land') && !$mvread) ? '' : $m->get('land'));
 Tpl::set('telefon', (!$m->get('sichtbarkeit_telefon') && !$mvread) ? '' : $m->get('telefon'));
-Tpl::set('mobil', (!$m->get('sichtbarkeit_mobil') && !$mvread) ? '' : $m->get('mobil'));
 Tpl::set('beschaeftigung', (!$m->get('sichtbarkeit_beschaeftigung') && !$mvread) ? '' : $m->get('beschaeftigung'));
 Tpl::set('studienort', (!$m->get('sichtbarkeit_studienort') && !$mvread) ? '' : $m->get('studienort'));
 Tpl::set('studienfach', (!$m->get('sichtbarkeit_studienfach') && !$mvread) ? '' : $m->get('studienfach'));

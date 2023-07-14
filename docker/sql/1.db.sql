@@ -34,8 +34,6 @@ CREATE TABLE `mitglieder` (
   `land2` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `telefon` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `sichtbarkeit_telefon` tinyint(1) NOT NULL DEFAULT 0,
-  `mobil` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-  `sichtbarkeit_mobil` tinyint(1) NOT NULL DEFAULT 0,
   `homepage` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `sprachen` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `hobbys` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
