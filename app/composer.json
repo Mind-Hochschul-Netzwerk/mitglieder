@@ -3,7 +3,7 @@
     "description": "Mitgliederverwaltung",
     "type": "project",
     "require": {
-        "php": "^7.4",
+        "php": ">=8.0",
         "symfony/ldap": "^5.2",
         "phpmailer/phpmailer": "^6.3",
         "hengeb/db": "^0.0",

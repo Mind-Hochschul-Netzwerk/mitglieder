@@ -7,7 +7,7 @@ ifeq (,$(shell docker ps -f name=^traefik$$ -q))
 endif
 
 .env:
-	$(error .env is missing)
+	$(error file .env is missing, see .env.sample)
 
 image:
 	@echo "(Re)building docker image"
@@ -31,8 +31,15 @@ prod: image .env check-traefik
 	@echo "Starting Production Server"
 	docker-compose up -d --force-recreate --remove-orphans $(SERVICENAME)
 
+upgrade:
+	git pull
+	make prod
+
 shell:
 	docker-compose exec $(SERVICENAME) sh
+
+rootshell:
+	docker-compose exec --user root $(SERVICENAME) sh
 
 mysql: .env
 	@echo "docker-compose exec $(SERVICENAME)-database mysql --user=user --password=\"...\" database"
