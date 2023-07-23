@@ -103,7 +103,7 @@ class AufnahmeController
             if ($this->readyToSave) {
                 $this->save();
                 Tpl::pause();
-                header('Location: /bearbeiten.php');
+                header('Location: /bearbeiten.php?tab=profilbild');
                 exit;
             }
         }
