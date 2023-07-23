@@ -254,7 +254,7 @@ class Mitglied
         return true;
     }
 
-    public function isUsernameAvailable(string $username): bool
+    public static function isUsernameAvailable(string $username): bool
     {
         $existingId = self::getIdByUsername($username);
         if ($existingId !== null) {
