@@ -475,7 +475,6 @@ if (!empty($errorMessage)) {
 <div class="form-group row">
     <div class="col-sm-12">
         <button type="submit" class="btn btn-success">Speichern</button>
-        <button type="reset" class="btn btn-default">Zurücksetzen</button>
     </div>
 </div>
 

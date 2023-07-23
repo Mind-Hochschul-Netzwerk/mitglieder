@@ -294,3 +294,9 @@ div.checkbox input.form-control {
     max-height: 400px;
 }
 
+
+
+.milestones {
+    display: flex;
+    justify-content: space-around;
+}

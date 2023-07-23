@@ -117,7 +117,7 @@ class AufnahmeController
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $response = curl_exec($curl);
 
-        $this->data = json_decode($response);
+        $this->data = json_decode($response, associative: true);
 
         if ($this->data === null) {
             Tpl::render('AufnahmeController/invalid');
@@ -127,13 +127,13 @@ class AufnahmeController
 
     private function isEmailUsed(): bool
     {
-        return (Mitglied::getIdByEmail($this->data->user_email) !== null);
+        return (Mitglied::getIdByEmail($this->data['user_email']) !== null);
     }
 
     private function checkEmailUsed(): void
     {
         if ($this->isEmailUsed()) {
-            Tpl::set('email', $data->user_email);
+            Tpl::set('email', $this->data['user_email']);
             Tpl::render('AufnahmeController/emailUsed');
             exit;
         }
@@ -142,7 +142,7 @@ class AufnahmeController
     private function suggestUsername(): string
     {
         // neuen Benutzernamen als Vorschlag generieren
-        $username0 = strtolower(trim($this->data->mhn_vorname) . '.' . trim($this->data->mhn_nachname));
+        $username0 = strtolower(trim($this->data['mhn_vorname']) . '.' . trim($this->data['mhn_nachname']));
         $username0 = strtr($username0, [
             'ä' => 'ae',
             'ö' => 'oe',
@@ -212,25 +212,27 @@ class AufnahmeController
     private function showForm(): void
     {
         Tpl::set('username', $this->username ? $this->username : $this->suggestUsername());
-        Tpl::set('vorname', $this->data->mhn_vorname);
+        Tpl::set('data', $this->data);
         Tpl::render('AufnahmeController/form');
         exit;
     }
 
     private function save(): void
     {
-        $m = Mitglied::neu($this->username, $this->password, $this->data->user_email);
+        $m = Mitglied::neu($this->username, $this->password, $this->data['user_email']);
 
         foreach (self::MAP as $key_neu => $key_alt) {
-            if (!isset($this->data->$key_alt)) {
+            if (!isset($this->data[$key_alt])) {
                 throw new \RuntimeException($key_alt . ' is missing');
             }
-            $m->set($key_neu, $this->data->$key_alt);
+            $m->set($key_neu, $this->data[$key_alt]);
         }
 
-        if (isset($this->data->mhn_geburtstag)) {
-            $m->set('geburtstag', $this->data->mhn_geburtstag);
+        if (isset($this->data['mhn_geburtstag'])) {
+            $m->set('geburtstag', $this->data['mhn_geburtstag']);
         }
+
+        $this->processAccessFlags($m);
 
         $m->save();
 
@@ -245,6 +247,64 @@ class AufnahmeController
         Auth::logIn($m->get('id')); // Status neu laden
 
         $this->sendMailToActivationTeam($m);
+    }
+
+    private function processAccessFlags(Mitglied $m)
+    {
+        ensure($_REQUEST['sichtbarkeit_adresse'], ENSURE_INT_GTEQ, 0);
+        ensure($_REQUEST['sichtbarkeit_email'], ENSURE_INT_GTEQ, 0);
+        ensure($_REQUEST['sichtbarkeit_telefon'], ENSURE_INT_GTEQ, 0);
+        ensure($_REQUEST['sichtbarkeit_geburtstag'], ENSURE_INT_GTEQ, 0);
+        ensure($_REQUEST['sichtbarkeit_mensa_nr'], ENSURE_INT_GTEQ, 0);
+        ensure($_REQUEST['sichtbarkeit_studium'], ENSURE_INT_GTEQ, 0);
+        ensure($_REQUEST['sichtbarkeit_beruf'], ENSURE_INT_GTEQ, 0);
+        ensure($_REQUEST['uebernahme_titel'], ENSURE_INT_GTEQ, 0);
+        ensure($_REQUEST['uebernahme_homepage'], ENSURE_INT_GTEQ, 0);
+        ensure($_REQUEST['uebernahme_zweitwohnsitz'], ENSURE_INT_GTEQ, 0);
+        ensure($_REQUEST['uebernahme_interessen'], ENSURE_INT_GTEQ, 0);
+
+        $m->set('sichtbarkeit_strasse', $_REQUEST['sichtbarkeit_adresse'] === 1);
+        $m->set('sichtbarkeit_adresszusatz', $_REQUEST['sichtbarkeit_adresse'] === 1);
+        $m->set('sichtbarkeit_plz_ort', $_REQUEST['sichtbarkeit_adresse'] >= 1);
+        $m->set('sichtbarkeit_land', $_REQUEST['sichtbarkeit_adresse'] >= 1);
+        $m->set('sichtbarkeit_email', (bool) $_REQUEST['sichtbarkeit_email']);
+        $m->set('sichtbarkeit_geburtstag', (bool) $_REQUEST['sichtbarkeit_geburtstag']);
+        $m->set('sichtbarkeit_mensa_nr', (bool) $_REQUEST['sichtbarkeit_mensa_nr']);
+        $m->set('sichtbarkeit_telefon', (bool) $_REQUEST['sichtbarkeit_telefon']);
+        $m->set('sichtbarkeit_beschaeftigung', (bool) $_REQUEST['sichtbarkeit_beruf']);
+        $m->set('sichtbarkeit_beruf', (bool) $_REQUEST['sichtbarkeit_beruf']);
+        $m->set('sichtbarkeit_studienort', (bool) $_REQUEST['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_studienfach', (bool) $_REQUEST['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_unityp', (bool) $_REQUEST['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_schwerpunkt', (bool) $_REQUEST['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_nebenfach', (bool) $_REQUEST['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_abschluss', (bool) $_REQUEST['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_zweitstudium', (bool) $_REQUEST['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_hochschulaktivitaeten', (bool) $_REQUEST['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_stipendien', (bool) $_REQUEST['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_auslandsaufenthalte', (bool) $_REQUEST['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_praktika', (bool) $_REQUEST['sichtbarkeit_studium']);
+
+        if (!$_REQUEST['uebernahme_titel']) {
+            $m->set('titel', '');
+        }
+        if ($_REQUEST['uebernahme_zweitwohnsitz'] !== 1) {
+            $m->set('strasse2', '');
+            $m->set('adresszusatz2', '');
+        }
+        if ($_REQUEST['uebernahme_zweitwohnsitz'] === 0) {
+            $m->set('plz2', '');
+            $m->set('ort2', '');
+            $m->set('land2', '');
+        }
+        if (!$_REQUEST['uebernahme_homepage']) {
+            $m->set('homepage', '');
+        }
+        if (!$_REQUEST['uebernahme_interessen']) {
+            $m->set('sprachen', '');
+            $m->set('hobbys', '');
+            $m->set('interessen', '');
+        }
     }
 
     /**
