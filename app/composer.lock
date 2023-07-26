@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "hengeb/db",
-            "version": "v0.0.7",
+            "version": "v0.0.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/hengeb/db.git",
-                "reference": "380d2e2fd3bf9a4bb7db02933d954988f2a7baf3"
+                "reference": "05f95d4a3f113c23e09e276ce96cb3c71763d717"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hengeb/db/zipball/380d2e2fd3bf9a4bb7db02933d954988f2a7baf3",
-                "reference": "380d2e2fd3bf9a4bb7db02933d954988f2a7baf3",
+                "url": "https://api.github.com/repos/hengeb/db/zipball/05f95d4a3f113c23e09e276ce96cb3c71763d717",
+                "reference": "05f95d4a3f113c23e09e276ce96cb3c71763d717",
                 "shasum": ""
             },
             "require": {
@@ -45,9 +45,9 @@
             "description": "A simple mysql library (PDO wrapper)",
             "support": {
                 "issues": "https://github.com/hengeb/db/issues",
-                "source": "https://github.com/hengeb/db/tree/v0.0.7"
+                "source": "https://github.com/hengeb/db/tree/v0.0.8"
             },
-            "time": "2022-09-23T14:15:37+00:00"
+            "time": "2023-07-26T22:49:27+00:00"
         },
         {
             "name": "hengeb/token",
