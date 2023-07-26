@@ -38,7 +38,7 @@ class AufnahmeController
         'hobbys' => 'mhn_hobbies',
         'interessen' => 'mhn_interessen',
         'studienfach' => 'mhn_studienfach',
-        'hochschulaktivitaeten' => 'mhn_hochschulaktivitaet',
+        'hochschulaktivitaeten' => 'mhn_hochschulaktivitaet', // mittlerweile ehrenamtliches Engagement
         'stipendien' => 'mhn_stipendien',
         'auslandsaufenthalte' => 'mhn_ausland',
         'praktika' => 'mhn_praktika',
@@ -304,6 +304,7 @@ class AufnahmeController
             $m->set('sprachen', '');
             $m->set('hobbys', '');
             $m->set('interessen', '');
+            $m->set('hochschulaktivitaeten', '');
         }
     }
 

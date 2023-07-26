@@ -56,7 +56,7 @@ foreach ($alerts as $name=>$text) {
 Unser Netzwerk lebt davon, dass die Mitglieder sich gegenseitig finden und
 miteinander in Kontakt treten können. Lege fest, welche Daten du im Netzwerk
 freigibst. Was du nicht freigibst, ist nur für bestimme Personen wie
-Administrator:innen und die Mitgliederbetreuung sichtbar. Freigegebe Daten sind
+Administrator:innen und die Mitgliederbetreuung sichtbar. Freigegebene Daten sind
 nur für Mitglieder sichtbar. Außerdem können Mitglieder dich über freigegebene
 Daten in der Mitgliedersuche finden.</p>
 
@@ -79,7 +79,7 @@ Deine E-Mail-Adresse wird für die vereinsinterne Kommunikation benötigt, zum B
 Außerdem haben wir einen monatlichen Newsletter und Diskussionsforen, deren Inhalte du an deine E-Mail-Adresse abonnieren kannst.
 
 Über unsere Webseite können sich alle Mitglieder gegenseitig
-Direktnachrichten schicken, die dir per E-Mail zugestellt werden. Die E-Mail-Adressen werden dabei
+Direktnachrichten schicken, die per E-Mail zugestellt werden. Die E-Mail-Adressen werden dabei
 nicht preisgegeben.
 
 Darüber hinaus kannst du deine E-Mail-Adresse freigeben, sodass Mitglieder dich auch direkt per E-Mail anschreiben können.
@@ -140,6 +140,7 @@ Darüber hinaus kannst du deine E-Mail-Adresse freigeben, sodass Mitglieder dich
 <p>Bei den folgenden Daten kannst du nicht auswählen, ob sie freigegeben werden sollen. Wenn du nicht möchtest,
 dass andere Mitglieder sie sehen können, kannst du sie aus deinem Profil löschen.</p>
 
+<?php if ($data['mhn_titel']): ?>
 <div class="form-group row">
     <div class="col-sm-2">akademischer Titel</div>
     <div class="col-sm-10 ">
@@ -147,7 +148,9 @@ dass andere Mitglieder sie sehen können, kannst du sie aus deinem Profil lösch
         <label><input type="radio" name="uebernahme_titel" value="0" required> Angaben löschen</label>
     </div>
 </div>
+<?php endif; ?>
 
+<?php if ($data['mhn_homepage']): ?>
 <div class="form-group row">
     <div class="col-sm-2">Homepage</div>
     <div class="col-sm-10 ">
@@ -155,7 +158,9 @@ dass andere Mitglieder sie sehen können, kannst du sie aus deinem Profil lösch
         <label><input type="radio" name="uebernahme_homepage" value="0" required> Angaben löschen</label>
     </div>
 </div>
+<?php endif; ?>
 
+<?php if ($data['mhn_zws_strasse'] || $data['mhn_zws_zusatz'] || $data['mhn_zws_plz'] || $data['mhn_zws_ort'] || $data['mhn_zws_land']): ?>
 <div class="form-group row">
     <div class="col-sm-2">Zweitwohnsitz</div>
     <div class="col-sm-10 ">
@@ -164,9 +169,10 @@ dass andere Mitglieder sie sehen können, kannst du sie aus deinem Profil lösch
         <label><input type="radio" name="uebernahme_zweitwohnsitz" value="0" required> Angaben löschen</label>
     </div>
 </div>
+<?php endif; ?>
 
 <div class="form-group row">
-    <div class="col-sm-2">Sprachen, Hobbies, Interessen</div>
+    <div class="col-sm-2">Sprachen, Hobbies, Interessen, Ehrenamt</div>
     <div class="col-sm-10 ">
         <label><input type="radio" name="uebernahme_interessen" value="1" required> in mein Profil übernehmen</label>
         <label><input type="radio" name="uebernahme_interessen" value="0" required> Angaben löschen</label>
