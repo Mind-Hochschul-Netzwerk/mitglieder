@@ -108,6 +108,14 @@ if (!empty($profilbild_format_unbekannt)) {
     $changes = $error = true;
 }
 
+if (!empty($profilbild_uploadfehler)) {
+    Tpl::set('alert_type', 'danger');
+    Tpl::set('alert_text', 'Beim Upload des Profilbilds ist es leider zu einem unbekannten Fehler gekommen. Bitte wende dich an die Mitgliederbetreuung.');
+    Tpl::render('Layout/alert');
+    $active_pane = 'profilbild';
+    $changes = $error = true;
+}
+
 if (!empty($email_error)) {
     \MHN\Mitglieder\Tpl::set('alert_type', 'danger');
     \MHN\Mitglieder\Tpl::set('alert_text', 'Die eigegebene E-Mail-Adresse ist ungültig. Die E-Mail-Adresse und wurde nicht gespeichert.');

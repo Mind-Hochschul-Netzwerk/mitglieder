@@ -206,6 +206,8 @@ if (isset($_REQUEST['email'])) {
         } else {
             Tpl::set('profilbild_format_unbekannt', true);
         }
+    } elseif (isset($_FILES['profilbild'])) {
+        Tpl::set('profilbild_uploadfehler', true);
     }
 
     // Profilbild löschen
