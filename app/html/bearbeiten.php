@@ -206,7 +206,7 @@ if (isset($_REQUEST['email'])) {
         } else {
             Tpl::set('profilbild_format_unbekannt', true);
         }
-    } elseif (isset($_FILES['profilbild'])) {
+    } elseif (isset($_FILES['profilbild']) && $_FILES['profilbild']['error'] !== UPLOAD_ERR_NO_FILE) {
         Tpl::set('profilbild_uploadfehler', true);
     }
 
