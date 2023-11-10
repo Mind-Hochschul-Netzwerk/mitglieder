@@ -10,3 +10,13 @@ Von den $countAllEntries Mitgliedern:
 ... $countInvalidEmails haben keine erreichbare E-Mail-Adresse: (<a href="?a=invalidEmails">Liste</a>)
 EOT?>
 </pre>
+
+<table class="table">
+    <tr><th>Eintritt bis zum 3.10. des Jahres</th><th>Anzahl<sup>1</sup></th><th>Letzte Mitgliedsnummer<sup>1</sup></th></tr>
+<?php
+    foreach ($eintritte as $entry) {
+        echo "<tr><td>{$entry['eintrittsjahr']}</td><td>{$entry['anzahl']}</td><td>{$entry['max_id']}</td></tr>\n";
+    }
+?>
+</table>
+<p><sup>1</sup> In der Statistik sind nur Mitglieder enthalten, die aktuell noch Mitglied sind.</p>
