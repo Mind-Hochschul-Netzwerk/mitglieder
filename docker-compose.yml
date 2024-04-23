@@ -2,7 +2,7 @@ services:
   db:
     image: mariadb
     restart: unless-stopped
-    container_name: ${SERVICENAME}-database
+    container_name: ${SERVICENAME}-db
     environment:
       - MYSQL_USER=user
       - MYSQL_PASSWORD
