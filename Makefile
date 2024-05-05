@@ -14,32 +14,32 @@ rebuild:
 	docker build -t local/$(SERVICENAME):latest .
 
 adminer: check-traefik
-	docker-compose up -d adminer
+	docker compose up -d adminer
 
 database:
-	docker-compose up -d --force-recreate db
+	docker compose up -d --force-recreate db
 
 dev: check-traefik
 	@echo "Starting DEV Server"
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --force-recreate --remove-orphans
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --force-recreate --remove-orphans
 
 prod: image check-traefik
 	@echo "Starting Production Server"
-	docker-compose up -d --force-recreate --remove-orphans app
+	docker compose up -d --force-recreate --remove-orphans app
 
 upgrade:
 	git pull
 	make prod
 
 shell:
-	docker-compose exec app sh
+	docker compose exec app sh
 
 rootshell:
-	docker-compose exec --user root app sh
+	docker compose exec --user root app sh
 
 mysql:
-	@echo "docker-compose exec db mariadb --user=user --password=\"...\" database"
-	@docker-compose exec db mariadb --user=user --password="$(MYSQL_PASSWORD)" database
+	@echo "docker compose exec db mariadb --user=user --password=\"...\" database"
+	@docker compose exec db mariadb --user=user --password="$(MYSQL_PASSWORD)" database
 
 logs:
-	docker-compose logs -f
+	docker compose logs -f
