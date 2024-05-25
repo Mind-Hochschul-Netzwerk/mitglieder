@@ -158,8 +158,9 @@ function row($label, $value, $sichtbarkeit = true)
         </div>
     <?php endif; ?>
 
-<?php if ($mvread): ?>
     <div class="row">
+
+<?php if ($mvread): ?>
         <div class="col-sm-6">
             <h4 class="unsichtbar">Mitgliederverwaltung</h4>
             <div class="row">
@@ -167,20 +168,22 @@ function row($label, $value, $sichtbarkeit = true)
                 <div class="col-xs-6"><?= $last_login === null ? 'nie' : $last_login->format('d.m.Y') ?></div>
             </div>
         </div>
-        <div class="col-sm-6">
-            <h4 class="unsichtbar">Ich könnte bei folgenden Aufgaben helfen</h4>
-            <div class="profil-checkbox"><?=checkbox($aufgabe_ma)?> Mithilfe bei der Organisation der MIND AKADEMIE</div>
-            <div class="profil-checkbox"><?=checkbox($aufgabe_orte)?> Mithilfe bei der Suche nach Veranstaltungsorten</div>
-            <div class="profil-checkbox"><?=checkbox($aufgabe_vortrag)?> einen Vortrag, ein Seminar oder einen Workshop anbieten</div>
-            <div class="profil-checkbox"><?=checkbox($aufgabe_koord)?> eine Koordinations-Aufgabe, die man per Mail/Tel. von zu Hause erledigen kann</div>
-            <div class="profil-checkbox"><?=checkbox($aufgabe_graphisch)?> eine graphisch-kreative Aufgabe</div>
-            <div class="profil-checkbox"><?=checkbox($aufgabe_computer)?> eine Aufgabe, in der ich mein Computer-/IT-Wissen einbringen kann</div>
-            <div class="profil-checkbox"><?=checkbox($aufgabe_texte_schreiben)?> Texte verfassen (z.B. für die Homepage oder den MHN-Newsletter)</div>
-            <div class="profil-checkbox"><?=checkbox($aufgabe_texte_lesen)?> Texte durchlesen und kommentieren</div>
-            <div class="profil-checkbox"><?=checkbox($aufgabe_vermittlung)?> Weitervermittlung von Kontakten</div>
-            <div class="profil-checkbox"><?=checkbox($aufgabe_ansprechpartner)?> Ansprechpartner vor Ort (lokale Treffen organisieren, Plakate aufhängen)</div>
-            <div class="profil-checkbox"><?=checkbox($aufgabe_hilfe)?> eine kleine, zeitlich begrenzte Aufgabe, wenn ihr dringend Hilfe braucht</div>
-            <div class="profil-checkbox"><?=checkbox($aufgabe_sonstiges)?> Sonstiges, und zwar: „<?=$aufgabe_sonstiges_beschreibung?>”</div>
-        </div>
-    </div>
 <?php endif; ?>
+
+    <div class="col-sm-6">
+        <h4 class="unsichtbar">Ich könnte bei folgenden Aufgaben helfen</h4>
+        <div class="profil-checkbox"><?=checkbox($aufgabe_ma)?> Mithilfe bei der Organisation der MIND AKADEMIE</div>
+        <div class="profil-checkbox"><?=checkbox($aufgabe_orte)?> Mithilfe bei der Suche nach Veranstaltungsorten</div>
+        <div class="profil-checkbox"><?=checkbox($aufgabe_vortrag)?> einen Vortrag, ein Seminar oder einen Workshop anbieten</div>
+        <div class="profil-checkbox"><?=checkbox($aufgabe_koord)?> eine Koordinations-Aufgabe, die man per Mail/Tel. von zu Hause erledigen kann</div>
+        <div class="profil-checkbox"><?=checkbox($aufgabe_graphisch)?> eine graphisch-kreative Aufgabe</div>
+        <div class="profil-checkbox"><?=checkbox($aufgabe_computer)?> eine Aufgabe, in der ich mein Computer-/IT-Wissen einbringen kann</div>
+        <div class="profil-checkbox"><?=checkbox($aufgabe_texte_schreiben)?> Texte verfassen (z.B. für die Homepage oder den MHN-Newsletter)</div>
+        <div class="profil-checkbox"><?=checkbox($aufgabe_texte_lesen)?> Texte durchlesen und kommentieren</div>
+        <div class="profil-checkbox"><?=checkbox($aufgabe_vermittlung)?> Weitervermittlung von Kontakten</div>
+        <div class="profil-checkbox"><?=checkbox($aufgabe_ansprechpartner)?> Ansprechpartner vor Ort (lokale Treffen organisieren, Plakate aufhängen)</div>
+        <div class="profil-checkbox"><?=checkbox($aufgabe_hilfe)?> eine kleine, zeitlich begrenzte Aufgabe, wenn ihr dringend Hilfe braucht</div>
+        <div class="profil-checkbox"><?=checkbox($aufgabe_sonstiges)?> Sonstiges, und zwar: „<?=$aufgabe_sonstiges_beschreibung?>”</div>
+    </div>
+
+</div>
