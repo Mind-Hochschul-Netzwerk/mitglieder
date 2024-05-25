@@ -7,11 +7,11 @@ endif
 
 image:
 	@echo "(Re)building docker image"
-	docker build --no-cache -t local/$(SERVICENAME):latest .
+	docker build --no-cache -t ghcr.io/mind-hochschul-netzwerk/$(SERVICENAME):latest .
 
 rebuild:
 	@echo "Rebuilding docker image"
-	docker build -t local/$(SERVICENAME):latest .
+	docker build -t ghcr.io/mind-hochschul-netzwerk/$(SERVICENAME):latest .
 
 adminer: check-traefik
 	docker compose up -d adminer
