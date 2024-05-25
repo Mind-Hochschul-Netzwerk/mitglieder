@@ -27,16 +27,10 @@
             <?php
 
             $n = 0;
-            $graue = false;
             foreach ($ergebnisse as $e) {
                 ++$n;
-                $class = '';
                 $thumbnail = "<div class='thumbnail-container'><a href='profil.php?id=$e[id]'><img class='img-thumbnail' src='" . ($e['profilbild'] ? 'profilbilder/' . $e['profilbild'] : 'img/thumbnail-profilbild-default.png') . "' alt='Profilbild'  ></a></div>";
-                if ($e['last_login'] === null || $e['last_login'] < new \DateTime('-6 months')) {
-                    $class = 'inaktiv';
-                    $graue = true;
-                }
-                echo "<tr class='$class'>
+                echo "<tr>
                     <td>$n</td>
                     <td>$thumbnail</td>
                     <td><a href='profil.php?id=$e[id]'>$e[fullName]</a></td>
@@ -46,9 +40,6 @@
             ?>
 
         </table></div>
-        <?php if ($graue): ?>
-            <p>Mitglieder, die sich seit mehr als 6 Monaten nicht mehr eingeloggt haben, werden ausgegraut dargestellt.</p>
-        <?php endif; ?>
         <?php if (count($ergebnisse) >= 50): ?>
             <p>Es werden nicht alle Ergebnisse angezeigt. Grenze deine Suchkriterien weiter ein.</p>
         <?php endif; ?>
