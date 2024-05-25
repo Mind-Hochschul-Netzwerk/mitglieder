@@ -23,7 +23,7 @@ dev: check-traefik
 	@echo "Starting DEV Server"
 	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --force-recreate --remove-orphans
 
-prod: image check-traefik
+prod: check-traefik
 	@echo "Starting Production Server"
 	docker compose up -d --force-recreate --remove-orphans app
 
