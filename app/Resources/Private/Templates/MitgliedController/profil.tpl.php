@@ -1,4 +1,4 @@
-<?php declare(strict_types=1); namespace MHN\Mitglieder; ?>
+<?php declare(strict_types=1); namespace App; ?>
 <?php
 // gibt die Klasse "unsichtbar" zurück, falls die Sichtbarkeit eingeschränkt ist, und der Benutzer es nur wegen dem Recht mvread sehen kann
 function sichtbarkeit($sichtbarkeit)

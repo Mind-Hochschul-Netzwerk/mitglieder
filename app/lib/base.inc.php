@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace MHN\Mitglieder;
+namespace App;
 
 /**
 * Lädt die anderen PHP-Dateien, die überall benötigt werden

@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace MHN\Mitglieder\Service;
+namespace App\Service;
 
 /**
  * @author Henrik Gebauer <mensa@henrik-gebauer.de>
@@ -10,15 +10,15 @@ namespace MHN\Mitglieder\Service;
 use Symfony\Component\Ldap\Ldap as SymfonyLdap;
 use Symfony\Component\Ldap\Exception\InvalidCredentialsException;
 use Symfony\Component\Ldap\Entry;
-use MHN\Mitglieder\Password;
-use MHN\Mitglieder\Config;
+use App\Password;
+use App\Config;
 
 /**
  * ldap connection
  */
-class Ldap implements \MHN\Mitglieder\Interfaces\Singleton
+class Ldap implements \App\Interfaces\Singleton
 {
-    use \MHN\Mitglieder\Traits\Singleton;
+    use \App\Traits\Singleton;
 
     private $ldap;
     private $isAdmin = false;

@@ -10,4 +10,4 @@ declare(strict_types=1);
 
 require_once '../lib/base.inc.php';
 
-(new \MHN\Mitglieder\Domain\Controller\MassDeletionController())->run();
+(new \App\Domain\Controller\MassDeletionController())->run();

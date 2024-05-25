@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace MHN\Mitglieder;
+namespace App;
 
 /**
  * Mitgliedersuche
@@ -11,7 +11,7 @@ namespace MHN\Mitglieder;
 
 include '../lib/base.inc.php';
 
-use \MHN\Mitglieder\Service\Db;
+use \App\Service\Db;
 
 Auth::intern();
 

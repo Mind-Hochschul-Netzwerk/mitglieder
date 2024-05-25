@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace MHN\Mitglieder;
+namespace App;
 
 /**
  * Admin-Panel
@@ -9,9 +9,9 @@ namespace MHN\Mitglieder;
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
-use MHN\Mitglieder\Auth;
-use MHN\Mitglieder\Tpl;
-use MHN\Mitglieder\Service\Ldap;
+use App\Auth;
+use App\Tpl;
+use App\Service\Ldap;
 
 require_once '../lib/base.inc.php';
 

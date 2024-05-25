@@ -5,13 +5,13 @@
  */
 
 declare(strict_types=1);
-namespace MHN\Mitglieder\Domain\Controller;
+namespace App\Domain\Controller;
 
-use MHN\Mitglieder\Auth;
-use MHN\Mitglieder\Tpl;
-use MHN\Mitglieder\Service\Ldap;
-use MHN\Mitglieder\Service\Db;
-use MHN\Mitglieder\Mitglied;
+use App\Auth;
+use App\Tpl;
+use App\Service\Ldap;
+use App\Service\Db;
+use App\Mitglied;
 
 class StatisticsController {
     private ?Db $db;

@@ -1,4 +1,4 @@
-<?php declare(strict_types=1); namespace MHN\Mitglieder; ?>
+<?php declare(strict_types=1); namespace App; ?>
 <form method="post" action="?token=<?=$token?>" id="passwordForm">
 
 <?php 

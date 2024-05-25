@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace MHN\Mitglieder\Interfaces;
+namespace App\Interfaces;
 
 /**
  * @author Henrik Gebauer <mensa@henrik-gebauer.de>

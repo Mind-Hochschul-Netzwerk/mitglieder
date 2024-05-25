@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace MHN\Mitglieder;
+namespace App;
 
 $alerts = [
     'usernameMissing' => 'Bitte wähle einen Benutzernamen.',
@@ -12,9 +12,9 @@ $alerts = [
 
 foreach ($alerts as $name=>$text) {
     if (!empty($$name)) {
-        \MHN\Mitglieder\Tpl::set('alert_type', 'danger');
-        \MHN\Mitglieder\Tpl::set('alert_text', $text);
-        \MHN\Mitglieder\Tpl::render('Layout/alert');
+        \App\Tpl::set('alert_type', 'danger');
+        \App\Tpl::set('alert_text', $text);
+        \App\Tpl::render('Layout/alert');
     }
 }
 

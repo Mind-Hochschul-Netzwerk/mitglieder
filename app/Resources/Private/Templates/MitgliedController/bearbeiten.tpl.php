@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace MHN\Mitglieder;
+namespace App;
 
 Tpl::set('title', "Meine Mitgliedsdaten im MHN <small><span class='glyphicon glyphicon-user'></span> <a href='profil.php?id=$id'>Profil anzeigen</a></small>", false);
 
@@ -90,7 +90,7 @@ function form_row($label, $inputs)
     </div>\n";
 }
 
-$disableMitgliederverwaltung = !\MHN\Mitglieder\Auth::hatRecht('mvedit');
+$disableMitgliederverwaltung = !\App\Auth::hatRecht('mvedit');
 
 if (empty($active_pane)) {
     $active_pane = 'basisdaten';
@@ -101,9 +101,9 @@ $changes = $error = $password_error = false;
 // Alerts generieren
 
 if (!empty($profilbild_format_unbekannt)) {
-    \MHN\Mitglieder\Tpl::set('alert_type', 'danger');
-    \MHN\Mitglieder\Tpl::set('alert_text', 'Das Dateiformat des Profilbilds wurde nicht erkannt oder wird nicht unterstützt. Unterstützte Formate: JPEG, PNG.');
-    \MHN\Mitglieder\Tpl::render('Layout/alert');
+    \App\Tpl::set('alert_type', 'danger');
+    \App\Tpl::set('alert_text', 'Das Dateiformat des Profilbilds wurde nicht erkannt oder wird nicht unterstützt. Unterstützte Formate: JPEG, PNG.');
+    \App\Tpl::render('Layout/alert');
     $active_pane = 'profilbild';
     $changes = $error = true;
 }
@@ -117,19 +117,19 @@ if (!empty($profilbild_uploadfehler)) {
 }
 
 if (!empty($email_error)) {
-    \MHN\Mitglieder\Tpl::set('alert_type', 'danger');
-    \MHN\Mitglieder\Tpl::set('alert_text', 'Die eigegebene E-Mail-Adresse ist ungültig. Die E-Mail-Adresse und wurde nicht gespeichert.');
-    \MHN\Mitglieder\Tpl::render('Layout/alert');
+    \App\Tpl::set('alert_type', 'danger');
+    \App\Tpl::set('alert_text', 'Die eigegebene E-Mail-Adresse ist ungültig. Die E-Mail-Adresse und wurde nicht gespeichert.');
+    \App\Tpl::render('Layout/alert');
     $changes = $error = true;
 } else {
     $email_error = false;
 }
 
-\MHN\Mitglieder\Tpl::set('alert_id', 'AlertWiederholungFalsch');
-\MHN\Mitglieder\Tpl::set('alert_type', 'danger');
-\MHN\Mitglieder\Tpl::set('alert_hide', empty($new_password2_error));
-\MHN\Mitglieder\Tpl::set('alert_text', 'Die Wiederholung stimmt nicht mit dem neuen Passwort überein.');
-\MHN\Mitglieder\Tpl::render('Layout/alert');
+\App\Tpl::set('alert_id', 'AlertWiederholungFalsch');
+\App\Tpl::set('alert_type', 'danger');
+\App\Tpl::set('alert_hide', empty($new_password2_error));
+\App\Tpl::set('alert_text', 'Die Wiederholung stimmt nicht mit dem neuen Passwort überein.');
+\App\Tpl::render('Layout/alert');
 
 if (!empty($new_password2_error)) {
     $active_pane = 'basisdaten';
@@ -137,23 +137,23 @@ if (!empty($new_password2_error)) {
 }
 
 if (!empty($old_password_error)) {
-    \MHN\Mitglieder\Tpl::set('alert_type', 'danger');
-    \MHN\Mitglieder\Tpl::set('alert_text', 'Das alte Passwort ist falsch. Das Passwort wurde nicht geändert.');
-    \MHN\Mitglieder\Tpl::render('Layout/alert');
+    \App\Tpl::set('alert_type', 'danger');
+    \App\Tpl::set('alert_text', 'Das alte Passwort ist falsch. Das Passwort wurde nicht geändert.');
+    \App\Tpl::render('Layout/alert');
     $active_pane = 'basisdaten';
     $password_error = $changes = $error = true;
 }
 
 if (!empty($data_saved_info)) {
-    \MHN\Mitglieder\Tpl::set('alert_type', 'success');
-    \MHN\Mitglieder\Tpl::set('alert_text', (!$error ? 'Deine Daten wurden geändert.' : 'Die anderen Änderungen wurden gespeichert.') . (!empty($email_auth_info) ? ' Bitte schau in dein E-Mail-Postfach, um die Änderung deiner E-Mail-Adresse abzuschließen.' : ''));
-    \MHN\Mitglieder\Tpl::render('Layout/alert');
+    \App\Tpl::set('alert_type', 'success');
+    \App\Tpl::set('alert_text', (!$error ? 'Deine Daten wurden geändert.' : 'Die anderen Änderungen wurden gespeichert.') . (!empty($email_auth_info) ? ' Bitte schau in dein E-Mail-Postfach, um die Änderung deiner E-Mail-Adresse abzuschließen.' : ''));
+    \App\Tpl::render('Layout/alert');
 }
 
 if (!empty($errorMessage)) {
-    \MHN\Mitglieder\Tpl::set('alert_type', 'warning');
-    \MHN\Mitglieder\Tpl::set('alert_text', $errorMessage);
-    \MHN\Mitglieder\Tpl::render('Layout/alert');
+    \App\Tpl::set('alert_type', 'warning');
+    \App\Tpl::set('alert_text', $errorMessage);
+    \App\Tpl::render('Layout/alert');
 }
 ?>
 
@@ -437,13 +437,13 @@ if (!empty($errorMessage)) {
             </div>
 
             <h4>Passwort ändern</h4>
-            <?php if (!\MHN\Mitglieder\Auth::hatRecht('mvedit') || \MHN\Mitglieder\Auth::ist($id)): ?>
+            <?php if (!\App\Auth::hatRecht('mvedit') || \App\Auth::ist($id)): ?>
                 <?=form_row('Altes Passwort', [['password', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '', 'autocomplete' => 'current-password']])?>
             <?php endif; ?>
             <?=form_row('Neues Passwort', [['new_password', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '', 'autocomplete' => 'new-password']])?>
             <?=form_row('Passwort wiederholen', [['new_password2', '', 'password', 'error' => $password_error, 'sichtbarkeit' => '']])?>
 
-            <?php if (\MHN\Mitglieder\Auth::hatRecht('mvedit')): ?>
+            <?php if (\App\Auth::hatRecht('mvedit')): ?>
                 <h4>Mitgliederverwaltung</h4>
 
                 <div class="row">
@@ -463,7 +463,7 @@ if (!empty($errorMessage)) {
                     <div class="col-sm-10"><textarea disabled class="small" style="width:100%;"><?=$einwilligung_datenverarbeitung_aufnahme_text?></textarea></div>
                 </div>
 
-                <?php if (\MHN\Mitglieder\Auth::hatRecht('rechte')): ?>
+                <?php if (\App\Auth::hatRecht('rechte')): ?>
                     <?=form_row('Gruppen ändern', [['groups', implode(', ', $groups), 'placeholder' => 'Trennen durch Komma. Mögliche Werte siehe Menüpunkt „Mitgliederverwaltung”', 'sichtbarkeit' => false]])?>
                 <?php endif; ?>
 
@@ -489,7 +489,7 @@ if (!empty($errorMessage)) {
 
 </form>
 
-<?php \MHN\Mitglieder\Tpl::footStart(); ?>
+<?php \App\Tpl::footStart(); ?>
 
     <script>
 
@@ -552,4 +552,4 @@ if (resign) {
 }
 </script>
 
-<?php \MHN\Mitglieder\Tpl::footEnd(); ?>
+<?php \App\Tpl::footEnd(); ?>

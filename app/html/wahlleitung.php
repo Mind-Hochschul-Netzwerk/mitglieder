@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace MHN\Mitglieder;
+namespace App;
 
 /**
  * Auflistung aller E-Mail-Adressen für die Wahlleitung
@@ -9,9 +9,9 @@ namespace MHN\Mitglieder;
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
-use MHN\Mitglieder\Auth;
-use MHN\Mitglieder\Tpl;
-use MHN\Mitglieder\Service\Db;
+use App\Auth;
+use App\Tpl;
+use App\Service\Db;
 
 require_once '../lib/base.inc.php';
 

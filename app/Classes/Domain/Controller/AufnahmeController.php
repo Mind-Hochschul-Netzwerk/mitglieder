@@ -1,16 +1,16 @@
 <?php
-namespace MHN\Mitglieder\Domain\Controller;
+namespace App\Domain\Controller;
 
 /**
  * @author Henrik Gebauer <mensa@henrik-gebauer.de>
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
-use MHN\Mitglieder\Tpl;
-use MHN\Mitglieder\Auth;
-use MHN\Mitglieder\Mitglied;
-use MHN\Mitglieder\Service\Ldap;
-use MHN\Mitglieder\Service\EmailService;
+use App\Tpl;
+use App\Auth;
+use App\Mitglied;
+use App\Service\Ldap;
+use App\Service\EmailService;
 
 /**
  * Aufnahme neuer Mitglieder

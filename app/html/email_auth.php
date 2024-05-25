@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace MHN\Mitglieder;
+namespace App;
 
 /**
  * E-Mail-Token verifizieren
@@ -9,11 +9,11 @@ namespace MHN\Mitglieder;
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
-use MHN\Mitglieder\Auth;
-use MHN\Mitglieder\Mitglied;
-use MHN\Mitglieder\Tpl;
+use App\Auth;
+use App\Mitglied;
+use App\Tpl;
 use \Hengeb\Token\Token;
-use MHN\Mitglieder\Service\EmailService;
+use App\Service\EmailService;
 
 require_once '../lib/base.inc.php';
 

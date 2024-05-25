@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace MHN\Mitglieder;
+namespace App;
 
 /**
  * Mitgliederdaten bearbeiten
@@ -9,12 +9,12 @@ namespace MHN\Mitglieder;
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
-use MHN\Mitglieder\Auth;
-use MHN\Mitglieder\DB;
-use MHN\Mitglieder\Mitglied;
-use MHN\Mitglieder\Tpl;
+use App\Auth;
+use App\DB;
+use App\Mitglied;
+use App\Tpl;
 use \Hengeb\Token\Token;
-use MHN\Mitglieder\Service\EmailService;
+use App\Service\EmailService;
 
 // Liste der vom Mitglied änderbaren Strings, deren Werte nicht geprüft werden
 const bearbeiten_strings_ungeprueft = ['titel', 'mensa_nr', 'strasse', 'adresszusatz', 'plz', 'ort', 'land', 'strasse2', 'adresszusatz2', 'plz2', 'ort2', 'land2', 'telefon', 'homepage', 'sprachen', 'hobbys', 'interessen', 'studienort', 'studienfach', 'unityp', 'schwerpunkt', 'nebenfach', 'abschluss', 'zweitstudium', 'hochschulaktivitaeten', 'stipendien', 'auslandsaufenthalte', 'praktika', 'beruf', 'aufgabe_sonstiges_beschreibung'];

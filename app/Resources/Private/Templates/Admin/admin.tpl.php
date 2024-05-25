@@ -1,4 +1,4 @@
-<?php declare(strict_types=1); namespace MHN\Mitglieder; ?>
+<?php declare(strict_types=1); namespace App; ?>
 <h2>Mitgliederdaten bearbeiten</h2>
 <p>Suche das zu bearbeitende Mitglied mit der <a href="/">Mitgliedersuche</a> und klicke im Profil auf "Daten bearbeiten".</p>
 

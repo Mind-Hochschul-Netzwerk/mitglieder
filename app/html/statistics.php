@@ -10,4 +10,4 @@ declare(strict_types=1);
 
 require_once '../lib/base.inc.php';
 
-(new \MHN\Mitglieder\Domain\Controller\StatisticsController())->run();
+(new \App\Domain\Controller\StatisticsController())->run();

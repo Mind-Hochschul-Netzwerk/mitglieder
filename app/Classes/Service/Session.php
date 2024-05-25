@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace MHN\Mitglieder\Service;
+namespace App\Service;
 
 /**
  * @author Henrik Gebauer <mensa@henrik-gebauer.de>
@@ -10,9 +10,9 @@ namespace MHN\Mitglieder\Service;
 /**
  * Verwaltet die Session
  */
-class Session implements \MHN\Mitglieder\Interfaces\Singleton
+class Session implements \App\Interfaces\Singleton
 {
-    use \MHN\Mitglieder\Traits\Singleton;
+    use \App\Traits\Singleton;
 
     /** @var int */
     const TIMEOUT_IN_SECONDS = 12 * 60 * 60;

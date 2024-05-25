@@ -1,5 +1,5 @@
 <?php
-namespace MHN\Mitglieder;
+namespace App;
 
 /**
  * @author Henrik Gebauer <mensa@henrik-gebauer.de>
@@ -7,10 +7,10 @@ namespace MHN\Mitglieder;
  */
 
 use DateTime;
-use MHN\Mitglieder\Config;
-use MHN\Mitglieder\Service\EmailService;
-use MHN\Mitglieder\Service\Ldap;
-use MHN\Mitglieder\Service\Db;
+use App\Config;
+use App\Service\EmailService;
+use App\Service\Ldap;
+use App\Service\Db;
 
 /**
  * Repräsentiert ein Mitglied

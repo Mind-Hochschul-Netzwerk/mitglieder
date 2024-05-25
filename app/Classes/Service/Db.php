@@ -1,17 +1,17 @@
 <?php
 declare(strict_types=1);
-namespace MHN\Mitglieder\Service;
+namespace App\Service;
 
-use MHN\Mitglieder\Config;
+use App\Config;
 
 /**
  * @author Henrik Gebauer <mensa@henrik-gebauer.de>
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
-class Db extends \Hengeb\Db\Db implements \MHN\Mitglieder\Interfaces\Singleton
+class Db extends \Hengeb\Db\Db implements \App\Interfaces\Singleton
 {
-    use \MHN\Mitglieder\Traits\Singleton;
+    use \App\Traits\Singleton;
 
     private function __construct(...$args)
     {
