@@ -25,7 +25,7 @@ dev: check-traefik
 
 prod: check-traefik
 	@echo "Starting Production Server"
-	docker compose up -d --force-recreate --remove-orphans app
+	docker compose up -d --pull always --force-recreate --remove-orphans app
 
 upgrade:
 	git pull
