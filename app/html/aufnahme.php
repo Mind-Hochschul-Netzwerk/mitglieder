@@ -10,4 +10,4 @@ declare(strict_types=1);
 
 require_once '../lib/base.inc.php';
 
-(new \App\Domain\Controller\AufnahmeController())->run();
+(new \App\Controller\AufnahmeController())->run();

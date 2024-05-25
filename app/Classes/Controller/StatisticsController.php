@@ -5,7 +5,7 @@
  */
 
 declare(strict_types=1);
-namespace App\Domain\Controller;
+namespace App\Controller;
 
 use App\Auth;
 use App\Tpl;

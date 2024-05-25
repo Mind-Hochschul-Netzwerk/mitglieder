@@ -1,5 +1,5 @@
 <?php
-namespace App\Domain\Controller;
+namespace App\Controller;
 
 /**
  * @author Henrik Gebauer <mensa@henrik-gebauer.de>
@@ -10,7 +10,6 @@ use App\Tpl;
 use App\Auth;
 use App\Mitglied;
 use App\Service\Ldap;
-use App\Service\EmailService;
 
 /**
  * Aufnahme neuer Mitglieder
