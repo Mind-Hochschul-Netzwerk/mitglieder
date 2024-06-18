@@ -171,7 +171,7 @@ function row($label, $value, $sichtbarkeit = true)
 <?php endif; ?>
 
     <div class="col-sm-6">
-        <h4 class="unsichtbar">Ich könnte bei folgenden Aufgaben helfen</h4>
+        <h4>Ich könnte bei folgenden Aufgaben helfen</h4>
         <div class="profil-checkbox"><?=checkbox($aufgabe_ma)?> Mithilfe bei der Organisation der MIND AKADEMIE</div>
         <div class="profil-checkbox"><?=checkbox($aufgabe_orte)?> Mithilfe bei der Suche nach Veranstaltungsorten</div>
         <div class="profil-checkbox"><?=checkbox($aufgabe_vortrag)?> einen Vortrag, ein Seminar oder einen Workshop anbieten</div>
