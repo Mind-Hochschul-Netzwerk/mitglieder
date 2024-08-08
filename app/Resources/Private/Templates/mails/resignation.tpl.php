@@ -1,6 +1,10 @@
 Liebes Mitglied des Vorstands / der Mitgliederbetreuung,
 
-das Mitglied <?=$fullName?> (MHN-Mitgliedsnummer <?=$id?>) hat soeben den Austritt aus dem Verein erklärt.
+das Mitglied <?=$fullName?> (MHN-Mitgliedsnummer <?=$id?>) hat den Austritt aus dem Verein erklärt.
+
+<?php if (!empty($adminFullName)): ?>
+Der Austritt wurde von <?=$adminFullName?> eingetragen.
+<?php endif; ?>
 
 Gemäß der Satzung ist ein Austritt zum Ende des Kalenderjahres möglich.
 

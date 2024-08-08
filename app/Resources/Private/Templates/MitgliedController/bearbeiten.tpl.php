@@ -423,15 +423,27 @@ if (!empty($errorMessage)) {
             <div class="row">
                 <div class="col-sm-2"><label for="resignPassword">Austritt erklären</label></div>
                 <div class="col-sm-10">
-                    <?php if ($resignation): ?>
-                        <p>Du hast deinen Austritt am <?=$resignation->format('d.m.Y')?> erklärt. Wenn du ihn zurücknehmen möchtest, wende dich bitte an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>. Der Austritt wird gemäß unserer Satzung zum Ende des Kalenderjahres wirksam.</p>
+                    <?php if (\App\Auth::hatRecht('mvedit')): ?>
+                        <label><input name="resign" type="checkbox" id="resignCheckbox"
+                        <?php if ($resignation): ?>checked<?php endif; ?>
+                        onclick="return confirm(&quot;Bist du ganz sicher, dass dieses Häkchen &quot; + (!$(&quot;#resignCheckbox&quot;).get(0).checked ? &quot;entfernt&quot; : &quot;gesetzt&quot;) + &quot; werden soll?&quot;);"
+                        >
+                        Das Mitglied hat seinen Austritt erklärt.
+                        </label>
+                        <?php if ($resignation): ?>
+                            <p>Die Austrittserklärung wurde am <?=$resignation->format('d.m.Y')?> gespeichert.</p>
+                        <?php endif; ?>
                     <?php else: ?>
-                        <p>Mit einer Erklärung an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>, kannst du deine MHN-Mitgliedschaft beenden. Mit dem Ende deiner Mitgliedschaft werden wir deine persönlichen Daten aus der Mitgliederdatenbank löschen.</p>
-                        <p class="resign__button"><button type="button" id="resign" class="btn btn-danger">Austritt erklären</button></p>
-                        <div class="resign__password hidden">
-                            <p>Gib hier dein Passwort ein, wenn du deine Mitgliedschaft wirklich beenden möchtest, und klicke dann auf speichern.</p>
-                            <div><input id="resignPassword" name="resignPassword" type="password" class="form-control" autocomplete="new-password" placeholder="Passwort"></div>
-                        </div>
+                        <?php if ($resignation): ?>
+                            <p>Deine Austrittserklärung wurde am <?=$resignation->format('d.m.Y')?> gespeichert. Wenn du deinen Austritt zurücknehmen möchtest, wende dich bitte an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>. Der Austritt wird gemäß unserer Satzung zum Ende des Kalenderjahres wirksam.</p>
+                        <?php else: ?>
+                            <p>Mit einer Erklärung an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>, kannst du deine MHN-Mitgliedschaft beenden. Mit dem Ende deiner Mitgliedschaft werden wir deine persönlichen Daten aus der Mitgliederdatenbank löschen.</p>
+                            <p class="resign__button"><button type="button" id="resign" class="btn btn-danger">Austritt erklären</button></p>
+                            <div class="resign__password hidden">
+                                <p>Gib hier dein Passwort ein, wenn du deine Mitgliedschaft wirklich beenden möchtest, und klicke dann auf speichern.</p>
+                                <div><input id="resignPassword" name="resignPassword" type="password" class="form-control" autocomplete="new-password" placeholder="Passwort"></div>
+                            </div>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
             </div>
@@ -543,8 +555,9 @@ document.getElementById("profile-form").addEventListener("submit", e => {
     }
 });
 
-if (resign) {
-    resign.addEventListener("click", e => {
+resignButton = document.getElementById("resign");
+if (resignButton !== null) {
+    resignButton.addEventListener("click", e => {
         e.preventDefault();
         document.querySelector(".resign__password").classList.remove("hidden");
         document.querySelector(".resign__button").classList.add("hidden");

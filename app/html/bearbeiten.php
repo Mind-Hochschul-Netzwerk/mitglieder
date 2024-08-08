@@ -252,6 +252,23 @@ if (isset($_REQUEST['email'])) {
             $text = Tpl::render('mails/resignation', false);
             EmailService::getInstance()->send('vorstand@mind-hochschul-netzwerk.de', 'Austrittserklärung', $text);
             EmailService::getInstance()->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', 'Austrittserklärung', $text);
+            $text = Tpl::render('mails/resignationConfirmation', false);
+            $m->sendEmail('Bestätigung deiner Austrittserklärung', $text);
+        }
+    } elseif (Auth::hatRecht('mvedit')) {
+        $resignOld = $m->get('resignation') !== null;
+        $resignNew = !empty($_POST['resign']);
+        if ($resignOld && !$resignNew) {
+            $m->set('resignation', null);
+        } elseif (!$resignOld && $resignNew) {
+            $m->set('resignation', 'now');
+            $admin = Mitglied::lade(Auth::getUID());
+            Tpl::set('adminFullName', $admin->get('fullName'));
+            $text = Tpl::render('mails/resignation', false);
+            EmailService::getInstance()->send('vorstand@mind-hochschul-netzwerk.de', 'Austrittserklärung eingetragen', $text);
+            EmailService::getInstance()->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', 'Austrittserklärung eingetragen', $text);
+            $text = Tpl::render('mails/resignationConfirmation', false);
+            $m->sendEmail('Bestätigung deiner Austrittserklärung', $text);
         }
     }
 
