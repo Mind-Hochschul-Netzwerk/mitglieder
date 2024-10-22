@@ -10,8 +10,6 @@ namespace App\Service;
 use Symfony\Component\Ldap\Ldap as SymfonyLdap;
 use Symfony\Component\Ldap\Exception\InvalidCredentialsException;
 use Symfony\Component\Ldap\Entry;
-use App\Password;
-use App\Config;
 
 /**
  * ldap connection
@@ -111,7 +109,7 @@ class Ldap implements \App\Interfaces\Singleton
             $entry->setAttribute('employeeNumber', [$data['id']]);
         }
         if (!empty($data['password'])) {
-            $entry->setAttribute('userPassword', ['{CRYPT}' .  Password::hash($data['password'])]);
+            $entry->setAttribute('userPassword', ['{CRYPT}' .  PasswordService::hash($data['password'])]);
         }
         if (!empty($data['hashedPassword'])) {
             $entry->setAttribute('userPassword', [$data['hashedPassword']]);
@@ -248,7 +246,7 @@ class Ldap implements \App\Interfaces\Singleton
             }
             $username = substr(substr($dn, strlen('cn=')), 0, -1-strlen(getenv('LDAP_PEOPLE_DN')));
             $user = $this->getEntryByUsername($username);
-            return $user->getAttribute('employeeNumber')[0];
+            return intval($user->getAttribute('employeeNumber')[0]);
         }, $members);
 
         return array_filter($ids);

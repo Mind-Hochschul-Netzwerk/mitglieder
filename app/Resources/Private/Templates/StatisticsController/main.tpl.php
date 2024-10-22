@@ -1,3 +1,11 @@
+<?php
+$this->extends('Layout/layout', [
+    'htmlTitle' => 'Statistik',
+    'title' => 'Statistik',
+    'navId' => 'statistics',
+]);
+?>
+
 <pre>
 <?=<<<EOT
 Einträge in der Mitgliedertabelle: $countAllEntries
@@ -6,8 +14,8 @@ zusätzlich $countDeleted gesperrte Benutzernamen (= gelöschte Mitglieder)
 Von den $countAllEntries Mitgliedern:
 ... $countAfterOct2018 erst nach der Vereinsgründung eingetreten
 ... $countConfirmedMembership haben ihre Mitgliedschaft bestätigt
-... $countResignations haben ihren Austritt zum Ende des Jahres erklärt. (<a href="/?resigned=1">Liste</a>)
-... $countInvalidEmails haben keine erreichbare E-Mail-Adresse: (<a href="?a=invalidEmails">Liste</a>)
+... $countResignations haben ihren Austritt zum Ende des Jahres erklärt. (<a href="/search/resigned">Liste</a>)
+... $countInvalidEmails haben keine erreichbare E-Mail-Adresse: (<a href="/statistics/invalidEmails">Liste</a>)
 EOT?>
 </pre>
 
