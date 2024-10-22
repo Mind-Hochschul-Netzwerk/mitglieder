@@ -1,20 +1,26 @@
 <?php
-declare(strict_types=1);
-namespace App;
+
+$this->extends('Layout/layout', [
+    'htmlTitle' => 'Benutzerkonto aktivieren',
+    'title' => 'Benutzerkonto aktivieren',
+    'navId' => 'start',
+]);
 
 $alerts = [
     'usernameMissing' => 'Bitte wähle einen Benutzernamen.',
     'usernameInvalid' => 'Dein Benutzername enthält ungültige Zeichen.',
     'usernameUsed' => 'Dieser Benutzername wird bereits verwendet.',
+    'emailUsed' => 'Die E-Mail-Adresse ' . $email . ' wird bereits von einem anderen Mitglied verwendet. Bitte wende dich an die Mitgliederbetreuung, um das Problem zu lösen.',
     'passwordMissing' => 'Bitte wähle ein Passwort.',
     'passwordMismatch' => 'Das Passwort und die Wiederholung stimmen nicht überein.',
 ];
 
 foreach ($alerts as $name=>$text) {
     if (!empty($$name)) {
-        \App\Tpl::set('alert_type', 'danger');
-        \App\Tpl::set('alert_text', $text);
-        \App\Tpl::render('Layout/alert');
+        $this->include('Layout/alert', [
+            'alert_type' => 'danger',
+            'alert_text' => $text,
+        ]);
     }
 }
 
@@ -23,7 +29,7 @@ foreach ($alerts as $name=>$text) {
 <p>Hallo <?=$data['mhn_vorname']?>,</p>
 <p>wir freuen uns, dich als neues Mitglied im Mind-Hochschul-Netzwerk zu begrüßen! Bevor es losgehen kann, musst du deine Zugangsdaten festlegen und entscheiden, welche Daten du im Netzwerk freigeben möchtest.</p>
 
-<form action="?token=<?=$token?>" method="post">
+<form method="post">
 
 <h3>Deine Zugangsdaten</h3>
 

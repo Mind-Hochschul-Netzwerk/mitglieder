@@ -6,15 +6,17 @@ namespace App\Controller;
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
-use App\Tpl;
-use App\Auth;
+use App\Controller\Exception\InvalidUserDataException;
 use App\Mitglied;
+use App\Service\AuthService;
 use App\Service\Ldap;
+use App\Service\Tpl;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Aufnahme neuer Mitglieder
  */
-class AufnahmeController
+class AufnahmeController extends Controller
 {
     const MAP = [
         'titel' => 'mhn_titel',
@@ -73,41 +75,29 @@ class AufnahmeController
 
     private $token = '';
     private $data = [];
-    private $action = '';
 
     private $username = '';
     private $password = '';
     private $readyToSave = true;
 
-    public function __construct()
+    public function getResponse(): Response
     {
-    }
-
-    public function run(): void
-    {
-        ensure($_REQUEST['token'], ENSURE_STRING) or die('token missing');
-        $this->token = $_REQUEST['token'];
-        Tpl::set('token', $this->token);
-
-        Tpl::set('htmlTitle', 'Benutzerkonto aktivieren');
-        Tpl::set('title', 'Benutzerkonto aktivieren');
-        Tpl::set('navId', 'start');
+        $this->token = $this->request->query->getString('token');
+        $this->setTemplateVariable('token', $this->token);
 
         $this->requestData();
         $this->checkEmailUsed();
 
-        if (isset($_REQUEST['username'])) {
+        if ($this->request->isMethod('POST')) {
             $this->checkEnteredUsername();
             $this->checkEnteredPassword();
             if ($this->readyToSave) {
                 $this->save();
-                Tpl::pause();
-                header('Location: /bearbeiten.php?tab=profilbild');
-                exit;
+                return $this->redirect('/user/_/edit/?tab=profilbild');
             }
         }
 
-        $this->showForm();
+        return $this->showForm();
     }
 
     private function requestData(): void
@@ -119,8 +109,7 @@ class AufnahmeController
         $this->data = json_decode($response, associative: true);
 
         if ($this->data === null) {
-            Tpl::render('AufnahmeController/invalid');
-            exit;
+            throw new InvalidUserDataException('Der Link ist ungültig. Wurde der Zugang schon aktiviert?');
         }
     }
 
@@ -131,10 +120,10 @@ class AufnahmeController
 
     private function checkEmailUsed(): void
     {
+        $this->setTemplateVariable('email', $this->data['user_email']);
         if ($this->isEmailUsed()) {
-            Tpl::set('email', $this->data['user_email']);
-            Tpl::render('AufnahmeController/emailUsed');
-            exit;
+            $this->readyToSave = false;
+            $this->setTemplateVariable('emailUsed', true);
         }
     }
 
@@ -165,55 +154,55 @@ class AufnahmeController
 
     private function checkEnteredUsername(): void
     {
-        ensure($_REQUEST['username'], ENSURE_STRING);
-
-        $this->username = trim($_REQUEST['username']);
+        $this->username = $this->validatePayload(['username' => 'required string'])['username'];
 
         if (!($this->username)) {
             $this->readyToSave = false;
-            Tpl::set('usernameMissing', true);
+            $this->setTemplateVariable('usernameMissing', true);
             return;
         }
 
         if (!preg_match('/^[A-Za-z][A-Za-z0-9\-_.]*$/', $this->username)) {
             $this->readyToSave = false;
-            Tpl::set('usernameInvalid', true);
+            $this->setTemplateVariable('usernameInvalid', true);
             return;
         }
 
         if (!Mitglied::isUsernameAvailable($this->username)) {
             $this->readyToSave = false;
-            Tpl::set('usernameUsed', true);
+            $this->setTemplateVariable('usernameUsed', true);
             return;
         }
     }
 
     private function checkEnteredPassword(): void
     {
-        ensure($_REQUEST['password'], ENSURE_STRING);
-        ensure($_REQUEST['password2'], ENSURE_STRING);
+        $input = $this->validatePayload([
+            'password' => 'required string untrimmed',
+            'password2' => 'required string untrimmed',
+        ]);
 
-        $this->password = $_REQUEST['password'];
+        $this->password = $input['password'];
 
         if (!($this->password)) {
             $this->readyToSave = false;
-            Tpl::set('passwordMissing', true);
+            $this->setTemplateVariable('passwordMissing', true);
             return;
         }
 
-        if ($this->password !== $_REQUEST['password2']) {
+        if ($this->password !== $input['password2']) {
             $this->readyToSave = false;
-            Tpl::set('passwordMismatch', true);
+            $this->setTemplateVariable('passwordMismatch', true);
             return;
         }
     }
 
-    private function showForm(): void
+    private function showForm(): Response
     {
-        Tpl::set('username', $this->username ? $this->username : $this->suggestUsername());
-        Tpl::set('data', $this->data);
-        Tpl::render('AufnahmeController/form');
-        exit;
+        return $this->render('AufnahmeController/form', [
+            'username' => $this->username ? $this->username : $this->suggestUsername(),
+            'data' => $this->data,
+        ]);
     }
 
     private function save(): void
@@ -243,63 +232,65 @@ class AufnahmeController
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_exec($curl);
 
-        Auth::logIn($m->get('id')); // Status neu laden
+        AuthService::logIn($m->get('id')); // Status neu laden
 
         $this->sendMailToActivationTeam($m);
     }
 
     private function processAccessFlags(Mitglied $m)
     {
-        ensure($_REQUEST['sichtbarkeit_adresse'], ENSURE_INT_GTEQ, 0);
-        ensure($_REQUEST['sichtbarkeit_email'], ENSURE_INT_GTEQ, 0);
-        ensure($_REQUEST['sichtbarkeit_telefon'], ENSURE_INT_GTEQ, 0);
-        ensure($_REQUEST['sichtbarkeit_geburtstag'], ENSURE_INT_GTEQ, 0);
-        ensure($_REQUEST['sichtbarkeit_mensa_nr'], ENSURE_INT_GTEQ, 0);
-        ensure($_REQUEST['sichtbarkeit_studium'], ENSURE_INT_GTEQ, 0);
-        ensure($_REQUEST['sichtbarkeit_beruf'], ENSURE_INT_GTEQ, 0);
-        ensure($_REQUEST['uebernahme_titel'], ENSURE_INT_GTEQ, 0);
-        ensure($_REQUEST['uebernahme_homepage'], ENSURE_INT_GTEQ, 0);
-        ensure($_REQUEST['uebernahme_zweitwohnsitz'], ENSURE_INT_GTEQ, 0);
-        ensure($_REQUEST['uebernahme_interessen'], ENSURE_INT_GTEQ, 0);
+        $input = $this->validatePayload([
+            'sichtbarkeit_adresse' => 'uint',
+            'sichtbarkeit_email' => 'uint',
+            'sichtbarkeit_telefon' => 'uint',
+            'sichtbarkeit_geburtstag' => 'uint',
+            'sichtbarkeit_mensa_nr' => 'uint',
+            'sichtbarkeit_studium' => 'uint',
+            'sichtbarkeit_beruf' => 'uint',
+            'uebernahme_titel' => 'uint',
+            'uebernahme_homepage' => 'uint',
+            'uebernahme_zweitwohnsitz' => 'uint',
+            'uebernahme_interessen' => 'uint',
+        ]);
 
-        $m->set('sichtbarkeit_strasse', $_REQUEST['sichtbarkeit_adresse'] === 1);
-        $m->set('sichtbarkeit_adresszusatz', $_REQUEST['sichtbarkeit_adresse'] === 1);
-        $m->set('sichtbarkeit_plz_ort', $_REQUEST['sichtbarkeit_adresse'] >= 1);
-        $m->set('sichtbarkeit_land', $_REQUEST['sichtbarkeit_adresse'] >= 1);
-        $m->set('sichtbarkeit_email', (bool) $_REQUEST['sichtbarkeit_email']);
-        $m->set('sichtbarkeit_geburtstag', (bool) $_REQUEST['sichtbarkeit_geburtstag']);
-        $m->set('sichtbarkeit_mensa_nr', (bool) $_REQUEST['sichtbarkeit_mensa_nr']);
-        $m->set('sichtbarkeit_telefon', (bool) $_REQUEST['sichtbarkeit_telefon']);
-        $m->set('sichtbarkeit_beschaeftigung', (bool) $_REQUEST['sichtbarkeit_beruf']);
-        $m->set('sichtbarkeit_beruf', (bool) $_REQUEST['sichtbarkeit_beruf']);
-        $m->set('sichtbarkeit_studienort', (bool) $_REQUEST['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_studienfach', (bool) $_REQUEST['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_unityp', (bool) $_REQUEST['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_schwerpunkt', (bool) $_REQUEST['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_nebenfach', (bool) $_REQUEST['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_abschluss', (bool) $_REQUEST['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_zweitstudium', (bool) $_REQUEST['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_hochschulaktivitaeten', (bool) $_REQUEST['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_stipendien', (bool) $_REQUEST['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_auslandsaufenthalte', (bool) $_REQUEST['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_praktika', (bool) $_REQUEST['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_strasse', $input['sichtbarkeit_adresse'] === 1);
+        $m->set('sichtbarkeit_adresszusatz', $input['sichtbarkeit_adresse'] === 1);
+        $m->set('sichtbarkeit_plz_ort', $input['sichtbarkeit_adresse'] >= 1);
+        $m->set('sichtbarkeit_land', $input['sichtbarkeit_adresse'] >= 1);
+        $m->set('sichtbarkeit_email', (bool) $input['sichtbarkeit_email']);
+        $m->set('sichtbarkeit_geburtstag', (bool) $input['sichtbarkeit_geburtstag']);
+        $m->set('sichtbarkeit_mensa_nr', (bool) $input['sichtbarkeit_mensa_nr']);
+        $m->set('sichtbarkeit_telefon', (bool) $input['sichtbarkeit_telefon']);
+        $m->set('sichtbarkeit_beschaeftigung', (bool) $input['sichtbarkeit_beruf']);
+        $m->set('sichtbarkeit_beruf', (bool) $input['sichtbarkeit_beruf']);
+        $m->set('sichtbarkeit_studienort', (bool) $input['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_studienfach', (bool) $input['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_unityp', (bool) $input['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_schwerpunkt', (bool) $input['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_nebenfach', (bool) $input['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_abschluss', (bool) $input['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_zweitstudium', (bool) $input['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_hochschulaktivitaeten', (bool) $input['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_stipendien', (bool) $input['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_auslandsaufenthalte', (bool) $input['sichtbarkeit_studium']);
+        $m->set('sichtbarkeit_praktika', (bool) $input['sichtbarkeit_studium']);
 
-        if (!$_REQUEST['uebernahme_titel']) {
+        if (!$input['uebernahme_titel']) {
             $m->set('titel', '');
         }
-        if ($_REQUEST['uebernahme_zweitwohnsitz'] !== 1) {
+        if ($input['uebernahme_zweitwohnsitz'] !== 1) {
             $m->set('strasse2', '');
             $m->set('adresszusatz2', '');
         }
-        if ($_REQUEST['uebernahme_zweitwohnsitz'] === 0) {
+        if ($input['uebernahme_zweitwohnsitz'] === 0) {
             $m->set('plz2', '');
             $m->set('ort2', '');
             $m->set('land2', '');
         }
-        if (!$_REQUEST['uebernahme_homepage']) {
+        if (!$input['uebernahme_homepage']) {
             $m->set('homepage', '');
         }
-        if (!$_REQUEST['uebernahme_interessen']) {
+        if (!$input['uebernahme_interessen']) {
             $m->set('sprachen', '');
             $m->set('hobbys', '');
             $m->set('interessen', '');
@@ -312,10 +303,11 @@ class AufnahmeController
      */
     private function sendMailToActivationTeam(Mitglied $newMember): void
     {
-        Tpl::set('id', $newMember->get('id'));
-        Tpl::set('fullName', $newMember->get('fullName'));
-        Tpl::set('email', $newMember->get('email'));
-        $text = Tpl::render('mails/account-activated', false);
+        $text = Tpl::getInstance()->render('mails/account-activated', [
+            'id' => $newMember->get('id'),
+            'fullName' => $newMember->get('fullName'),
+            'email' => $newMember->get('email'),
+        ]);
 
         $ids = Ldap::getInstance()->getIdsByGroup('aktivierung');
         foreach ($ids as $id) {

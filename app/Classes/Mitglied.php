@@ -7,10 +7,10 @@ namespace App;
  */
 
 use DateTime;
-use App\Config;
 use App\Service\EmailService;
 use App\Service\Ldap;
 use App\Service\Db;
+use App\Service\Tpl;
 
 /**
  * Repräsentiert ein Mitglied
@@ -112,7 +112,7 @@ class Mitglied
             return null;
         }
         $uid = $entry->getAttribute('uid')[0];
-        return self::lade($uid, true);
+        return self::lade($uid);
     }
 
     /**
@@ -142,11 +142,11 @@ class Mitglied
         case 'hashedPassword':
             return $this->hashedPassword;
         case 'profilUrl':
-            return 'profil.php?id=' . $this->data['id'];
+            return '/user/' . $this->data['username'];
         case 'bearbeitenUrl':
-            return 'bearbeiten.php?id=' . $this->data['id'];
+            return '/user/' . $this->data['username'] . '/edit';
         case 'profilLink':
-            return '<a href="' . $this->get('profilUrl') . '">' . htmlspecialchars($this->get('fullName')) . '</a>';
+            return '<a href="' . $this->get('profilUrl') . '">' . Tpl::getInstance()->escape($this->get('fullName')) . '</a>';
         case 'dateOfJoining';
             if ($this->get('membership_confirmation')) {
                 return $this->get('membership_confirmation');
@@ -391,37 +391,10 @@ class Mitglied
      * @throws \RuntimeException if the user is a privileged user (cannot be deleted) or if there is a problem with sending mails
      * @return void
      */
-    public function delete(string $quiet = 'not quiet'): void
+    public function delete(): void
     {
         if ($this->isMemberOfGroup('rechte')) {
             throw new \RuntimeException('Ein Benutzer mit den Rechten zur Rechteverwaltung darf nicht gelöscht werden.', 1637336416);
-        }
-
-        $admin = Mitglied::lade(Auth::getUID());
-
-        if ($quiet === 'not quiet') {
-            Tpl::set('adminName', $admin->get('fullName'));
-            Tpl::set('adminId', $admin->get('id'));
-            Tpl::set('adminUsername', $admin->get('username'));
-            Tpl::set('deletedName', $this->get('fullName'));
-            Tpl::set('deletedId', $this->get('id'));
-            Tpl::set('deletedUsername', $this->get('username'));
-            Tpl::set('deletedEmail', $this->get('email'));
-            $mailText = Tpl::render('mails/MvEdit-Info-Mitglied-Geloescht', false);
-
-            // Alle Mitglieder der Mitgliederbetreuung (mvedit) informieren
-            $ids = Ldap::getInstance()->getIdsByGroup('mvedit');
-            foreach ($ids as $id) {
-                $user = Mitglied::lade($id, false);
-                if ($user === null) {
-                    continue;
-                }
-                try {
-                    $user->sendEmail('Information über gelöschtes Mitglied', $mailText);
-                } catch (\RuntimeException $e) {
-                    throw $e;
-                }
-            }
         }
 
         // Profilbild-Datei löschen

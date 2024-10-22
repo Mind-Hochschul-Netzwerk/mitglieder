@@ -5,8 +5,8 @@ namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
 
-class GroupController implements ControllerInterface {
-    public function route(string $path): Response {
-        return new Response("hi");
+class GroupController extends Controller {
+    public function getResponse(): Response {
+        return $this->showMessage("hi");
     }
 }

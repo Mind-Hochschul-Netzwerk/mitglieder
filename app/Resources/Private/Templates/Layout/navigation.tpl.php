@@ -1,13 +1,14 @@
-<?php declare(strict_types=1); namespace App; ?>
 <?php
 
-if (Auth::istEingeloggt()) {
+use App\Service\AuthService;
+
+if (AuthService::istEingeloggt()) {
     $navItems = [
         'suche' => ['/', 'Mitgliedersuche', 'search'],
-        'bearbeiten' => ['bearbeiten.php', 'Meine Daten', 'user'],
-        'statistics' => Auth::hatRecht('mvread') ? ['statistics.php', 'Statistik', 'stats'] : null,
-        'admin' => Auth::hatRecht('mvedit') ? ['admin.php', 'Mitgliederverwaltung', 'wrench'] : null,
-        'logout' => ['logout.php', 'Logout', 'log-out'],
+        'bearbeiten' => ['/user/_/edit', 'Meine Daten', 'user'],
+        'statistics' => AuthService::hatRecht('mvread') ? ['/statistics', 'Statistik', 'stats'] : null,
+        'admin' => AuthService::hatRecht('mvedit') ? ['/admin', 'Mitgliederverwaltung', 'wrench'] : null,
+        'logout' => ['/logout', 'Logout', 'log-out'],
         'homepage' => ['https://www.' . getenv('DOMAINNAME'), 'MHN-Webseite', 'home'],
         'datenschutz' => ['https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=4', 'Datenschutz', 'paragraph'],
         'impressum' => ['https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=5', 'Impressum', 'globe'],
@@ -16,7 +17,7 @@ if (Auth::istEingeloggt()) {
     $navItems = [
         'homepage' => ['https://www.' . getenv('DOMAINNAME'), 'Startseite', 'home'],
         'login' => ['/', 'Login', 'log-in'],
-        'logout' => ['logout.php', 'Logout', 'log-out'],
+        'logout' => ['/logout', 'Logout', 'log-out'],
         'datenschutz' => ['https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=4', 'Datenschutz', 'paragraph'],
         'impressum' => ['https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=5', 'Impressum', 'globe'],
     ];

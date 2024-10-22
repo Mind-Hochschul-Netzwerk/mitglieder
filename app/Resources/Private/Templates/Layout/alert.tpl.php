@@ -5,5 +5,3 @@
     </button        >
     <?=$alert_type === 'danger' ? '<strong>Fehler:</strong> ' : ''?> <?=$alert_text?>
 </div>
-<?php Tpl::set('alert_id', ''); ?>
-<?php Tpl::set('alert_hide', false); ?>
