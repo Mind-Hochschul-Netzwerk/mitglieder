@@ -16,6 +16,16 @@ use App\Controller\StatisticsController;
 use App\Controller\UserController;
 use App\Controller\WahlleitungController;
 use App\Service\Router;
+use App\Controller\AdminController;
+use App\Controller\AufnahmeController;
+use App\Controller\AuthController;
+use App\Controller\GroupController;
+use App\Controller\SearchController;
+use App\Controller\StatisticsController;
+use App\Controller\UserController;
+use App\Controller\WahlleitungController;
+use App\Service\Db;
+use App\Service\Router;
 use Symfony\Component\HttpFoundation\Request;
 
 require_once '../vendor/autoload.php';
