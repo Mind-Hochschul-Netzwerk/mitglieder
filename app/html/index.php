@@ -15,7 +15,6 @@ use App\Controller\SearchController;
 use App\Controller\StatisticsController;
 use App\Controller\UserController;
 use App\Controller\WahlleitungController;
-use App\Service\Db;
 use App\Service\Router;
 use Symfony\Component\HttpFoundation\Request;
 
