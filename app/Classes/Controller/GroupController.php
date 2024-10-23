@@ -6,7 +6,7 @@ namespace App\Controller;
 use Symfony\Component\HttpFoundation\Response;
 
 class GroupController extends Controller {
-    public function getResponse(): Response {
+    public function index(): Response {
         return $this->showMessage("hi");
     }
 }

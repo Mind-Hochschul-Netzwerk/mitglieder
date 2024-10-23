@@ -12,7 +12,7 @@ use App\Service\Ldap;
 use Symfony\Component\HttpFoundation\Response;
 
 class AdminController extends Controller {
-    public function getResponse(): Response {
+    public function show(): Response {
         $this->requireRole('mvedit');
 
         $groups = [];

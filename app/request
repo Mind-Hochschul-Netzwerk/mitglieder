@@ -1,0 +1,322 @@
+Classes/Mitglied.php:        $this->hashedPassword = $data['password'];
+Classes/Mitglied.php:        $this->ldapEntry = Ldap::getInstance()->getEntryByUsername($data['username']);
+Classes/Mitglied.php:        if ($this->ldapEntry) {
+Classes/Mitglied.php:            $data['vorname'] = $this->ldapEntry->getAttribute('givenName')[0];
+Classes/Mitglied.php:            $data['nachname'] = $this->ldapEntry->getAttribute('sn')[0];
+Classes/Mitglied.php:            $data['email'] = $this->ldapEntry->getAttribute('mail')[0];
+Classes/Mitglied.php:            $ldapPassword = $this->ldapEntry->getAttribute('userPassword')[0];
+Classes/Mitglied.php:                $this->hashedPassword = $ldapPassword;
+Classes/Mitglied.php:            $this->setData($key, $value, false);
+Classes/Mitglied.php:            return (int)$this->data['id'];
+Classes/Mitglied.php:            $vorname = $this->data['vorname'];
+Classes/Mitglied.php:            $nachname = $this->data['nachname'];
+Classes/Mitglied.php:                $fn = '#' . $this->data['id'];
+Classes/Mitglied.php:            return $this->hashedPassword;
+Classes/Mitglied.php:            return '/user/' . $this->data['username'];
+Classes/Mitglied.php:            return '/user/' . $this->data['username'] . '/edit';
+Classes/Mitglied.php:            return '<a href="' . $this->get('profilUrl') . '">' . Tpl::getInstance()->escape($this->get('fullName')) . '</a>';
+Classes/Mitglied.php:            if ($this->get('membership_confirmation')) {
+Classes/Mitglied.php:                return $this->get('membership_confirmation');
+Classes/Mitglied.php:            if ($this->get('aufnahmedatum') && $this->get('aufnahmedatum') > new \DateTime('2018-10-05')) {
+Classes/Mitglied.php:                return $this->get('aufnahmedatum');
+Classes/Mitglied.php:            if (in_array($feld, array_keys($this->data), true)) { // nicht über isset(), da dann Einträge mit Wert null nicht gefunden werden
+Classes/Mitglied.php:                return $this->data[$feld];
+Classes/Mitglied.php:                $this->data[$key] = null;
+Classes/Mitglied.php:                $this->data[$key] = $this->makeDateTime($value);
+Classes/Mitglied.php:                    $this->data[$key] = (int)$value;
+Classes/Mitglied.php:                    $this->data[$key] = (string)$value;
+Classes/Mitglied.php:                    $this->data[$key] = (bool)$value;
+Classes/Mitglied.php:                    $this->data[$key] = (float)$value;
+Classes/Mitglied.php:            $this->setData('password', $wert);
+Classes/Mitglied.php:            $this->passwordChanged = true;
+Classes/Mitglied.php:            $this->setData($feld,  $wert);
+Classes/Mitglied.php:        if ($this->get('username') === 'username') {
+Classes/Mitglied.php:        if (!$this->isUsernameAvailable($username)) {
+Classes/Mitglied.php:        $this->setData('username', $username);
+Classes/Mitglied.php:        if ($id !== null && $id !== $this->get('id')) {
+Classes/Mitglied.php:        $this->setData('email', $email);
+Classes/Mitglied.php:        return Ldap::getInstance()->isUserMemberOfGroup($this->get('username'), $groupName);
+Classes/Mitglied.php:        return Ldap::getInstance()->getGroupsByUsername($this->get('username'));
+Classes/Mitglied.php:        $username = $this->get('username');
+Classes/Mitglied.php:        $oldGroupNames = array_map('strtolower', $this->getGroups());
+Classes/Mitglied.php:        if ($this->isMemberOfGroup('rechte')) {
+Classes/Mitglied.php:        if ($this->get('profilbild') && is_file('profilbilder/' . $this->get('profilbild'))) {
+Classes/Mitglied.php:            unlink('profilbilder/' . $this->get('profilbild'));
+Classes/Mitglied.php:            unlink('profilbilder/thumbnail-' . $this->get('profilbild'));
+Classes/Mitglied.php:        Ldap::getInstance()->deleteUser($this->get('username'));
+Classes/Mitglied.php:        $this->ldapEntry = null;
+Classes/Mitglied.php:            'id' => $this->get('id'),
+Classes/Mitglied.php:            'username' => $this->get('username')
+Classes/Mitglied.php:        $db->query('DELETE FROM mitglieder WHERE id = :id', ['id' => $this->get('id')]);
+Classes/Mitglied.php:        $this->deleted = true;
+Classes/Mitglied.php:        if ($this->deleted) {
+Classes/Mitglied.php:            'firstname' => $this->get('vorname'),
+Classes/Mitglied.php:            'lastname' => $this->get('nachname'),
+Classes/Mitglied.php:            'email' => $this->get('email'),
+Classes/Mitglied.php:            $value = $this->data[$feld];
+Classes/Mitglied.php:            if ($feld === 'password' && $this->passwordChanged) {
+Classes/Mitglied.php:        if ($this->data['id'] === null) {
+Classes/Mitglied.php:            $this->setData('id', $id);
+Classes/Mitglied.php:            $ldapData['id'] = $this->get('id');
+Classes/Mitglied.php:            $this->ldapEntry = Ldap::getInstance()->addUser($this->get('username'), $ldapData);
+Classes/Mitglied.php:            $values['id'] = (int)$this->get('id');
+Classes/Mitglied.php:            Ldap::getInstance()->modifyUser($this->get('username'), $ldapData);
+Classes/Mitglied.php:        if (!(EmailService::getInstance()->send($this->get('email'), $subject, $body))) {
+Classes/Mitglied.php:            throw new \RuntimeException('Beim Versand der E-Mail an ' . $this->get('email') . ' (ID ' . $this->data['id'] . ') ist ein Fehler aufgetreten.', 1522422201);
+Classes/Controller/AuthController.php:        return $this->render('AuthController/login', ['redirectUrl' => $this->request->getPathInfo()]);
+Classes/Controller/AuthController.php:        $input = $this->validatePayload([
+Classes/Controller/AuthController.php:            $this->setTemplateVariable('error_username_leer', true);
+Classes/Controller/AuthController.php:            return $this->loginForm();
+Classes/Controller/AuthController.php:            return $this->lostPassword($id);
+Classes/Controller/AuthController.php:            $this->setTemplateVariable('error_passwort_falsch', true);
+Classes/Controller/AuthController.php:            return $this->loginForm();
+Classes/Controller/AuthController.php:        return $this->redirect($redirectUrl);
+Classes/Controller/AuthController.php:        return $this->render('AuthController/logout');
+Classes/Controller/AuthController.php:        $this->setTemplateVariable('lost_password', true);
+Classes/Controller/AuthController.php:        return $this->loginForm();
+Classes/Controller/AuthController.php:        $user = $this->validatePasswordToken($token);
+Classes/Controller/AuthController.php:        return $this->render('AuthController/lost-password');
+Classes/Controller/AuthController.php:        $user = $this->validatePasswordToken($token);
+Classes/Controller/AuthController.php:        $input = $this->validatePayload([
+Classes/Controller/AuthController.php:            $this->setTemplateVariable('wiederholung_falsch', true);
+Classes/Controller/AuthController.php:            return $this->resetPasswordForm($token);
+Classes/Controller/AuthController.php:        return $this->redirect('/');
+Classes/Controller/GroupController.php:        return $this->showMessage("hi");
+Classes/Controller/WahlleitungController.php:        $this->requireRole('wahlleitung');
+Classes/Controller/AdminController.php:        $this->requireRole('mvedit');
+Classes/Controller/AdminController.php:        return $this->render('AdminController/admin', [
+Classes/Controller/UserController.php:        return $this->redirect('/user/_');
+Classes/Controller/UserController.php:        $this->requireLogin();
+Classes/Controller/UserController.php:        return $this->render('UserController/profil', $templateVars);
+Classes/Controller/UserController.php:        $this->requireLogin();
+Classes/Controller/UserController.php:        $this->requirePermission($m);
+Classes/Controller/UserController.php:        $tab = $this->request->query->getString('tab');
+Classes/Controller/UserController.php:        return $this->render('UserController/bearbeiten', $templateVars);
+Classes/Controller/UserController.php:        $input = $this->validatePayload([
+Classes/Controller/UserController.php:        $this->setTemplateVariable('set_new_password', true);
+Classes/Controller/UserController.php:            $this->setTemplateVariable('new_password2_error', true);
+Classes/Controller/UserController.php:                $this->setTemplateVariable('old_password_error', true);
+Classes/Controller/UserController.php:        $email = $this->validatePayload(['email' => 'string'])['email'];
+Classes/Controller/UserController.php:            $this->setTemplateVariable('email_error', true);
+Classes/Controller/UserController.php:            $this->storeEmail($m, $email);
+Classes/Controller/UserController.php:            $this->setTemplateVariable('email_auth_info', true);
+Classes/Controller/UserController.php:        $input = $this->validatePayload(array_fill_keys(self::bearbeiten_strings_admin, 'string'));
+Classes/Controller/UserController.php:        $input = $this->validatePayload([
+Classes/Controller/UserController.php:        $file = $this->request->files->get('profilbild');
+Classes/Controller/UserController.php:            $this->setTemplateVariable('profilbild_uploadfehler', true);
+Classes/Controller/UserController.php:                $this->setTemplateVariable('profilbild_format_unbekannt', true);
+Classes/Controller/UserController.php:        $input = $this->validatePayload(['groups' => 'string']);
+Classes/Controller/UserController.php:            $this->setTemplateVariable('errorMessage', 'Beim Setzen der Gruppen ist ein Fehler aufgetreten.');
+Classes/Controller/UserController.php:        $password = $this->request->getPayload()->getString('resignPassword');
+Classes/Controller/UserController.php:                $this->setTemplateVariable('errorMessage', 'Das eingegebene Passwort ist nicht korrekt.');
+Classes/Controller/UserController.php:            $resignNew = $this->request->getPayload()->getBoolean('resign');
+Classes/Controller/UserController.php:        return $this->showMessage("Die Daten wurden aus der Mitgliederdatenbank gelöscht.");
+Classes/Controller/UserController.php:        $this->requirePermission($m);
+Classes/Controller/UserController.php:        $input = $this->validatePayload(array_fill_keys(self::bearbeiten_strings_ungeprueft, 'string'));
+Classes/Controller/UserController.php:        $input = $this->validatePayload(array_fill_keys(self::bearbeiten_bool_ungeprueft, 'bool'));
+Classes/Controller/UserController.php:        $beschaeftigung = $this->validatePayload(['beschaeftigung' => 'string'])['beschaeftigung'];
+Classes/Controller/UserController.php:        $this->updatePassword($m);
+Classes/Controller/UserController.php:        $this->updateEmail($m);
+Classes/Controller/UserController.php:        $this->updateProfilePicture($m);
+Classes/Controller/UserController.php:        if ($this->request->getPayload()->getBoolean('bildLoeschen')) {
+Classes/Controller/UserController.php:            $this->removeProfilePicture($m);
+Classes/Controller/UserController.php:            $this->updateAdmin($m);
+Classes/Controller/UserController.php:            if ($this->request->getPayload()->getBoolean('delete')) {
+Classes/Controller/UserController.php:                return $this->delete($m);
+Classes/Controller/UserController.php:            $this->updateGroups($m);
+Classes/Controller/UserController.php:        $this->handleResign($m);
+Classes/Controller/UserController.php:        $this->setTemplateVariable('data_saved_info', true);
+Classes/Controller/UserController.php:        return $this->edit(Mitglied::lade($m->get('id')));
+Classes/Controller/UserController.php:        $this->setTemplateVariable('email_changed', true);
+Classes/Controller/UserController.php:        $this->storeEmail($m, $email);
+Classes/Controller/UserController.php:        return $this->edit($m);
+Classes/Controller/SearchController.php:        $this->requireLogin();
+Classes/Controller/SearchController.php:        return $this->render('SearchController/search');
+Classes/Controller/SearchController.php:        $this->setTemplateVariable('query', $query);
+Classes/Controller/SearchController.php:        return $this->showResults($ids);
+Classes/Controller/SearchController.php:        $this->requireRole('mvread');
+Classes/Controller/SearchController.php:        $this->setTemplateVariable('query', ' '); // show the "search results" title even if the list is empty
+Classes/Controller/SearchController.php:        return $this->showResults($ids);
+Classes/Controller/SearchController.php:        return $this->render('SearchController/search', [
+Classes/Controller/Controller.php:        $this->request = $request;
+Classes/Controller/Controller.php:        $this->path = explode('/', $request->getPathInfo() . '///');
+Classes/Controller/Controller.php:        $this->requireLogin();
+Classes/Controller/Controller.php:        $response = $this->render('Layout/layout', [
+Classes/Controller/Controller.php:        $payload = $this->request->getPayload();
+Classes/Controller/StatisticsController.php:        $this->requireRole('mvread');
+Classes/Controller/StatisticsController.php:        $this->invalidEmailsList = Ldap::getInstance()->getInvalidEmailsList();
+Classes/Controller/StatisticsController.php:        foreach ($this->invalidEmailsList as $id) {
+Classes/Controller/StatisticsController.php:        return $this->render('StatisticsController/invalidEmails', [
+Classes/Controller/StatisticsController.php:        return $this->render('StatisticsController/main', [
+Classes/Controller/StatisticsController.php:            'countInvalidEmails' => count($this->invalidEmailsList),
+Classes/Controller/AufnahmeController.php:        $this->token = $token;
+Classes/Controller/AufnahmeController.php:        $this->setTemplateVariable('token', $this->token);
+Classes/Controller/AufnahmeController.php:        $this->requestData();
+Classes/Controller/AufnahmeController.php:        $this->checkEmailUsed();
+Classes/Controller/AufnahmeController.php:        $this->prepare($token);
+Classes/Controller/AufnahmeController.php:        return $this->showForm();
+Classes/Controller/AufnahmeController.php:        $this->prepare($token);
+Classes/Controller/AufnahmeController.php:        $this->checkEnteredUsername();
+Classes/Controller/AufnahmeController.php:        $this->checkEnteredPassword();
+Classes/Controller/AufnahmeController.php:        if ($this->readyToSave) {
+Classes/Controller/AufnahmeController.php:            $this->save();
+Classes/Controller/AufnahmeController.php:            return $this->redirect('/user/_/edit/?tab=profilbild');
+Classes/Controller/AufnahmeController.php:        return $this->showForm();
+Classes/Controller/AufnahmeController.php:        $curl = curl_init('http://aufnahme:8080/get-antrag.php?action=data&token=' . $this->token);
+Classes/Controller/AufnahmeController.php:        $this->data = json_decode($response, associative: true);
+Classes/Controller/AufnahmeController.php:        if ($this->data === null) {
+Classes/Controller/AufnahmeController.php:        return (Mitglied::getIdByEmail($this->data['user_email']) !== null);
+Classes/Controller/AufnahmeController.php:        $this->setTemplateVariable('email', $this->data['user_email']);
+Classes/Controller/AufnahmeController.php:        if ($this->isEmailUsed()) {
+Classes/Controller/AufnahmeController.php:            $this->readyToSave = false;
+Classes/Controller/AufnahmeController.php:            $this->setTemplateVariable('emailUsed', true);
+Classes/Controller/AufnahmeController.php:        $username0 = strtolower(trim($this->data['mhn_vorname']) . '.' . trim($this->data['mhn_nachname']));
+Classes/Controller/AufnahmeController.php:        $this->username = $this->validatePayload(['username' => 'required string'])['username'];
+Classes/Controller/AufnahmeController.php:        if (!($this->username)) {
+Classes/Controller/AufnahmeController.php:            $this->readyToSave = false;
+Classes/Controller/AufnahmeController.php:            $this->setTemplateVariable('usernameMissing', true);
+Classes/Controller/AufnahmeController.php:        if (!preg_match('/^[A-Za-z][A-Za-z0-9\-_.]*$/', $this->username)) {
+Classes/Controller/AufnahmeController.php:            $this->readyToSave = false;
+Classes/Controller/AufnahmeController.php:            $this->setTemplateVariable('usernameInvalid', true);
+Classes/Controller/AufnahmeController.php:        if (!Mitglied::isUsernameAvailable($this->username)) {
+Classes/Controller/AufnahmeController.php:            $this->readyToSave = false;
+Classes/Controller/AufnahmeController.php:            $this->setTemplateVariable('usernameUsed', true);
+Classes/Controller/AufnahmeController.php:        $input = $this->validatePayload([
+Classes/Controller/AufnahmeController.php:        $this->password = $input['password'];
+Classes/Controller/AufnahmeController.php:        if (!($this->password)) {
+Classes/Controller/AufnahmeController.php:            $this->readyToSave = false;
+Classes/Controller/AufnahmeController.php:            $this->setTemplateVariable('passwordMissing', true);
+Classes/Controller/AufnahmeController.php:        if ($this->password !== $input['password2']) {
+Classes/Controller/AufnahmeController.php:            $this->readyToSave = false;
+Classes/Controller/AufnahmeController.php:            $this->setTemplateVariable('passwordMismatch', true);
+Classes/Controller/AufnahmeController.php:        return $this->render('AufnahmeController/form', [
+Classes/Controller/AufnahmeController.php:            'username' => $this->username ? $this->username : $this->suggestUsername(),
+Classes/Controller/AufnahmeController.php:            'data' => $this->data,
+Classes/Controller/AufnahmeController.php:        $m = Mitglied::neu($this->username, $this->password, $this->data['user_email']);
+Classes/Controller/AufnahmeController.php:            if (!isset($this->data[$key_alt])) {
+Classes/Controller/AufnahmeController.php:            $m->set($key_neu, $this->data[$key_alt]);
+Classes/Controller/AufnahmeController.php:        if (isset($this->data['mhn_geburtstag'])) {
+Classes/Controller/AufnahmeController.php:            $m->set('geburtstag', $this->data['mhn_geburtstag']);
+Classes/Controller/AufnahmeController.php:        $this->processAccessFlags($m);
+Classes/Controller/AufnahmeController.php:        $ldap->addUserToGroup($this->username, 'alleMitglieder');
+Classes/Controller/AufnahmeController.php:        $ldap->addUserToGroup($this->username, 'listen');
+Classes/Controller/AufnahmeController.php:        $curl = curl_init('http://aufnahme:8080/get-antrag.php?action=finish&token=' . $this->token);
+Classes/Controller/AufnahmeController.php:        $this->sendMailToActivationTeam($m);
+Classes/Controller/AufnahmeController.php:        $input = $this->validatePayload([
+Classes/Service/EmailService.php:        $this->mailer = new PHPMailer(true);
+Classes/Service/EmailService.php:        $this->mailer->isSMTP();
+Classes/Service/EmailService.php:        $this->mailer->Host = getenv('SMTP_HOST');
+Classes/Service/EmailService.php:        $this->mailer->SMTPAuth = true;
+Classes/Service/EmailService.php:        $this->mailer->Username = getenv('SMTP_USER');
+Classes/Service/EmailService.php:        $this->mailer->Password = getenv('SMTP_PASSWORD');
+Classes/Service/EmailService.php:                $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+Classes/Service/EmailService.php:                $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+Classes/Service/EmailService.php:        $this->mailer->Port = getenv('SMTP_PORT');
+Classes/Service/EmailService.php:        $this->mailer->setFrom(getenv('FROM_ADDRESS'), 'Mind-Hochschul-Netzwerk');
+Classes/Service/EmailService.php:        $this->mailer->addReplyTo('IT@' . getenv('DOMAINNAME'), 'IT-Team');
+Classes/Service/EmailService.php:        $this->mailer->CharSet = 'utf-8';
+Classes/Service/EmailService.php:        if ($this->mailer === null) {
+Classes/Service/EmailService.php:        $this->mailer->ClearAddresses();
+Classes/Service/EmailService.php:        $this->mailer->ClearCCs();
+Classes/Service/EmailService.php:        $this->mailer->ClearBCCs();
+Classes/Service/EmailService.php:        $this->mailer->Subject = $subject;
+Classes/Service/EmailService.php:        $this->mailer->Body = $body;
+Classes/Service/EmailService.php:            $this->mailer->addAddress($address);
+Classes/Service/EmailService.php:            return $this->mailer->send();
+Classes/Service/Session.php:        if ($this->isActive() || defined('IS_SHELL')) {
+Classes/Service/Session.php:        session_set_cookie_params(self::TIMEOUT_IN_SECONDS, '/', '', $this->isConnectionSecure(), true);
+Classes/Service/Session.php:        if ($this->inactivityTime !== null) {
+Classes/Service/Session.php:            return $this->inactivityTime;
+Classes/Service/Session.php:        $this->start();
+Classes/Service/Session.php:            $this->inactivityTime = time() - $_SESSION['time'];
+Classes/Service/Session.php:            $this->inactivityTime = 0;
+Classes/Service/Session.php:        return $this->inactivityTime;
+Classes/Service/Session.php:        $this->start();
+Classes/Service/Ldap.php:        $this->ldap = SymfonyLdap::create('ext_ldap', ['connection_string' => getenv('LDAP_HOST')]);
+Classes/Service/Ldap.php:        if ($this->isAdmin) {
+Classes/Service/Ldap.php:        $this->ldap->bind(getenv('LDAP_BIND_DN'), getenv('LDAP_BIND_PASSWORD'));
+Classes/Service/Ldap.php:        $this->isAdmin = true;
+Classes/Service/Ldap.php:        $this->isAdmin = false;
+Classes/Service/Ldap.php:            $this->ldap->bind($this->getDnByUsername($username), $password);
+Classes/Service/Ldap.php:        $this->bind();
+Classes/Service/Ldap.php:            $result = $this->ldap->query(getenv('LDAP_PEOPLE_DN'), '(&(objectclass=inetOrgPerson)(cn=' . ldap_escape($username) . '))')->execute();
+Classes/Service/Ldap.php:        $this->bind();
+Classes/Service/Ldap.php:            $result = $this->ldap->query(getenv('LDAP_PEOPLE_DN'), '(&(objectclass=inetOrgPerson)(mail=*.invalid))')->execute();
+Classes/Service/Ldap.php:        $this->bind();
+Classes/Service/Ldap.php:            $result = $this->ldap->query(getenv('LDAP_PEOPLE_DN'), '(&(objectclass=inetOrgPerson)(mail=' . ldap_escape($email) . '))')->execute();
+Classes/Service/Ldap.php:        $this->bind();
+Classes/Service/Ldap.php:        $entry = new Entry($this->getDnByUsername($username), [
+Classes/Service/Ldap.php:        $this->setAttributes($entry, $data);
+Classes/Service/Ldap.php:        $this->ldap->getEntryManager()->add($entry);
+Classes/Service/Ldap.php:        $this->bind();
+Classes/Service/Ldap.php:        $entry = $this->getEntryByUsername($username);
+Classes/Service/Ldap.php:        $this->setAttributes($entry, $data);
+Classes/Service/Ldap.php:        $this->ldap->getEntryManager()->update($entry);
+Classes/Service/Ldap.php:        $this->bind();
+Classes/Service/Ldap.php:            $this->ldap->getEntryManager()->remove(new Entry($this->getDnByUsername($username)));
+Classes/Service/Ldap.php:        $this->bind();
+Classes/Service/Ldap.php:        $query = '(&(objectclass=groupOfNames)(cn=' . ldap_escape($group) . ')(member=' . $this->getDnByUsername($username) . '))';
+Classes/Service/Ldap.php:        $entry = $this->ldap->query(getenv('LDAP_GROUPS_DN'), $query)->execute()[0];
+Classes/Service/Ldap.php:        if ($this->isUserMemberOfGroup($username, $group)) {
+Classes/Service/Ldap.php:        $userEntry = $this->getEntryByUsername($username);
+Classes/Service/Ldap.php:        $entry = $this->ldap->query(getenv('LDAP_GROUPS_DN'), '(&(objectclass=groupOfNames)(cn=' . ldap_escape($group) . '))')->execute()[0];
+Classes/Service/Ldap.php:        $member[] = $this->getDnByUsername($username);
+Classes/Service/Ldap.php:        $this->ldap->getEntryManager()->update($entry);
+Classes/Service/Ldap.php:        $this->bind();
+Classes/Service/Ldap.php:        $query = '(&(objectclass=groupOfNames)(cn=' . ldap_escape($group) . ')(member=' . $this->getDnByUsername($username) . '))';
+Classes/Service/Ldap.php:        $entry = $this->ldap->query(getenv('LDAP_GROUPS_DN'), $query)->execute()[0];
+Classes/Service/Ldap.php:        $this->ldap->getEntryManager()->update($entry);
+Classes/Service/Ldap.php:        $this->bind();
+Classes/Service/Ldap.php:        $query = '(&(objectclass=groupOfNames)(member=' . $this->getDnByUsername($username) . '))';
+Classes/Service/Ldap.php:        $result = $this->ldap->query(getenv('LDAP_GROUPS_DN'), $query)->execute();
+Classes/Service/Ldap.php:        $this->bind();
+Classes/Service/Ldap.php:        $result = $this->ldap->query(getenv('LDAP_GROUPS_DN'), '(cn=' . ldap_escape($groupName) . ')')->execute();
+Classes/Service/Ldap.php:            $user = $this->getEntryByUsername($username);
+Classes/Service/Ldap.php:        $this->bind();
+Classes/Service/Ldap.php:        $result = $this->ldap->query(getenv('LDAP_GROUPS_DN'), $query)->execute();
+Classes/Service/Ldap.php:                    $user = $this->getEntryByUsername($username);
+Classes/Service/Tpl.php:        $this->contexts = [
+Classes/Service/Tpl.php:        $this->getContext()['variables'][$var] = $val;
+Classes/Service/Tpl.php:        return $this->contexts[0]['variables'];
+Classes/Service/Tpl.php:        if (count($this->contexts) < 2) {
+Classes/Service/Tpl.php:        return $this->contexts[count($this->contexts) - 2]['variables'];
+Classes/Service/Tpl.php:        return $this->getContext()['variables'];
+Classes/Service/Tpl.php:        return $this->contexts[count($this->contexts) - 1];
+Classes/Service/Tpl.php:        return array_merge(...array_column($this->contexts, 'variables'))[$var] ?? null;
+Classes/Service/Tpl.php:            return array_map(fn($v) => $this->escape($v), $value);
+Classes/Service/Tpl.php:        $this->contexts[] = [
+Classes/Service/Tpl.php:        $allVariables = $this->escape(array_merge(...array_column($this->contexts, 'variables')));
+Classes/Service/Tpl.php:        $this->startRecording();
+Classes/Service/Tpl.php:        $contents = $this->stopRecording();
+Classes/Service/Tpl.php:        $context = $this->getContext();
+Classes/Service/Tpl.php:            $contents = $this->render($context['extendedTemplate'], [
+Classes/Service/Tpl.php:        array_pop($this->contexts);
+Classes/Service/Tpl.php:        echo $this->render($templateName, $variables);
+Classes/Service/Tpl.php:        $this->getContext()['extendedTemplate'] = $templateName;
+Classes/Service/Tpl.php:        $this->getContext()['extendedTemplateVariables'] = $variables;
+Classes/Service/Router.php:        $this->addType('string', fn($v) => $v);
+Classes/Service/Router.php:        $this->addType('int', fn($v) => intval($v));
+Classes/Service/Router.php:        $this->addType('bool', fn($v) => boolval($v));
+Classes/Service/Router.php:        $this->addType('float', fn($v) => floatval($v));
+Classes/Service/Router.php:        $this->addType(ParameterBag::class, fn() => $this->request->getPayload());
+Classes/Service/Router.php:        $this->addType(Request::class, fn() => $this->request);
+Classes/Service/Router.php:        [$pathPattern, $queryInfo] = $this->createPattern($matcher);
+Classes/Service/Router.php:        $this->routes[$httpMethod . ' ' . $matcher] = [$httpMethod, $pathPattern, $queryInfo, $controller, $functionName];
+Classes/Service/Router.php:            $queryInfo = $this->createQueryInfo($queryMatcher);
+Classes/Service/Router.php:        $matcher = $this->substituteNamedParametersInMatcher($matcher);
+Classes/Service/Router.php:            $matcher = $this->substituteNamedParametersInMatcher($matcher);
+Classes/Service/Router.php:            $queryInfo[$key] = $this->substituteNamedParametersInMatcher($pattern);
+Classes/Service/Router.php:        uasort($this->routes, function (array $a, array $b) {
+Classes/Service/Router.php:        $this->types[] = [$type, $retriever, $identifierName];
+Classes/Service/Router.php:        $this->services[] = [$class, $retriever];
+Classes/Service/Router.php:        $this->sortRoutes();
+Classes/Service/Router.php:        $this->request = $request;
+Classes/Service/Router.php:            foreach ($this->routes as $matcher => [$httpMethod, $pathPattern, $queryInfo, $controller, $functionName]) {
+Classes/Service/Router.php:                $matches = $this->prepareMatches($matches);
+Classes/Service/Router.php:                return $this->call($controller, $functionName, $matches);
+Classes/Service/Router.php:        foreach ($this->types as [$typeName, $retriever, $identifier]) {
+Classes/Service/Router.php:        $retriever = $this->services[$type] ?? null;
+Classes/Service/Router.php:                $retriever = $this->getModelRetriever($type, $identifierName);
+Classes/Service/Router.php:            $args[] = $this->getService($type);
+Classes/Service/Router.php:        $args = $this->injectDependencies($method, $matches);
+Classes/Service/Router.php:        return $method->invokeArgs(new $class($this->request), $args);

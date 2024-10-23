@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
-use App\Auth;
 use App\Controller\Exception\InvalidUserDataException;
 use App\Mitglied;
 use App\Service\AuthService;
@@ -13,34 +12,8 @@ use App\Service\Tpl;
 use \Hengeb\Token\Token;
 
 class AuthController extends Controller {
-    public function getResponse(): Response {
-        if ($this->path[1] === 'login' && $this->request->isMethod('POST')) {
-            return $this->loginSubmitted();
-        } elseif ($this->path[1] === 'logout') {
-            return $this->logout();
-        } elseif ($this->path[1] === 'lost-password') {
-            $token = $this->request->getPayload()->getString('token');
-            $user = $this->validatePasswordToken($token);
-            if ($this->request->isMethod('POST')) {
-                return $this->resetPassword($user);
-            } else {
-                return $this->resetPasswordForm();
-            }
-        } else {
-            return $this->loginForm();
-        }
-    }
-
     public function loginForm(): Response {
-        return $this->render('AuthController/login');
-    }
-
-    public function login(): Response {
-        if ($this->request->isMethod('POST')) {
-            return $this->loginSubmitted();
-        } else {
-            return $this->loginForm();
-        }
+        return $this->render('AuthController/login', ['redirectUrl' => $this->request->getPathInfo()]);
     }
 
     public function loginSubmitted(): Response {
@@ -48,6 +21,7 @@ class AuthController extends Controller {
             'id' => 'required string',
             'password' => 'required string untrimmed',
             'passwort_vergessen' => 'set',
+            'redirect' => 'required string',
         ]);
 
         if (!$input['id'] && $input['password']) {
@@ -70,8 +44,10 @@ class AuthController extends Controller {
             return $this->loginForm();
         }
 
+        $redirectUrl = preg_replace('/\s/', '', $input['redirect']);
+
         AuthService::logIn(intval($id));
-        return $this->redirect($this->request->getUri());
+        return $this->redirect($redirectUrl);
     }
 
     public function logout(): Response {
@@ -118,11 +94,14 @@ class AuthController extends Controller {
         return $user;
     }
 
-    private function resetPasswordForm(): Response {
+    public function resetPasswordForm(string $token): Response {
+        $user = $this->validatePasswordToken($token);
         return $this->render('AuthController/lost-password');
     }
 
-    private function resetPassword(Mitglied $m): Response {
+    public function resetPassword(string $token): Response {
+        $user = $this->validatePasswordToken($token);
+
         $input = $this->validatePayload([
             'password' => 'required string untrimmed',
             'password2' => 'required string untrimmed',
@@ -130,12 +109,12 @@ class AuthController extends Controller {
 
         if ($input['password'] !== $input['password2']) {
             $this->setTemplateVariable('wiederholung_falsch', true);
-            return $this->resetPasswordForm();
+            return $this->resetPasswordForm($token);
         }
 
-        $m->set('password', $input['password']);
-        $m->save();
-        AuthService::login($m->get('id'));
+        $user->set('password', $input['password']);
+        $user->save();
+        AuthService::login($user->get('id'));
         return $this->redirect('/');
     }
 }

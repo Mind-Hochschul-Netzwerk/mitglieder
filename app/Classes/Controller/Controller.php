@@ -5,41 +5,18 @@ namespace App\Controller;
 
 use App\Controller\Exception\AccessDeniedException;
 use App\Controller\Exception\InvalidUserDataException;
-use App\Controller\Exception\NotFoundException;
 use App\Controller\Exception\NotLoggedInException;
 use App\Service\AuthService;
 use App\Service\Tpl;
-use Exception;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
-abstract class Controller {
+class Controller {
     protected Request $request;
-    protected array $path;
-
-    abstract function getResponse(): Response;
 
     public function __construct(Request $request) {
         $this->request = $request;
-        $this->path = explode('/', $request->getPathInfo() . '///');
-    }
-
-    public function route(): Response {
-        try {
-            return $this->getResponse();
-        } catch (NotLoggedInException $e) {
-            return (new AuthController($this->request))->login();
-        } catch (NotFoundException $e) {
-            return $this->showMessage($e->getMessage() ?: 'nicht gefunden', 404);
-        } catch (AccessDeniedException $e) {
-            return $this->showMessage($e->getMessage() ?: 'fehlende Rechte', 403);
-        } catch (InvalidUserDataException $e) {
-            return $this->showMessage($e->getMessage() ?: 'fehlerhafte Eingabedaten', 400);
-        } catch (Exception $e) {
-            error_log($e->getMessage());
-            return $this->showMessage('Ein interner Fehler ist aufgetreten.', 500);
-        }
     }
 
     protected function requireLogin(): void {
@@ -67,7 +44,7 @@ abstract class Controller {
         return new Response(Tpl::getInstance()->render($templateName, $data));
     }
 
-    protected function showMessage(string $message, int $responseCode = 200): Response {
+    public function showMessage(string $message, int $responseCode = 200): Response {
         $response = $this->render('Layout/layout', [
             '@@contents' => $message,
         ]);
