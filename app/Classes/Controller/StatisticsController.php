@@ -13,22 +13,18 @@ use App\Mitglied;
 use Symfony\Component\HttpFoundation\Response;
 
 class StatisticsController extends Controller {
-    public function getResponse(): Response {
+    private array $invalidEmailsList;
+
+    public function __construct()
+    {
         $this->requireRole('mvread');
-
-        $invalidEmailsList = Ldap::getInstance()->getInvalidEmailsList();
-
-        if ($this->path[2] === 'invalidEmails') {
-            return $this->showInvalidEmails($invalidEmailsList);
-        } else {
-            return $this->showOverview($invalidEmailsList);
-        }
+        $this->invalidEmailsList = Ldap::getInstance()->getInvalidEmailsList();
     }
 
-    private function showInvalidEmails(array &$invalidEmailsList): Response
+    public function showInvalidEmails(): Response
     {
         $users = [];
-        foreach ($invalidEmailsList as $id) {
+        foreach ($this->invalidEmailsList as $id) {
             $m = Mitglied::lade($id);
             if (!$m) {
                 continue;
@@ -49,10 +45,10 @@ class StatisticsController extends Controller {
         ]);
     }
 
-    private function showOverview(array &$invalidEmailsList): Response {
-        $db = Db::getInstance();
+    public function show(Db $db): Response
+    {
         return $this->render('StatisticsController/main', [
-            'countInvalidEmails' => count($invalidEmailsList),
+            'countInvalidEmails' => count($this->invalidEmailsList),
             'countAllEntries' => $db->query('SELECT COUNT(id) FROM mitglieder')->get(),
             'countDeleted' => $db->query('SELECT COUNT(id) FROM deleted_usernames')->get(),
             'countAfterOct2018' => $db->query('SELECT COUNT(id) FROM mitglieder WHERE aufnahmedatum >= 20181005')->get(),

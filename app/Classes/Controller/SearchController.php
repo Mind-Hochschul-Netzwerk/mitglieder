@@ -9,20 +9,9 @@ use App\Service\Db;
 use App\Service\PasswordService;
 
 class SearchController extends Controller {
-    public function getResponse(): Response {
+    public function __construct() {
+        // TODO: als Attribut der Klasse
         $this->requireLogin();
-
-        if ($this->path[2] === 'resigned') {
-            return $this->showResigned();
-        }
-
-        $query = $this->request->query->getString('q');
-
-        if ($query) {
-            return $this->search($query);
-        } else {
-            return $this->form();
-        }
     }
 
     public function form(): Response {
@@ -87,7 +76,7 @@ class SearchController extends Controller {
         return $this->showResults($ids);
     }
 
-    private function showResigned(): Response {
+    public function showResigned(): Response {
         $this->requireRole('mvread');
         $this->setTemplateVariable('query', ' '); // show the "search results" title even if the list is empty
         $ids = Db::getInstance()->query('SELECT id FROM mitglieder WHERE resignation IS NOT NULL')->getColumn();
@@ -121,7 +110,6 @@ class SearchController extends Controller {
 
             $ergebnisse[] = $e;
         }
-
 
         return $this->render('SearchController/search', [
             'ergebnisse' => $ergebnisse,

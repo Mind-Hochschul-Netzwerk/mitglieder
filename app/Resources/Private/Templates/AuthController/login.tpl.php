@@ -7,7 +7,8 @@ $this->extends('Layout/layout', [
 <div id="loginModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="false">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
-<form method="post">
+<form method="post" action="/login">
+    <input type="hidden" name="redirect" value="<?=$redirectUrl?>" >
       <div class="modal-header">
         <h4 class="modal-title" id="myModalLabel">Login ins MHN-Mitgliederverzeichnis</h4>
       </div>

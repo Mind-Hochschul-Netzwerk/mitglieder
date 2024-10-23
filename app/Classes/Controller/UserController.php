@@ -14,6 +14,7 @@ use App\Service\ImageResizer;
 use App\Service\Ldap;
 use App\Service\Tpl;
 use Hengeb\Token\Token;
+use Symfony\Component\HttpFoundation\ParameterBag;
 
 class UserController extends Controller {
     // Maximale Größe von Profilbildern
@@ -31,44 +32,32 @@ class UserController extends Controller {
     // Liste der von der Mitgliederverwaltung änderbaren Strings
     const bearbeiten_strings_admin = ['vorname', 'nachname'];
 
-    public function getResponse(): Response {
-        if ($this->path[1] === 'email_auth') {
-            return $this->emailAuth($this->request->query->getString('token'));
-        }
-
-        $this->requireLogin();
-
-        $id = null;
-        if ($this->path[2] === '' || $this->path[2] === '_') {
+    public static function retrieve(string $identifier): Mitglied {
+        if ($identifier === '_') {
             $id = AuthService::getUID();
-        } elseif (ctype_digit($this->path[2])) {
-            $id = intval($this->path[2]);
+        } elseif (ctype_digit($identifier)) {
+            $id = intval($identifier);
         } else {
-            $id = Mitglied::getIdByUsername($this->path[2]);
+            $id = Mitglied::getIdByUsername($identifier);
         }
-
         $m = $id ? Mitglied::lade($id) : null;
-
-        if ($m === null) {
-            throw new NotFoundException('Ein Mitglied mit dieser Nummer existiert nicht.');
+        if (!$m) {
+            throw new NotFoundException('Ein Mitglied mit dieser Nummer existiert nicht.');;
         }
+        return $m;
+    }
 
-        if ($this->path[3] === 'edit') {
-            return $this->edit($m);
-        } else if ($this->path[3] === 'update' && $this->request->isMethod('POST')) {
-            return $this->update($m);
-        } else {
-            return $this->show($m);
-        }
+    public function showSelf(): Response {
+        return $this->redirect('/user/_');
     }
 
     public function show(Mitglied $m): Response {
+        $this->requireLogin();
         $db_modified = $m->get('db_modified');
-        $mvread = AuthService::hatRecht('mvread');
+        $isAdmin = AuthService::hatRecht('mvread');
 
         $templateVars = [
             'htmlTitle' => $m->get('fullName'),
-            'mvread' => $mvread,
             'fullName' => $m->get('fullName'),
             'title' => $m->get('fullName'),
         ];
@@ -85,7 +74,7 @@ class UserController extends Controller {
         }
 
         // Dann die sichtgeschützten Felder gesondert behandeln, damit das Template möglichst frei von Logik bleiben kann
-        if (!$mvread) {
+        if (!$isAdmin) {
             foreach (['email', 'geburtstag', 'mensa_nr', 'strasse', 'adresszusatz', 'land', 'telefon',
                 'beschaeftigung', 'studienort', 'studienfach', 'unityp', 'schwerpunkt', 'nebenfach', 'abschluss',
                 'zweitstudium', 'nebenfach', 'abschluss', 'zweitstudium', 'hochschulaktivitaeten', 'stipendien',
@@ -113,7 +102,16 @@ class UserController extends Controller {
         return $this->render('UserController/profil', $templateVars);
     }
 
+    private function requirePermission(Mitglied $m): void {
+        $this->requireLogin();
+        if (!AuthService::hatRecht('mvedit') && !AuthService::ist($m->get('id'))) {
+            throw new AccessDeniedException();
+        }
+    }
+
     public function edit(Mitglied $m): Response {
+        $this->requirePermission($m);
+
         $templateVars = [];
 
         $tab = $this->request->query->getString('tab');
@@ -351,7 +349,9 @@ class UserController extends Controller {
         return $this->showMessage("Die Daten wurden aus der Mitgliederdatenbank gelöscht.");
     }
 
-    private function update(Mitglied $m): Response {
+    public function update(Mitglied $m): Response {
+        $this->requirePermission($m);
+
         $input = $this->validatePayload(array_fill_keys(self::bearbeiten_strings_ungeprueft, 'string'));
         foreach ($input as $key=>$value) {
             $m->set($key, $value);
@@ -422,7 +422,7 @@ class UserController extends Controller {
         $this->setTemplateVariable('email_changed', true);
     }
 
-    private function emailAuth(string $token): Response {
+    public function emailAuth(string $token): Response {
         try {
             Token::decode($token, function ($data) use (&$m, &$email) {
                 if (time() - $data[0] > 24*60*60) {

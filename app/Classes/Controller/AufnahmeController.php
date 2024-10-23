@@ -80,23 +80,29 @@ class AufnahmeController extends Controller
     private $password = '';
     private $readyToSave = true;
 
-    public function getResponse(): Response
+    private  function prepare(string $token): void
     {
-        $this->token = $this->request->query->getString('token');
+        $this->token = $token;
         $this->setTemplateVariable('token', $this->token);
 
         $this->requestData();
         $this->checkEmailUsed();
+    }
 
-        if ($this->request->isMethod('POST')) {
-            $this->checkEnteredUsername();
-            $this->checkEnteredPassword();
-            if ($this->readyToSave) {
-                $this->save();
-                return $this->redirect('/user/_/edit/?tab=profilbild');
-            }
+    public function show(string $token): Response
+    {
+        $this->prepare($token);
+        return $this->showForm();
+    }
+
+    public function submit(string $token): Response {
+        $this->prepare($token);
+        $this->checkEnteredUsername();
+        $this->checkEnteredPassword();
+        if ($this->readyToSave) {
+            $this->save();
+            return $this->redirect('/user/_/edit/?tab=profilbild');
         }
-
         return $this->showForm();
     }
 

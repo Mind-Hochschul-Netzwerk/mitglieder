@@ -14,7 +14,7 @@ class WahlleitungController extends Controller {
     /**
      * Auflistung aller E-Mail-Adressen für die Wahlleitung
      */
-    public function getResponse(): Response {
+    public function show(): Response {
         $this->requireRole('wahlleitung');
 
         $emails = Db::getInstance()->query('SELECT email FROM mitglieder ORDER BY email')->getColumn();
