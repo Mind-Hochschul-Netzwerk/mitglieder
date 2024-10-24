@@ -19,7 +19,7 @@ class AuthController extends Controller {
     }
 
     #[Route('POST /login')]
-    public function loginSubmitted(): Response {
+    public function loginSubmitted(Db $db): Response {
         $input = $this->validatePayload([
             'id' => 'required string',
             'password' => 'required string untrimmed',
@@ -32,7 +32,7 @@ class AuthController extends Controller {
             return $this->loginForm();
         }
 
-        $id = Db::getInstance()->query('SELECT id FROM mitglieder WHERE id=:id OR username=:username OR email=:email', [
+        $id = $db->query('SELECT id FROM mitglieder WHERE id=:id OR username=:username OR email=:email', [
             'id' => intval($input['id']),
             'username' => $input['id'],
             'email' => $input['id'],

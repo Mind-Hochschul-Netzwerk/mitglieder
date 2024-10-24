@@ -14,12 +14,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AdminController extends Controller {
     #[Route('GET /admin')]
-    public function show(): Response {
+    public function show(Ldap $ldap): Response {
         $this->requireRole('mvedit');
 
         $groups = [];
         if (AuthService::hatRecht('rechte')) {
-            $groups = Ldap::getInstance()->getAllGroups($skipMembersOfGroups = ['alleMitglieder', 'listen']);
+            $groups = $ldap->getAllGroups($skipMembersOfGroups = ['alleMitglieder', 'listen']);
             usort($groups, function ($a, $b) {
                 return strnatcasecmp($a['name'], $b['name']);
             });

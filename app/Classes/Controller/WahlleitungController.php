@@ -16,10 +16,10 @@ class WahlleitungController extends Controller {
      * Auflistung aller E-Mail-Adressen für die Wahlleitung
      */
     #[Route('GET /wahlleitung')]
-    public function show(): Response {
+    public function show(Db $db): Response {
         $this->requireRole('wahlleitung');
 
-        $emails = Db::getInstance()->query('SELECT email FROM mitglieder ORDER BY email')->getColumn();
+        $emails = $db->query('SELECT email FROM mitglieder ORDER BY email')->getColumn();
 
         $response = new Response(implode("\r\n", $emails));
         $response->headers->set('Content-Type', 'text/plain; charset=utf-8');

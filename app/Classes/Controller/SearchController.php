@@ -28,7 +28,7 @@ class SearchController extends Controller {
 
     #[Route('GET /?q={query}')]
     #[Route('GET /search?q={query}')]
-    public function search(string $query): Response {
+    public function search(string $query, Db $db): Response {
         // TODO filter einbauen über beschaeftigung, auskunft_* und für mvread für aufgabe_*
         $this->setTemplateVariable('query', $query);
 
@@ -77,15 +77,15 @@ class SearchController extends Controller {
         }
 
         // TODO Pagination?? oder einfach suche einschränken lassen und die erst 50 zeigen...
-        $ids = Db::getInstance()->query('SELECT id FROM mitglieder WHERE ' . implode(' AND ', $AND) . ' ORDER BY nachname, vorname LIMIT 50', $values)->getColumn();
+        $ids = $db->query('SELECT id FROM mitglieder WHERE ' . implode(' AND ', $AND) . ' ORDER BY nachname, vorname LIMIT 50', $values)->getColumn();
         return $this->showResults($ids);
     }
 
     #[Route('GET /search/resigned')]
-    public function showResigned(): Response {
+    public function showResigned(Db $db): Response {
         $this->requireRole('mvread');
         $this->setTemplateVariable('query', ' '); // show the "search results" title even if the list is empty
-        $ids = Db::getInstance()->query('SELECT id FROM mitglieder WHERE resignation IS NOT NULL')->getColumn();
+        $ids = $db->query('SELECT id FROM mitglieder WHERE resignation IS NOT NULL')->getColumn();
         return $this->showResults($ids);
     }
 
