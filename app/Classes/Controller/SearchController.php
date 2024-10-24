@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
-use App\Mitglied;
+use App\Repository\UserRepository;
 use App\Service\Attribute\Route;
 use App\Service\Db;
 use App\Service\PasswordService;
@@ -94,24 +94,24 @@ class SearchController extends Controller {
         $ergebnisse = [];
         $ids = array_unique($ids);
         foreach ($ids as $id) {
-            $m = Mitglied::lade((int)$id);
+            $user = UserRepository::getInstance()->findOneById((int)$id);
 
             $orte = [];
-            if ($m->get('ort') && $m->get('sichtbarkeit_plz_ort')) {
-                $orte[] = $m->get('ort');
+            if ($user->get('ort') && $user->get('sichtbarkeit_plz_ort')) {
+                $orte[] = $user->get('ort');
             }
-            if ($m->get('ort2')) {
-                $orte[] = $m->get('ort2');
+            if ($user->get('ort2')) {
+                $orte[] = $user->get('ort2');
             }
 
             // auszugebende Daten speichern und an Tpl übergeben
             $e = [
-                'id' => $m->get('id'),
-                'last_login' => $m->get('last_login'),
-                'fullName' => $m->get('fullName'),
-                'username' => $m->get('username'),
+                'id' => $user->get('id'),
+                'last_login' => $user->get('last_login'),
+                'fullName' => $user->get('fullName'),
+                'username' => $user->get('username'),
                 'orte' => implode(', ', $orte),
-                'profilbild' => $m->get('profilbild') ? ('thumbnail-' . $m->get('profilbild')) : null,
+                'profilbild' => $user->get('profilbild') ? ('thumbnail-' . $user->get('profilbild')) : null,
             ];
 
             $ergebnisse[] = $e;

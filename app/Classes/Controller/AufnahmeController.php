@@ -7,7 +7,8 @@ namespace App\Controller;
  */
 
 use App\Controller\Exception\InvalidUserDataException;
-use App\Mitglied;
+use App\Model\User;
+use App\Repository\UserRepository;
 use App\Service\Attribute\Route;
 use App\Service\AuthService;
 use App\Service\Ldap;
@@ -124,7 +125,7 @@ class AufnahmeController extends Controller
 
     private function isEmailUsed(): bool
     {
-        return (Mitglied::getIdByEmail($this->data['user_email']) !== null);
+        return (UserRepository::getInstance()->getIdByEmail($this->data['user_email']) !== null);
     }
 
     private function checkEmailUsed(): void
@@ -154,7 +155,7 @@ class AufnahmeController extends Controller
         $username0 = substr($username0, 0, 255);
         $username = $username0;
 
-        for ($n = 1; !Mitglied::isUsernameAvailable($username); ++$n) {
+        for ($n = 1; !UserRepository::getInstance()->isUsernameAvailable($username); ++$n) {
             $username = $username0 . $n;
         }
 
@@ -177,7 +178,7 @@ class AufnahmeController extends Controller
             return;
         }
 
-        if (!Mitglied::isUsernameAvailable($this->username)) {
+        if (!UserRepository::getInstance()->isUsernameAvailable($this->username)) {
             $this->readyToSave = false;
             $this->setTemplateVariable('usernameUsed', true);
             return;
@@ -216,22 +217,22 @@ class AufnahmeController extends Controller
 
     private function save(): void
     {
-        $m = Mitglied::neu($this->username, $this->password, $this->data['user_email']);
+        $user = new User($this->username, $this->password, $this->data['user_email']);
 
         foreach (self::MAP as $key_neu => $key_alt) {
             if (!isset($this->data[$key_alt])) {
                 throw new \RuntimeException($key_alt . ' is missing');
             }
-            $m->set($key_neu, $this->data[$key_alt]);
+            $user->set($key_neu, $this->data[$key_alt]);
         }
 
         if (isset($this->data['mhn_geburtstag'])) {
-            $m->set('geburtstag', $this->data['mhn_geburtstag']);
+            $user->set('geburtstag', $this->data['mhn_geburtstag']);
         }
 
-        $this->processAccessFlags($m);
+        $this->processAccessFlags($user);
 
-        $m->save();
+        UserRepository::getInstance()->save($user);
 
         $ldap = Ldap::getInstance();
         $ldap->addUserToGroup($this->username, 'alleMitglieder');
@@ -241,12 +242,12 @@ class AufnahmeController extends Controller
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_exec($curl);
 
-        AuthService::logIn($m->get('id')); // Status neu laden
+        AuthService::logIn($user->get('id')); // Status neu laden
 
-        $this->sendMailToActivationTeam($m);
+        $this->sendMailToActivationTeam($user);
     }
 
-    private function processAccessFlags(Mitglied $m)
+    private function processAccessFlags(User $user)
     {
         $input = $this->validatePayload([
             'sichtbarkeit_adresse' => 'uint',
@@ -262,65 +263,65 @@ class AufnahmeController extends Controller
             'uebernahme_interessen' => 'uint',
         ]);
 
-        $m->set('sichtbarkeit_strasse', $input['sichtbarkeit_adresse'] === 1);
-        $m->set('sichtbarkeit_adresszusatz', $input['sichtbarkeit_adresse'] === 1);
-        $m->set('sichtbarkeit_plz_ort', $input['sichtbarkeit_adresse'] >= 1);
-        $m->set('sichtbarkeit_land', $input['sichtbarkeit_adresse'] >= 1);
-        $m->set('sichtbarkeit_email', (bool) $input['sichtbarkeit_email']);
-        $m->set('sichtbarkeit_geburtstag', (bool) $input['sichtbarkeit_geburtstag']);
-        $m->set('sichtbarkeit_mensa_nr', (bool) $input['sichtbarkeit_mensa_nr']);
-        $m->set('sichtbarkeit_telefon', (bool) $input['sichtbarkeit_telefon']);
-        $m->set('sichtbarkeit_beschaeftigung', (bool) $input['sichtbarkeit_beruf']);
-        $m->set('sichtbarkeit_beruf', (bool) $input['sichtbarkeit_beruf']);
-        $m->set('sichtbarkeit_studienort', (bool) $input['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_studienfach', (bool) $input['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_unityp', (bool) $input['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_schwerpunkt', (bool) $input['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_nebenfach', (bool) $input['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_abschluss', (bool) $input['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_zweitstudium', (bool) $input['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_hochschulaktivitaeten', (bool) $input['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_stipendien', (bool) $input['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_auslandsaufenthalte', (bool) $input['sichtbarkeit_studium']);
-        $m->set('sichtbarkeit_praktika', (bool) $input['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_strasse', $input['sichtbarkeit_adresse'] === 1);
+        $user->set('sichtbarkeit_adresszusatz', $input['sichtbarkeit_adresse'] === 1);
+        $user->set('sichtbarkeit_plz_ort', $input['sichtbarkeit_adresse'] >= 1);
+        $user->set('sichtbarkeit_land', $input['sichtbarkeit_adresse'] >= 1);
+        $user->set('sichtbarkeit_email', (bool) $input['sichtbarkeit_email']);
+        $user->set('sichtbarkeit_geburtstag', (bool) $input['sichtbarkeit_geburtstag']);
+        $user->set('sichtbarkeit_mensa_nr', (bool) $input['sichtbarkeit_mensa_nr']);
+        $user->set('sichtbarkeit_telefon', (bool) $input['sichtbarkeit_telefon']);
+        $user->set('sichtbarkeit_beschaeftigung', (bool) $input['sichtbarkeit_beruf']);
+        $user->set('sichtbarkeit_beruf', (bool) $input['sichtbarkeit_beruf']);
+        $user->set('sichtbarkeit_studienort', (bool) $input['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_studienfach', (bool) $input['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_unityp', (bool) $input['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_schwerpunkt', (bool) $input['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_nebenfach', (bool) $input['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_abschluss', (bool) $input['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_zweitstudium', (bool) $input['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_hochschulaktivitaeten', (bool) $input['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_stipendien', (bool) $input['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_auslandsaufenthalte', (bool) $input['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_praktika', (bool) $input['sichtbarkeit_studium']);
 
         if (!$input['uebernahme_titel']) {
-            $m->set('titel', '');
+            $user->set('titel', '');
         }
         if ($input['uebernahme_zweitwohnsitz'] !== 1) {
-            $m->set('strasse2', '');
-            $m->set('adresszusatz2', '');
+            $user->set('strasse2', '');
+            $user->set('adresszusatz2', '');
         }
         if ($input['uebernahme_zweitwohnsitz'] === 0) {
-            $m->set('plz2', '');
-            $m->set('ort2', '');
-            $m->set('land2', '');
+            $user->set('plz2', '');
+            $user->set('ort2', '');
+            $user->set('land2', '');
         }
         if (!$input['uebernahme_homepage']) {
-            $m->set('homepage', '');
+            $user->set('homepage', '');
         }
         if (!$input['uebernahme_interessen']) {
-            $m->set('sprachen', '');
-            $m->set('hobbys', '');
-            $m->set('interessen', '');
-            $m->set('hochschulaktivitaeten', '');
+            $user->set('sprachen', '');
+            $user->set('hobbys', '');
+            $user->set('interessen', '');
+            $user->set('hochschulaktivitaeten', '');
         }
     }
 
     /**
      * @throws RuntimeException on error
      */
-    private function sendMailToActivationTeam(Mitglied $newMember): void
+    private function sendMailToActivationTeam(User $newUser): void
     {
         $text = Tpl::getInstance()->render('mails/account-activated', [
-            'id' => $newMember->get('id'),
-            'fullName' => $newMember->get('fullName'),
-            'email' => $newMember->get('email'),
+            'id' => $newUser->get('id'),
+            'fullName' => $newUser->get('fullName'),
+            'email' => $newUser->get('email'),
         ]);
 
         $ids = Ldap::getInstance()->getIdsByGroup('aktivierung');
         foreach ($ids as $id) {
-            $user = Mitglied::lade($id, false);
+            $user = UserRepository::getInstance()->findOneById($id);
             if ($user === null) {
                 continue;
             }

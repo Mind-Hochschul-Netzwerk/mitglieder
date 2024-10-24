@@ -7,7 +7,7 @@ namespace App\Service;
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
-use App\Mitglied;
+use App\Repository\UserRepository;
 
 AuthService::init();
 
@@ -37,25 +37,25 @@ class AuthService
     }
 
     /**
-     * Loggt den User $uid ein
-     * @param int $uid
+     * Loggt den User $id ein
+     * @param int $id
      */
-    public static function logIn(int $uid)
+    public static function logIn(int $id)
     {
-        $u = Mitglied::lade($uid, true);
+        $user = UserRepository::getInstance()->findOneById($id);
 
-        assert($u !== null);
+        assert($user !== null);
 
         // neue Session-ID zuweisen, um Session-Hijacking-Gefahr zu minimieren
         Session::getInstance()->regenerateId();
 
-        $_SESSION['uid'] = $uid;
+        $_SESSION['uid'] = $id;
 
-        $u->set('last_login', 'now');
+        $user->set('last_login', 'now');
 
-        $u->save();
+        UserRepository::getInstance()->save($user);
 
-        return $u;
+        return $user;
     }
 
     /**
@@ -70,12 +70,12 @@ class AuthService
     /**
      * Prüft, ob der User oder ein anderes Mitglied ein Recht hat
      * @param string $recht
-     * @param int|null $uid User-ID oder null für den Session-Benutzer
+     * @param int|null $id User-ID oder null für den Session-Benutzer
      */
-    public static function hatRecht(string $recht, $uid = null): bool
+    public static function hatRecht(string $recht, $id = null): bool
     {
-        if ($uid === null) {
-            $uid = self::getUID();
+        if ($id === null) {
+            $id = self::getUID();
         }
 
         // nicht eingloggte Benutzer haben keine Rechte
@@ -84,11 +84,11 @@ class AuthService
         }
 
         // schreiben impliziert lesen
-        if (in_array($recht, ['rechte', 'mvread'], true) && self::hatRecht('mvedit', $uid)) {
+        if (in_array($recht, ['rechte', 'mvread'], true) && self::hatRecht('mvedit', $id)) {
             return true;
         }
 
-        $m = Mitglied::lade($uid, true);
+        $m = UserRepository::getInstance()->findOneById($id);
         return $m ? $m->isMemberOfGroup($recht) : false;
     }
 
@@ -102,11 +102,11 @@ class AuthService
 
     /**
      * prüft, ob der User eine bestimmte ID hat
-     * @param int $uid
+     * @param int $id
      */
-    public static function ist(int $uid) : bool
+    public static function ist(int $id) : bool
     {
-        return self::getUID() === $uid;
+        return self::getUID() === $id;
     }
 
     /**
@@ -114,17 +114,17 @@ class AuthService
      * Gibt zurück, ob es sich bei dem Passwort um das normale Passwort oder um ein Einmalpasswort handelt
      * @param string $password im Klartext
      */
-    public static function checkPassword(string $password, $uid = null): bool
+    public static function checkPassword(string $password, $id = null): bool
     {
         if (!$password) {
             return false;
         }
 
-        if ($uid === null) {
-            $uid = self::getUID();
+        if ($id === null) {
+            $id = self::getUID();
         }
 
-        $u = Mitglied::lade($uid, true);
+        $u = UserRepository::getInstance()->findOneById($id);
 
         $username = $u->get('username');
         $ldapCheck = Ldap::getInstance()->checkPassword($username, $password);
@@ -132,11 +132,11 @@ class AuthService
             return true;
         }
 
-        $hash = Db::getInstance()->query('SELECT password FROM mitglieder WHERE id=:id', ['id' => $uid])->get();
-        if (PasswordService::check((string)$hash, $password, $uid)) {
+        $hash = Db::getInstance()->query('SELECT password FROM mitglieder WHERE id=:id', ['id' => $id])->get();
+        if (PasswordService::check((string)$hash, $password, $id)) {
             // store password in ldap
             $u->set('password', $password);
-            $u->save();
+            UserRepository::getInstance()->save($u);
             return true;
         }
         return false;

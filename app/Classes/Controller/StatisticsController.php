@@ -9,7 +9,7 @@ namespace App\Controller;
 
 use App\Service\Ldap;
 use App\Service\Db;
-use App\Mitglied;
+use App\Repository\UserRepository;
 use App\Service\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -27,18 +27,18 @@ class StatisticsController extends Controller {
     {
         $users = [];
         foreach ($this->invalidEmailsList as $id) {
-            $m = Mitglied::lade($id);
-            if (!$m) {
+            $user = UserRepository::getInstance()->findOneById($id);
+            if (!$user) {
                 continue;
             }
             $users[] = [
-                'id' => $m->get('id'),
-                'fullName' => $m->get('fullName'),
-                'ort' => $m->get('ort'),
-                'email' => substr($m->get('email'), 0, -strlen('.invalid')),
-                'aufnahmedatum' => $m->get('aufnahmedatum') ? $m->get('aufnahmedatum')->format('d.m.Y') : 'unbekannt',
-                'lastLogin' => $m->get('last_login') ? $m->get('last_login')->format('d.m.Y') : 'vor 2014',
-                'moodle' => ($m->get('last_login') && $m->get('last_login') > new \DateTime('2021-05-22')) ? 'ja' : 'nein',
+                'id' => $user->get('id'),
+                'fullName' => $user->get('fullName'),
+                'ort' => $user->get('ort'),
+                'email' => substr($user->get('email'), 0, -strlen('.invalid')),
+                'aufnahmedatum' => $user->get('aufnahmedatum') ? $user->get('aufnahmedatum')->format('d.m.Y') : 'unbekannt',
+                'lastLogin' => $user->get('last_login') ? $user->get('last_login')->format('d.m.Y') : 'vor 2014',
+                'moodle' => ($user->get('last_login') && $user->get('last_login') > new \DateTime('2021-05-22')) ? 'ja' : 'nein',
             ];
         }
 

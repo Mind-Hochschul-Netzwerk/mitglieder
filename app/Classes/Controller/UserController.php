@@ -7,7 +7,8 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Controller\Exception\AccessDeniedException;
 use App\Controller\Exception\InvalidUserDataException;
 use App\Controller\Exception\NotFoundException;
-use App\Mitglied;
+use App\Model\User;
+use App\Repository\UserRepository;
 use App\Service\Attribute\Route;
 use App\Service\AuthService;
 use App\Service\EmailService;
@@ -32,21 +33,21 @@ class UserController extends Controller {
     // Liste der von der Mitgliederverwaltung änderbaren Strings
     const bearbeiten_strings_admin = ['vorname', 'nachname'];
 
-    public static function retrieveById(string $id): Mitglied {
-        $m = Mitglied::lade(intval($id));
-        if (!$m) {
+    public static function retrieveById(string $id): User {
+        $user = UserRepository::getInstance()->findOneById(intval($id));
+        if (!$user) {
             throw new NotFoundException('Ein Mitglied mit dieser Nummer existiert nicht.');;
         }
-        return $m;
+        return $user;
     }
 
-    public static function retrieveByUsername(string $username): Mitglied {
-        $id = ($username === '_') ? AuthService::getUID() : Mitglied::getIdByUsername($username);
-        $m = $id ? Mitglied::lade($id) : null;
-        if (!$m) {
+    public static function retrieveByUsername(string $username): User {
+        $id = ($username === '_') ? AuthService::getUID() : UserRepository::getInstance()->getIdByUsername($username);
+        $user = $id ? UserRepository::getInstance()->findOneById($id) : null;
+        if (!$user) {
             throw new NotFoundException('Ein Mitglied mit dieser Nummer existiert nicht.');;
         }
-        return $m;
+        return $user;
     }
 
     #[Route('GET /user')]
@@ -54,28 +55,28 @@ class UserController extends Controller {
         return $this->redirect('/user/_');
     }
 
-    #[Route('GET /user/{\d+:id=>m}')]
-    #[Route('GET /user/{username=>m}')]
-    public function show(Mitglied $m): Response {
+    #[Route('GET /user/{\d+:id=>user}')]
+    #[Route('GET /user/{username=>user}')]
+    public function show(User $user): Response {
         $this->requireLogin();
-        $db_modified = $m->get('db_modified');
+        $db_modified = $user->get('db_modified');
         $isAdmin = AuthService::hatRecht('mvread');
 
         $templateVars = [
-            'htmlTitle' => $m->get('fullName'),
-            'fullName' => $m->get('fullName'),
-            'title' => $m->get('fullName'),
+            'htmlTitle' => $user->get('fullName'),
+            'fullName' => $user->get('fullName'),
+            'title' => $user->get('fullName'),
         ];
         if ($db_modified) {
-            $templateVars['title'] .= ' <small>Stand: '. $m->get('db_modified')->format('d.m.Y') . '</small>';
+            $templateVars['title'] .= ' <small>Stand: '. $user->get('db_modified')->format('d.m.Y') . '</small>';
         }
-        if (AuthService::ist($m->get('id')) || AuthService::hatRecht('mvedit')) {
-            $templateVars['title'] .= ' <small><a href="' . $m->get('bearbeitenUrl') . '"><span class="glyphicon glyphicon-pencil"></span> Daten bearbeiten</a></small>';
+        if (AuthService::ist($user->get('id')) || AuthService::hatRecht('mvedit')) {
+            $templateVars['title'] .= ' <small><a href="' . $user->get('bearbeitenUrl') . '"><span class="glyphicon glyphicon-pencil"></span> Daten bearbeiten</a></small>';
         }
 
         // generell: alle Daten kopieren
-        foreach (array_keys(Mitglied::felder) as $feld) {
-            $templateVars[$feld] = $m->get($feld);
+        foreach (array_keys(User::felder) as $feld) {
+            $templateVars[$feld] = $user->get($feld);
         }
 
         // Dann die sichtgeschützten Felder gesondert behandeln, damit das Template möglichst frei von Logik bleiben kann
@@ -84,18 +85,18 @@ class UserController extends Controller {
                 'beschaeftigung', 'studienort', 'studienfach', 'unityp', 'schwerpunkt', 'nebenfach', 'abschluss',
                 'zweitstudium', 'nebenfach', 'abschluss', 'zweitstudium', 'hochschulaktivitaeten', 'stipendien',
                 'auslandsaufenthalte', 'praktika', 'beruf'] as $feld) {
-                if (!$m->get('sichtbarkeit_' . $feld)) {
+                if (!$user->get('sichtbarkeit_' . $feld)) {
                     $templateVars[$feld] = '';
                 }
             }
-            if (!$m->get('sichtbarkeit_plz_ort')) {
+            if (!$user->get('sichtbarkeit_plz_ort')) {
                 $templateVars['plz'] = '';
                 $templateVars['ort'] = '';
             }
         }
 
         // Überprüfen, ob die Homepage das korrekte Format hat. ggf. http:// ergänzen
-        $homepage = $m->get('homepage');
+        $homepage = $user->get('homepage');
         if (!preg_match('=^https?://=i', $homepage)) {
             $homepage = 'http://' . $homepage;
         }
@@ -107,16 +108,16 @@ class UserController extends Controller {
         return $this->render('UserController/profil', $templateVars);
     }
 
-    private function requirePermission(Mitglied $m): void {
+    private function requirePermission(User $user): void {
         $this->requireLogin();
-        if (!AuthService::hatRecht('mvedit') && !AuthService::ist($m->get('id'))) {
+        if (!AuthService::hatRecht('mvedit') && !AuthService::ist($user->get('id'))) {
             throw new AccessDeniedException();
         }
     }
 
-    #[Route('GET /user/{username=>m}/edit')]
-    public function edit(Mitglied $m): Response {
-        $this->requirePermission($m);
+    #[Route('GET /user/{username=>user}/edit')]
+    public function edit(User $user): Response {
+        $this->requirePermission($user);
 
         $templateVars = [];
 
@@ -125,33 +126,33 @@ class UserController extends Controller {
             $templateVars['active_pane'] = $tab;
         }
 
-        if (!AuthService::ist($m->get('id')) && !AuthService::hatRecht('mvedit')) {
+        if (!AuthService::ist($user->get('id')) && !AuthService::hatRecht('mvedit')) {
             throw new AccessDeniedException();
         }
 
-        foreach (array_keys(Mitglied::felder) as $feld) {
-            $templateVars[$feld] = $m->get($feld);
+        foreach (array_keys(User::felder) as $feld) {
+            $templateVars[$feld] = $user->get($feld);
         }
         $templateVars += [
-            'fullName' => $m->get('fullName'),
-            'dateOfJoining' => $m->get('dateOfJoining'),
-            'groups' => $m->getGroups(),
-            'db_modified_user' => Mitglied::lade((int)$m->get('db_modified_user_id')),
+            'fullName' => $user->get('fullName'),
+            'dateOfJoining' => $user->get('dateOfJoining'),
+            'groups' => $user->getGroups(),
+            'db_modified_user' => UserRepository::getInstance()->findOneById((int)$user->get('db_modified_user_id')),
             'isAdmin' => AuthService::hatRecht('mvedit'),
             'isSuperAdmin' => AuthService::hatRecht('rechte'),
-            'isSelf' => AuthService::ist($m->get('id')),
+            'isSelf' => AuthService::ist($user->get('id')),
         ];
 
         return $this->render('UserController/bearbeiten', $templateVars);
     }
 
-    private function updatePassword(Mitglied $m): void {
+    private function updatePassword(User $user): void {
         $input = $this->validatePayload([
             'new_password' => 'string untrimmed',
             'new_password2' => 'string untrimmed',
             'password' => 'string untrimmed',
         ]);
-        if ($input['new_password'] && !$input['new_password2'] && !$input['password'] && AuthService::checkPassword($input['new_password'], $m->get('id'))) {
+        if ($input['new_password'] && !$input['new_password2'] && !$input['password'] && AuthService::checkPassword($input['new_password'], $user->get('id'))) {
             // nichts tun. Der Passwort-Manager des Users hat das Passwort eingefügt und autocomplete=new-password ignoriert
             return;
         }
@@ -164,20 +165,20 @@ class UserController extends Controller {
             $this->setTemplateVariable('new_password2_error', true);
         } else {
             // Admins dürfen Passwörter ohne Angabe des eigenen Passworts ändern, außer das eigene
-            if (AuthService::hatRecht('mvedit') && !AuthService::ist($m->get('id'))) {
-                $m->set('password', $input['new_password']);
+            if (AuthService::hatRecht('mvedit') && !AuthService::ist($user->get('id'))) {
+                $user->set('password', $input['new_password']);
             } elseif (AuthService::checkPassword($_REQUEST['password'])) {
-                $m->set('password', $input['new_password']);
+                $user->set('password', $input['new_password']);
             } else {
                 $this->setTemplateVariable('old_password_error', true);
             }
         }
     }
 
-    private function updateEmail(Mitglied $m): void {
+    private function updateEmail(User $user): void {
         $email = $this->validatePayload(['email' => 'string'])['email'];
 
-        if ($m->get('email') === $email) {
+        if ($user->get('email') === $email) {
             return;
         }
 
@@ -187,19 +188,19 @@ class UserController extends Controller {
         }
 
         if (AuthService::hatRecht('mvedit')) {
-            $this->storeEmail($m, $email);
+            $this->storeEmail($user, $email);
         } else {
             $this->setTemplateVariable('email_auth_info', true);
-            $token = Token::encode([time(), $m->get('id'), $email], $m->get('email'), getenv('TOKEN_KEY'));
+            $token = Token::encode([time(), $user->get('id'), $email], $user->get('email'), getenv('TOKEN_KEY'));
             $text = Tpl::getInstance()->render('mails/email-auth', ['token' => $token]);
             EmailService::getInstance()->send($email, 'E-Mail-Änderung', $text);
         }
     }
 
-    private function updateAdmin(Mitglied $m): void {
+    private function updateAdmin(User $user): void {
         $input = $this->validatePayload(array_fill_keys(self::bearbeiten_strings_admin, 'string'));
         foreach ($input as $key=>$value) {
-            $m->set($key, $value);
+            $user->set($key, $value);
         }
 
         $input = $this->validatePayload([
@@ -209,11 +210,11 @@ class UserController extends Controller {
             if ($value === '0000-00-00') {
                 $value = null;
             }
-            $m->set($key, $value);
+            $user->set($key, $value);
         }
     }
 
-    private function updateProfilePicture(Mitglied $m): void {
+    private function updateProfilePicture(User $user): void {
         $file = $this->request->files->get('profilbild');
         if (!$file || $file->getError() === UPLOAD_ERR_NO_FILE) {
             return;
@@ -236,112 +237,112 @@ class UserController extends Controller {
         }
 
         // Dateiname zufällig wählen
-        $fileName = $m->get('id') . '-' . md5_file($file->getPathname()) . '.' . $type;
+        $fileName = $user->get('id') . '-' . md5_file($file->getPathname()) . '.' . $type;
 
         // Datei und Thumbnail erstellen
         list($size_x, $size_y) = ImageResizer::resize($file->getPathname(), 'profilbilder/' . $fileName, $type, $type, self::profilbildMaxWidth, self::profilbildMaxHeight);
         ImageResizer::resize($file->getPathname(), 'profilbilder/thumbnail-' . $fileName, $type, $type, self::thumbnailMaxWidth, self::thumbnailMaxHeight);
 
         // altes Profilbild löschen
-        if ($m->get('profilbild') && is_file('profilbilder/' . $m->get('profilbild'))) {
-            unlink('profilbilder/' . $m->get('profilbild'));
-            unlink('profilbilder/thumbnail-' . $m->get('profilbild'));
+        if ($user->get('profilbild') && is_file('profilbilder/' . $user->get('profilbild'))) {
+            unlink('profilbilder/' . $user->get('profilbild'));
+            unlink('profilbilder/thumbnail-' . $user->get('profilbild'));
         }
 
-        $m->set('profilbild', $fileName);
-        $m->set('profilbild_x', $size_x);
-        $m->set('profilbild_y', $size_y);
+        $user->set('profilbild', $fileName);
+        $user->set('profilbild_x', $size_x);
+        $user->set('profilbild_y', $size_y);
     }
 
-    private function removeProfilePicture(Mitglied $m): void {
-        if ($m->get('profilbild') && is_file('profilbilder/' . $m->get('profilbild'))) {
-            unlink('profilbilder/' . $m->get('profilbild'));
-            unlink('profilbilder/thumbnail-' . $m->get('profilbild'));
+    private function removeProfilePicture(User $user): void {
+        if ($user->get('profilbild') && is_file('profilbilder/' . $user->get('profilbild'))) {
+            unlink('profilbilder/' . $user->get('profilbild'));
+            unlink('profilbilder/thumbnail-' . $user->get('profilbild'));
         }
-        $m->set('profilbild', '');
+        $user->set('profilbild', '');
     }
 
-    private function updateGroups(Mitglied $m): void {
+    private function updateGroups(User $user): void {
         $input = $this->validatePayload(['groups' => 'string']);
         $groups = array_filter(array_unique(preg_split('/[\s,]+/', $input['groups'])));
 
-        if (AuthService::ist($m->get('id')) && (!in_array('rechte', $groups, true))) {
+        if (AuthService::ist($user->get('id')) && (!in_array('rechte', $groups, true))) {
             throw new AccessDeniedException('Du kannst dir das Recht zur Rechtverwaltung nicht selbst entziehen.');
         }
 
         try {
-            $m->setGroups($groups);
+            $user->setGroups($groups);
         } catch (\Exception $e) {
             $this->setTemplateVariable('errorMessage', 'Beim Setzen der Gruppen ist ein Fehler aufgetreten.');
         }
     }
 
-    private function handleResign(Mitglied $m) {
+    private function handleResign(User $user) {
         $password = $this->request->getPayload()->getString('resignPassword');
         if ($password) {
             if (!AuthService::checkPassword($password)) {
                 $this->setTemplateVariable('errorMessage', 'Das eingegebene Passwort ist nicht korrekt.');
             } else {
-                $m->set('resignation', 'now');
+                $user->set('resignation', 'now');
                 $text = Tpl::getInstance()->render('mails/resignation', [
-                    'fullName' => $m->get('fullName'),
-                    'id' => $m->get('id'),
+                    'fullName' => $user->get('fullName'),
+                    'id' => $user->get('id'),
                 ]);
                 EmailService::getInstance()->send('vorstand@mind-hochschul-netzwerk.de', 'Austrittserklärung', $text);
                 EmailService::getInstance()->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', 'Austrittserklärung', $text);
                 $text = Tpl::getInstance()->render('mails/resignationConfirmation', [
-                    'fullName' => $m->get('fullName'),
-                    'id' => $m->get('id'),
+                    'fullName' => $user->get('fullName'),
+                    'id' => $user->get('id'),
                 ]);
-                $m->sendEmail('Bestätigung deiner Austrittserklärung', $text);
+                $user->sendEmail('Bestätigung deiner Austrittserklärung', $text);
             }
         } elseif (AuthService::hatRecht('mvedit')) {
-            $resignOld = $m->get('resignation') !== null;
+            $resignOld = $user->get('resignation') !== null;
             $resignNew = $this->request->getPayload()->getBoolean('resign');
             if ($resignOld && !$resignNew) {
-                $m->set('resignation', null);
+                $user->set('resignation', null);
             } elseif (!$resignOld && $resignNew) {
-                $m->set('resignation', 'now');
-                $admin = Mitglied::lade(AuthService::getUID());
+                $user->set('resignation', 'now');
+                $admin = UserRepository::getInstance()->findOneById(AuthService::getUID());
                 $text = Tpl::getInstance()->render('mails/resignation', [
                     'adminFullName' => $admin->get('fullName'),
-                    'fullName' => $m->get('fullName'),
-                    'id' => $m->get('id'),
+                    'fullName' => $user->get('fullName'),
+                    'id' => $user->get('id'),
                 ]);
                 EmailService::getInstance()->send('vorstand@mind-hochschul-netzwerk.de', 'Austrittserklärung eingetragen', $text);
                 EmailService::getInstance()->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', 'Austrittserklärung eingetragen', $text);
                 $text = Tpl::getInstance()->render('mails/resignationConfirmation', [
-                    'fullName' => $m->get('fullName'),
-                    'id' => $m->get('id'),
+                    'fullName' => $user->get('fullName'),
+                    'id' => $user->get('id'),
                 ]);
-                $m->sendEmail('Bestätigung deiner Austrittserklärung', $text);
+                $user->sendEmail('Bestätigung deiner Austrittserklärung', $text);
             }
         }
     }
 
-    private function delete(Mitglied $m): Response {
-        if (AuthService::ist($m->get('id'))) {
+    private function delete(User $user): Response {
+        if (AuthService::ist($user->get('id'))) {
             throw new AccessDeniedException('Du kannst dich nicht selbst löschen!');
         }
 
-        $m->delete();
+        UserRepository::getInstance()->delete($user);
 
-        $admin = Mitglied::lade(AuthService::getUID());
+        $admin = UserRepository::getInstance()->findOneById(AuthService::getUID());
 
         $mailText = Tpl::getInstance()->render('mails/MvEdit-Info-Mitglied-Geloescht', [
             'adminName' => $admin->get('fullName'),
             'adminId' => $admin->get('id'),
             'adminUsername' => $admin->get('username'),
-            'deletedName' => $m->get('fullName'),
-            'deletedId' => $m->get('id'),
-            'deletedUsername' => $m->get('username'),
-            'deletedEmail' => $m->get('email'),
+            'deletedName' => $user->get('fullName'),
+            'deletedId' => $user->get('id'),
+            'deletedUsername' => $user->get('username'),
+            'deletedEmail' => $user->get('email'),
         ]);
 
         // Alle Mitglieder der Mitgliederbetreuung (mvedit) informieren
         $ids = Ldap::getInstance()->getIdsByGroup('mvedit');
         foreach ($ids as $id) {
-            $user = Mitglied::lade($id);
+            $user = UserRepository::getInstance()->findOneById($id);
             if ($user === null) {
                 continue;
             }
@@ -355,73 +356,73 @@ class UserController extends Controller {
         return $this->showMessage("Die Daten wurden aus der Mitgliederdatenbank gelöscht.");
     }
 
-    #[Route('POST /user/{username=>m}/update')]
-    public function update(Mitglied $m): Response {
-        $this->requirePermission($m);
+    #[Route('POST /user/{username=>user}/update')]
+    public function update(User $user): Response {
+        $this->requirePermission($user);
 
         $input = $this->validatePayload(array_fill_keys(self::bearbeiten_strings_ungeprueft, 'string'));
         foreach ($input as $key=>$value) {
-            $m->set($key, $value);
+            $user->set($key, $value);
         }
         $input = $this->validatePayload(array_fill_keys(self::bearbeiten_bool_ungeprueft, 'bool'));
         foreach ($input as $key=>$value) {
-            $m->set($key, $value);
+            $user->set($key, $value);
         }
 
         $beschaeftigung = $this->validatePayload(['beschaeftigung' => 'string'])['beschaeftigung'];
         if (!in_array($beschaeftigung, ['Schueler', 'Hochschulstudent', 'Doktorand', 'Berufstaetig', 'Sonstiges'], true)) {
             throw new InvalidUserDataException("Wert für beschaeftigung ungültig.");
         }
-        $m->set('beschaeftigung', $beschaeftigung);
+        $user->set('beschaeftigung', $beschaeftigung);
 
-        $this->updatePassword($m);
-        $this->updateEmail($m);
-        $this->updateProfilePicture($m);
+        $this->updatePassword($user);
+        $this->updateEmail($user);
+        $this->updateProfilePicture($user);
 
         if ($this->request->getPayload()->getBoolean('bildLoeschen')) {
-            $this->removeProfilePicture($m);
+            $this->removeProfilePicture($user);
         }
 
         // nur für die Mitgliederverwaltung
         if (AuthService::hatRecht('mvedit')) {
-            $this->updateAdmin($m);
+            $this->updateAdmin($user);
 
             if ($this->request->getPayload()->getBoolean('delete')) {
-                return $this->delete($m);
+                return $this->delete($user);
             }
         }
 
         // Gruppen aktualisieren
         if (AuthService::hatRecht('rechte')) {
-            $this->updateGroups($m);
+            $this->updateGroups($user);
         }
 
         // Austritt erklären
-        $this->handleResign($m);
+        $this->handleResign($user);
 
         // Speichern
-        $m->set('db_modified', 'now');
-        $m->set('db_modified_user_id', AuthService::getUID());
+        $user->set('db_modified', 'now');
+        $user->set('db_modified_user_id', AuthService::getUID());
         $this->setTemplateVariable('data_saved_info', true);
-        $m->save();
+        UserRepository::getInstance()->save($user);
 
         // und neu laden (insb. beim Löschen wichtig, sonst müssten alls Keys einzeln zurückgesetzt werden)
-        return $this->edit(Mitglied::lade($m->get('id')));
+        return $this->edit(UserRepository::getInstance()->findOneById($user->get('id')));
     }
 
-    private function storeEmail(Mitglied $m, string $email): void {
-        $oldMail = $m->get('email');
+    private function storeEmail(User $user, string $email): void {
+        $oldMail = $user->get('email');
 
         try {
-            $m->setEmail($email);
+            $user->setEmail($email);
         } catch (\Exception $e) {
             throw new InvalidUserDataException('Diese E-Mail-Adresse ist bereits bei einem anderen Mitglied eingetragen.');
         }
 
-        $m->save();
+        UserRepository::getInstance()->save($user);
 
         $text = Tpl::getInstance()->render('mails/email-changed', [
-            'fullName' => $m->get('fullName'),
+            'fullName' => $user->get('fullName'),
             'email' => $email,
         ]);
         EmailService::getInstance()->send($oldMail, 'E-Mail-Änderung', $text);
@@ -432,22 +433,22 @@ class UserController extends Controller {
     #[Route('GET /email_auth?token={token}')]
     public function emailAuth(string $token): Response {
         try {
-            Token::decode($token, function ($data) use (&$m, &$email) {
+            Token::decode($token, function ($data) use (&$user, &$email) {
                 if (time() - $data[0] > 24*60*60) {
                     throw new \Exception('token expired');
                 }
                 $email = $data[2];
-                $m = Mitglied::lade($data[1]);
-                return $m->get('email');
+                $user = UserRepository::getInstance()->findOneById($data[1]);
+                return $user->get('email');
             }, getenv('TOKEN_KEY'));
         } catch (\Exception $e) {
             throw new InvalidUserDataException('Der Link ist abgelaufen oder ungültig.');
         }
 
-        AuthService::login($m->get('id'));
+        AuthService::login($user->get('id'));
 
-        $this->storeEmail($m, $email);
+        $this->storeEmail($user, $email);
 
-        return $this->edit($m);
+        return $this->edit($user);
     }
 }

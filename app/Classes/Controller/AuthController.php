@@ -5,7 +5,8 @@ namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
 use App\Controller\Exception\InvalidUserDataException;
-use App\Mitglied;
+use App\Model\User;
+use App\Repository\UserRepository;
 use App\Service\Attribute\Route;
 use App\Service\AuthService;
 use App\Service\Db;
@@ -61,19 +62,19 @@ class AuthController extends Controller {
 
     private function lostPassword(?int $id): Response {
         if ($id !== null) {
-            $m = Mitglied::lade((int)$id, true);
+            $user = UserRepository::getInstance()->findOneById((int)$id);
             $token = Token::encode([
                 time(),
-                $m->get('id')
-            ], $m->get('hashedPassword'), getenv('TOKEN_KEY'));
+                $user->get('id')
+            ], $user->get('hashedPassword'), getenv('TOKEN_KEY'));
 
             $text = Tpl::getInstance()->render('mails/lost-password', [
-                'fullName' => $m->get('fullName'),
+                'fullName' => $user->get('fullName'),
                 'url' => 'https://mitglieder.' . getenv('DOMAINNAME') . '/lost-password?token=' . $token,
             ]);
 
             try {
-                $m->sendEmail('Passwort vergessen', $text);
+                $user->sendEmail('Passwort vergessen', $text);
             } catch (\RuntimeException $e) {
                 return new Response("Fehler beim Versenden der E-Mail.");
             }
@@ -83,13 +84,13 @@ class AuthController extends Controller {
         return $this->loginForm();
     }
 
-    private function validatePasswordToken(string $token): Mitglied {
+    private function validatePasswordToken(string $token): User {
         try {
             Token::decode($_REQUEST['token'], function ($data) use (&$user) {
                 if (time() - $data[0] > 24*60*60) {
                     throw new \Exception('token expired');
                 }
-                $user = Mitglied::lade($data[1], true);
+                $user = UserRepository::getInstance()->findOneById($data[1], true);
                 return $user->get('hashedPassword');
             }, getenv('TOKEN_KEY'));
         } catch (\Exception $e) {
@@ -119,7 +120,7 @@ class AuthController extends Controller {
         }
 
         $user->set('password', $input['password']);
-        $user->save();
+        UserRepository::getInstance()->save($user);
         AuthService::login($user->get('id'));
         return $this->redirect('/');
     }

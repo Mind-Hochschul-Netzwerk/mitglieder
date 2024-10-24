@@ -263,6 +263,7 @@ class Router {
 
     private function getModelRetriever(string $type, ?string $identifierName): callable {
         $best = null;
+
         foreach ($this->types as [$typeName, $retriever, $identifier]) {
             if ($typeName === $type && $identifier === $identifierName) {
                 return $retriever;

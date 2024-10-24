@@ -1,25 +1,30 @@
 <?php
-namespace App;
+namespace App\Model;
 
 /**
  * @author Henrik Gebauer <mensa@henrik-gebauer.de>
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
+use App\Repository\UserRepository;
 use DateTime;
 use App\Service\EmailService;
 use App\Service\Ldap;
 use App\Service\Db;
 use App\Service\Tpl;
+use DateTimeImmutable;
+use DateTimeInterface;
 
 /**
- * Repräsentiert ein Mitglied
+ * Repräsentiert ein User
  */
-class Mitglied
+class User extends Model
 {
-    private $data = null;
+    protected static $repositoryClass = UserRepository::class;
 
-    private $ldapEntry = null;
+    public $data = null;
+
+    public $ldapEntry = null;
     private $passwordChanged = false;
     private $deleted = false;
 
@@ -33,86 +38,23 @@ class Mitglied
         'resignation' => null, 'membership_confirmation' => null,
     ];
 
-    private $hashedPassword = '';
+    public $hashedPassword = '';
 
-    /**
-     * privater Konstruktor, um das direkte Erstellen von Objekten zu verhindern
-     * Benutze die Funktion Mitglied::lade($uid)
-     * @param int $uid
-     */
-    private function __construct(int $uid)
+    public function __construct(string $username = '', string $password = '', string $email = '')
     {
-        if ($uid === 0) { // new member
+        if (!$username && !$password && !$email) {
+            // data will be filled in by UserRepository
             return;
         }
 
-        $data = Db::getInstance()->query('SELECT '. implode(',', array_keys(self::felder)) . ' FROM mitglieder WHERE id=:id', ['id' => $uid])->getRow();
-        if (!$data) {
-            return;
-        }
+        $this->data = self::felder;
 
-        $this->hashedPassword = $data['password'];
+        $this->setUsername($username);
+        $this->set('password', $password);
+        $this->setEmail($email);
 
-        $this->ldapEntry = Ldap::getInstance()->getEntryByUsername($data['username']);
-        if ($this->ldapEntry) {
-            $data['vorname'] = $this->ldapEntry->getAttribute('givenName')[0];
-            $data['nachname'] = $this->ldapEntry->getAttribute('sn')[0];
-            $data['email'] = $this->ldapEntry->getAttribute('mail')[0];
-            $ldapPassword = $this->ldapEntry->getAttribute('userPassword')[0];
-            if (substr($ldapPassword, 0, strlen('{CRYPT}!')) !== '{CRYPT}!') { // starts with "{CRYPT}!" => no LDAP login
-                $this->hashedPassword = $ldapPassword;
-            }
-        }
-
-        // typsicheres Setzen der Daten
-        foreach ($data as $key => $value) {
-            $this->setData($key, $value, false);
-        }
-    }
-
-    /**
-     * Erzeugt ein Mitglied-Objekt für ein neues Mitglied
-     */
-    public static function neu(string $username, string $password, string $email): Mitglied
-    {
-        $m = new self(0, false);
-        $m->data = self::felder;
-
-        $m->setUsername($username);
-        $m->set('password', $password);
-        $m->setEmail($email);
-
-        $m->setData('aufnahmedatum', 'now');
-        $m->setData('db_modified', 'now');
-
-        return $m;
-    }
-
-    /**
-     * Lädt ein Mitglied aus der Datenbank und gibt ein Mitglied-Objekt zurück (oder null)
-     */
-    public static function lade(int $uid): ?Mitglied
-    {
-        $m = new self($uid);
-
-        if (!$m->data) {
-            return null;
-        }
-
-        return $m;
-    }
-
-    /**
-     * Lädt ein Mitglied zu einer gegebenen E-Mail-Adresse
-     */
-    public static function getOneByEmail(string $email): ?Mitglied
-    {
-        $entry = Ldap::getInstance()->getEntryByEmail($email);
-        if (!$entry) {
-            return null;
-        }
-        $uid = $entry->getAttribute('uid')[0];
-        return self::lade($uid);
+        $this->setData('aufnahmedatum', 'now');
+        $this->setData('db_modified', 'now');
     }
 
     /**
@@ -171,7 +113,7 @@ class Mitglied
      * @throws \TypeError, wenn $checkType === true ist und der Datentype nicht stimmt
      * @throws \OutOfRangeException wenn die Eigenschaft unbekannt ist
      */
-    private function setData(string $key, $value, $strictTypes = true)
+    public function setData(string $key, mixed $value, $strictTypes = true): void
     {
         if (!in_array($key, array_keys(self::felder), true)) {
             throw new \OutOfRangeException("user property unknown: $key", 1493682897);
@@ -254,19 +196,6 @@ class Mitglied
         return true;
     }
 
-    public static function isUsernameAvailable(string $username): bool
-    {
-        $existingId = self::getIdByUsername($username);
-        if ($existingId !== null) {
-            return false;
-        }
-        $id = Db::getInstance()->query('SELECT id FROM deleted_usernames WHERE username = :username', ['username' => $username])->get();
-        if ($id) {
-            return false;
-        }
-        return true;
-    }
-
     /**
      * @throws \UnexpectedValueException if username is already used by another user
      */
@@ -275,7 +204,7 @@ class Mitglied
         if ($this->get('username') === 'username') {
             return;
         }
-        if (!$this->isUsernameAvailable($username)) {
+        if (!UserRepository::getInstance()->isUsernameAvailable($username)) {
             throw new \UnexpectedValueException('username already used', 1614368197);
         }
         $this->setData('username', $username);
@@ -285,12 +214,13 @@ class Mitglied
      * Setzt die E-Mail-Adresse.
      *
      * @param string $email
-     * @throws \RuntimeException falls schon ein anderes Mitglied diese Adresse verwendet.
+     * @throws \RuntimeException falls schon ein anderes User diese Adresse verwendet.
      * @return void
      */
     public function setEmail(string $email): void
     {
-        $id = self::getIdByEmail($email);
+        $id = UserRepository::getInstance()->getIdByEmail($email);
+
         if ($id !== null && $id !== $this->get('id')) {
             throw new \RuntimeException('Doppelte Verwendung der E-Mail-Adresse ' . $email, 1494003025);
         }
@@ -304,7 +234,7 @@ class Mitglied
      * @var null|string|int|DateTime $dateTime string (für strtotime), int (Timestamp) oder DateTime
      * @throws \TypeError wenn $dateTime einen nicht unterstützten Datentyp hat
      */
-    private function makeDateTime($dateTime): ?\DateTime
+    private function makeDateTime(null|string|int|DateTime $dateTime): DateTimeInterface
     {
         $type = gettype($dateTime);
         if ($type === 'NULL') {
@@ -313,42 +243,17 @@ class Mitglied
             if ($dateTime === 0) {
                 return null;
             }
-            return new \DateTime('@' . $dateTime);
+            return new DateTime('@' . $dateTime); // TODO DateTimeImmutable
         } elseif ($type === 'string') {
             if ($dateTime === '') {
                 return null;
             }
-            return new \DateTime($dateTime);
+            return new DateTime($dateTime); // TODO DateTimeImmutable
         } elseif ($type === 'object' && get_class($dateTime) === 'DateTime') {
             return $dateTime;
         } else {
             throw new \TypeError("Value is expected to be DateTime, null, string or integer. $type given.", 1494775564);
         }
-    }
-
-    /**
-     * Gibt eine User-ID zu einer E-Mail-Adresse zurück.
-     * Durchsucht *nur* die aktuellen Adressen, nicht die noch zu setzenden.
-     */
-    public static function getIdByEmail(string $email): ?int
-    {
-        $entry = Ldap::getInstance()->getEntryByEmail($email);
-        if (!$entry) {
-            return null;
-        }
-        return (int)$entry->getAttribute('uid')[0];
-    }
-
-    /**
-     * Gibt eine User-ID zu einem Benutzernamen zurück.
-     */
-    public static function getIdByUsername(string $username): ?int
-    {
-        $id = Db::getInstance()->query('SELECT id FROM mitglieder WHERE username=:username', ['username' => $username])->get();
-        if ($id === null) {
-            return null;
-        }
-        return (int)$id;
     }
 
     public function isMemberOfGroup(string $groupName): bool
@@ -370,103 +275,38 @@ class Mitglied
         $ldap = Ldap::getInstance();
         $username = $this->get('username');
 
-        $changed = false;
         $groupNames = array_map('strtolower', $groupNames);
         $oldGroupNames = array_map('strtolower', $this->getGroups());
 
         foreach(array_diff($oldGroupNames, $groupNames) as $groupName) {
             $ldap->removeUserFromGroup($username, $groupName);
-            $changed = true;
         }
 
         foreach(array_diff($groupNames, $oldGroupNames) as $groupName) {
-            $changed = true;
             $ldap->addUserToGroup($username, $groupName);
         }
     }
 
-    /**
-     * Remove user data
-     *
-     * @throws \RuntimeException if the user is a privileged user (cannot be deleted) or if there is a problem with sending mails
-     * @return void
-     */
-    public function delete(): void
+    public function deleteResources(): void
     {
-        if ($this->isMemberOfGroup('rechte')) {
-            throw new \RuntimeException('Ein Benutzer mit den Rechten zur Rechteverwaltung darf nicht gelöscht werden.', 1637336416);
-        }
-
         // Profilbild-Datei löschen
         if ($this->get('profilbild') && is_file('profilbilder/' . $this->get('profilbild'))) {
             unlink('profilbilder/' . $this->get('profilbild'));
             unlink('profilbilder/thumbnail-' . $this->get('profilbild'));
         }
 
-        // delete LDAP entry (will also delete memberships in groups)
-        Ldap::getInstance()->deleteUser($this->get('username'));
         $this->ldapEntry = null;
-
-        $db = Db::getInstance();
-        $db->query('INSERT INTO deleted_usernames SET id = :id, username = :username', [
-            'id' => $this->get('id'),
-            'username' => $this->get('username')
-        ]);
-        $db->query('DELETE FROM mitglieder WHERE id = :id', ['id' => $this->get('id')]);
-
         $this->deleted = true;
     }
 
-    /**
-     * Speichert den Benutzer in der Datenbank
-     *
-     * @return void
-     */
-    public function save()
+    public function isDeleted(): bool
     {
-        if ($this->deleted) {
-            throw new \LogicException('user deleted', 1612567531);
-        }
+        return $this->deleted;
+    }
 
-        $ldapData = [
-            'firstname' => $this->get('vorname'),
-            'lastname' => $this->get('nachname'),
-            'email' => $this->get('email'),
-        ];
-
-        // Query bauen
-        $values = [];
-        foreach (array_keys(self::felder) as $feld) {
-            if (in_array($feld, ['id'], true)) {
-                continue;
-            }
-
-            $value = $this->data[$feld];
-
-            if ($feld === 'password' && $this->passwordChanged) {
-                $ldapData['password'] = $value;
-                $value = 'in ldap';
-            }
-
-            $values[$feld] = $value;
-        }
-
-        $setQuery = implode(', ', array_map(function($i) {
-            return "$i = :$i";
-        }, array_keys($values)));
-
-        // neuen Benutzer anlegen
-        if ($this->data['id'] === null) {
-            $id = (int) Db::getInstance()->query("INSERT INTO mitglieder SET $setQuery", $values)->getInsertId();
-            $this->setData('id', $id);
-
-            $ldapData['id'] = $this->get('id');
-            $this->ldapEntry = Ldap::getInstance()->addUser($this->get('username'), $ldapData);
-        } else {
-            $values['id'] = (int)$this->get('id');
-            Db::getInstance()->query("UPDATE mitglieder SET $setQuery WHERE id=:id", $values);
-            Ldap::getInstance()->modifyUser($this->get('username'), $ldapData);
-        }
+    public function hasPasswordChanged(): bool
+    {
+        return $this->passwordChanged;
     }
 
     /**
