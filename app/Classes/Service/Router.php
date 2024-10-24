@@ -9,6 +9,7 @@ use App\Controller\Exception\InvalidRouteException;
 use App\Controller\Exception\InvalidUserDataException;
 use App\Controller\Exception\NotFoundException;
 use App\Controller\Exception\NotLoggedInException;
+use App\Service\Attribute\Route;
 use Exception;
 use InvalidArgumentException;
 use ReflectionMethod;
@@ -22,9 +23,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 
 /**
- * Verwaltet die Session
+ * Router
  */
 class Router {
+    const ROUTES_CACHE_FILE = '/tmp/routes.cache.php';
     /**
      * contains the routes
      * [matcher  => [HTTP method, path regex, query info, Controller class, function name]]
@@ -45,8 +47,10 @@ class Router {
 
     private Request $request;
 
-    public function __construct()
+    public function __construct(string $controllerDir)
     {
+        $this->loadRoutesFromCache($controllerDir);
+
         $this->addType('string', fn($v) => $v);
         $this->addType('int', fn($v) => intval($v));
         $this->addType('bool', fn($v) => boolval($v));
@@ -54,6 +58,81 @@ class Router {
 
         $this->addType(ParameterBag::class, fn() => $this->request->getPayload());
         $this->addType(Request::class, fn() => $this->request);
+    }
+
+    private function loadRoutesFromCache(string $controllerDir): void
+    {
+        $files = $this->collectControllerFiles($controllerDir);
+
+        if (!is_file(self::ROUTES_CACHE_FILE) || max($files) >= filemtime(self::ROUTES_CACHE_FILE)) {
+            $this->buildRoutesCache(array_keys($files));
+        } else {
+            $this->routes = include(self::ROUTES_CACHE_FILE);
+        }
+    }
+
+    /**
+     * @return array [filename => modified time]
+     */
+    private function collectControllerFiles(string $directory): array
+    {
+        $dir = dir($directory);
+        $files = [];
+        while (false !== ($file = $dir->read())) {
+            if ($file[0] === '.') {
+                continue;
+            }
+            $path = $directory . DIRECTORY_SEPARATOR . $file;
+            if (is_dir($path)) {
+                $files = [...$files, ...$this->collectControllerFiles($path)];
+            } else {
+                $files[$path] = filemtime($path);
+            }
+        }
+        $dir->close();
+        return $files;
+    }
+
+    private function getClassFromFile(string $file): string
+    {
+        $namespace = '';
+        $tokens = token_get_all(file_get_contents($file));
+
+        foreach ($tokens as $i => $token) {
+            if ($token[0] === T_NAMESPACE) {
+                $namespace = $tokens[$i+2][1];
+            } elseif ($token[0] === T_CLASS) {
+                $class = $tokens[$i+2][1];
+                return $namespace ? "$namespace\\$class" : $class;
+            }
+        }
+    }
+
+    private function buildRoutesCache(array $controllerFiles): void
+    {
+        $this->routes = [];
+        $classes = array_map(fn($file) => $this->getClassFromFile($file), $controllerFiles);
+
+        foreach ($classes as $classname) {
+            $class = new \ReflectionClass($classname);
+            foreach ($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+                $routes = $method->getAttributes(Route::class);
+                foreach ($routes as $route) {
+                    $matcher = $route->newInstance()->matcher;
+                    $this->add($matcher, $classname, $method->name);
+                }
+            }
+        }
+
+        $this->sortRoutes();
+        $this->cacheRoutes();
+    }
+
+    private function cacheRoutes(): void
+    {
+        $fp = fopen(self::ROUTES_CACHE_FILE, 'w');
+        fwrite($fp, '<?php return ' . var_export(($this->routes), true) . ';');
+        fclose($fp);
     }
 
     /**
@@ -116,9 +195,9 @@ class Router {
     }
 
     private function sortRoutes(): void {
-        // sort by query info length DESC, preserve pre-order
+        // sort by controller name, query info length DESC, preserve pre-order
         uasort($this->routes, function (array $a, array $b) {
-            return count($b[2]) <=> count($a[2]);
+            return $a[3] <=> $b[3] ?: count($b[2]) <=> count($a[2]);
         });
     }
 
@@ -131,7 +210,6 @@ class Router {
     }
 
     public function dispatch(Request $request): Response {
-        $this->sortRoutes();
         $this->request = $request;
 
         try {
@@ -198,7 +276,7 @@ class Router {
         }
         // TODO: default retriever ($type.'Repository'::getInstance()->{'findBy'.$identifierName})
 
-        throw new InvalidArgumentException('no retriever found for model ' . $type . ' identified by ' . $identifier);
+        throw new InvalidArgumentException('no retriever found for model ' . $type . ($identifier ? (' identified by $' . $identifierName) : ''));
     }
 
     private function getService(string $className): object {
@@ -222,6 +300,8 @@ class Router {
         $args = [];
         foreach ($method->getParameters() as $parameter) {
             $type = (string)$parameter->getType();
+
+            // inject parameters from path and query string
             if (isset($matches[$parameter->getName()])) {
                 [$identifierName, $match] = $matches[$parameter->getName()];
                 $retriever = $this->getModelRetriever($type, $identifierName);
@@ -231,8 +311,10 @@ class Router {
                 }
                 $args[] = $arg;
                 continue;
+            // inject services (or throw InvalidArgumentException)
+            } else {
+                $args[] = $this->getService($type);
             }
-            $args[] = $this->getService($type);
         }
         return $args;
     }

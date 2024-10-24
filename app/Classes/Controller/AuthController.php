@@ -6,16 +6,19 @@ namespace App\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use App\Controller\Exception\InvalidUserDataException;
 use App\Mitglied;
+use App\Service\Attribute\Route;
 use App\Service\AuthService;
 use App\Service\Db;
 use App\Service\Tpl;
 use \Hengeb\Token\Token;
 
 class AuthController extends Controller {
+    #[Route('GET /login')]
     public function loginForm(): Response {
         return $this->render('AuthController/login', ['redirectUrl' => $this->request->getPathInfo()]);
     }
 
+    #[Route('POST /login')]
     public function loginSubmitted(): Response {
         $input = $this->validatePayload([
             'id' => 'required string',
@@ -50,6 +53,7 @@ class AuthController extends Controller {
         return $this->redirect($redirectUrl);
     }
 
+    #[Route('GET /logout')]
     public function logout(): Response {
         AuthService::logOut();
         return $this->render('AuthController/logout');
@@ -94,11 +98,13 @@ class AuthController extends Controller {
         return $user;
     }
 
+    #[Route('GET /lost-password?token={token}')]
     public function resetPasswordForm(string $token): Response {
         $user = $this->validatePasswordToken($token);
         return $this->render('AuthController/lost-password');
     }
 
+    #[Route('POST /lost-password?token={token}')]
     public function resetPassword(string $token): Response {
         $user = $this->validatePasswordToken($token);
 

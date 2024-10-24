@@ -8,13 +8,13 @@ use App\Controller\Exception\AccessDeniedException;
 use App\Controller\Exception\InvalidUserDataException;
 use App\Controller\Exception\NotFoundException;
 use App\Mitglied;
+use App\Service\Attribute\Route;
 use App\Service\AuthService;
 use App\Service\EmailService;
 use App\Service\ImageResizer;
 use App\Service\Ldap;
 use App\Service\Tpl;
 use Hengeb\Token\Token;
-use Symfony\Component\HttpFoundation\ParameterBag;
 
 class UserController extends Controller {
     // Maximale Größe von Profilbildern
@@ -32,14 +32,16 @@ class UserController extends Controller {
     // Liste der von der Mitgliederverwaltung änderbaren Strings
     const bearbeiten_strings_admin = ['vorname', 'nachname'];
 
-    public static function retrieve(string $identifier): Mitglied {
-        if ($identifier === '_') {
-            $id = AuthService::getUID();
-        } elseif (ctype_digit($identifier)) {
-            $id = intval($identifier);
-        } else {
-            $id = Mitglied::getIdByUsername($identifier);
+    public static function retrieveById(string $id): Mitglied {
+        $m = Mitglied::lade(intval($id));
+        if (!$m) {
+            throw new NotFoundException('Ein Mitglied mit dieser Nummer existiert nicht.');;
         }
+        return $m;
+    }
+
+    public static function retrieveByUsername(string $username): Mitglied {
+        $id = ($username === '_') ? AuthService::getUID() : Mitglied::getIdByUsername($username);
         $m = $id ? Mitglied::lade($id) : null;
         if (!$m) {
             throw new NotFoundException('Ein Mitglied mit dieser Nummer existiert nicht.');;
@@ -47,10 +49,13 @@ class UserController extends Controller {
         return $m;
     }
 
+    #[Route('GET /user')]
     public function showSelf(): Response {
         return $this->redirect('/user/_');
     }
 
+    #[Route('GET /user/{\d+:id=>m}')]
+    #[Route('GET /user/{username=>m}')]
     public function show(Mitglied $m): Response {
         $this->requireLogin();
         $db_modified = $m->get('db_modified');
@@ -109,6 +114,7 @@ class UserController extends Controller {
         }
     }
 
+    #[Route('GET /user/{username=>m}/edit')]
     public function edit(Mitglied $m): Response {
         $this->requirePermission($m);
 
@@ -349,6 +355,7 @@ class UserController extends Controller {
         return $this->showMessage("Die Daten wurden aus der Mitgliederdatenbank gelöscht.");
     }
 
+    #[Route('POST /user/{username=>m}/update')]
     public function update(Mitglied $m): Response {
         $this->requirePermission($m);
 
@@ -422,6 +429,7 @@ class UserController extends Controller {
         $this->setTemplateVariable('email_changed', true);
     }
 
+    #[Route('GET /email_auth?token={token}')]
     public function emailAuth(string $token): Response {
         try {
             Token::decode($token, function ($data) use (&$m, &$email) {

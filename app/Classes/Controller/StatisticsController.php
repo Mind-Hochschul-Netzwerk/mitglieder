@@ -10,6 +10,7 @@ namespace App\Controller;
 use App\Service\Ldap;
 use App\Service\Db;
 use App\Mitglied;
+use App\Service\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 class StatisticsController extends Controller {
@@ -21,6 +22,7 @@ class StatisticsController extends Controller {
         $this->invalidEmailsList = Ldap::getInstance()->getInvalidEmailsList();
     }
 
+    #[Route('GET /statistics/invalidEmails')]
     public function showInvalidEmails(): Response
     {
         $users = [];
@@ -45,6 +47,7 @@ class StatisticsController extends Controller {
         ]);
     }
 
+    #[Route('GET /statistics')]
     public function show(Db $db): Response
     {
         return $this->render('StatisticsController/main', [

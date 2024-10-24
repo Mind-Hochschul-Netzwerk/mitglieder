@@ -8,6 +8,7 @@ namespace App\Controller;
 
 use App\Controller\Exception\InvalidUserDataException;
 use App\Mitglied;
+use App\Service\Attribute\Route;
 use App\Service\AuthService;
 use App\Service\Ldap;
 use App\Service\Tpl;
@@ -80,21 +81,14 @@ class AufnahmeController extends Controller
     private $password = '';
     private $readyToSave = true;
 
-    private  function prepare(string $token): void
-    {
-        $this->token = $token;
-        $this->setTemplateVariable('token', $this->token);
-
-        $this->requestData();
-        $this->checkEmailUsed();
-    }
-
+    #[Route('GET /aufnahme?token={token}')]
     public function show(string $token): Response
     {
         $this->prepare($token);
         return $this->showForm();
     }
 
+    #[Route('POST /aufnahme?token={token}')]
     public function submit(string $token): Response {
         $this->prepare($token);
         $this->checkEnteredUsername();
@@ -104,6 +98,15 @@ class AufnahmeController extends Controller
             return $this->redirect('/user/_/edit/?tab=profilbild');
         }
         return $this->showForm();
+    }
+
+    private  function prepare(string $token): void
+    {
+        $this->token = $token;
+        $this->setTemplateVariable('token', $this->token);
+
+        $this->requestData();
+        $this->checkEmailUsed();
     }
 
     private function requestData(): void

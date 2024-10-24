@@ -7,11 +7,13 @@
 declare(strict_types=1);
 namespace App\Controller;
 
+use App\Service\Attribute\Route;
 use App\Service\AuthService;
 use App\Service\Ldap;
 use Symfony\Component\HttpFoundation\Response;
 
 class AdminController extends Controller {
+    #[Route('GET /admin')]
     public function show(): Response {
         $this->requireRole('mvedit');
 

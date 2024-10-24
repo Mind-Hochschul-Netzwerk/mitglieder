@@ -5,6 +5,7 @@ namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
 use App\Mitglied;
+use App\Service\Attribute\Route;
 use App\Service\Db;
 use App\Service\PasswordService;
 
@@ -14,6 +15,8 @@ class SearchController extends Controller {
         $this->requireLogin();
     }
 
+    #[Route('GET /')]
+    #[Route('GET /search')]
     public function form(): Response {
         return $this->render('SearchController/search');
     }
@@ -23,6 +26,8 @@ class SearchController extends Controller {
     // Felder, bei denen nur nach Übereinstimmung statt nach Substring gesucht wird (müssen auch in felder aufgeführt sein)
     const felder_eq = ['id', 'mensa_nr', 'plz', 'plz2'];
 
+    #[Route('GET /?q={query}')]
+    #[Route('GET /search?q={query}')]
     public function search(string $query): Response {
         // TODO filter einbauen über beschaeftigung, auskunft_* und für mvread für aufgabe_*
         $this->setTemplateVariable('query', $query);
@@ -76,6 +81,7 @@ class SearchController extends Controller {
         return $this->showResults($ids);
     }
 
+    #[Route('GET /search/resigned')]
     public function showResigned(): Response {
         $this->requireRole('mvread');
         $this->setTemplateVariable('query', ' '); // show the "search results" title even if the list is empty
