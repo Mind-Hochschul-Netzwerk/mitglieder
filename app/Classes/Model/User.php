@@ -10,9 +10,7 @@ use App\Repository\UserRepository;
 use DateTime;
 use App\Service\EmailService;
 use App\Service\Ldap;
-use App\Service\Db;
 use App\Service\Tpl;
-use DateTimeImmutable;
 use DateTimeInterface;
 
 /**
@@ -261,6 +259,19 @@ class User extends Model
         return Ldap::getInstance()->isUserMemberOfGroup($this->get('username'), $groupName);
     }
 
+    public function hasRole(string $roleName): bool
+    {
+        if ($roleName === 'user') {
+            return true;
+        } elseif ($roleName === 'mvread' && $this->hasRole('mvedit')) {
+            return true;
+        } elseif ($roleName === 'mvedit' && $this->hasRole('rechte')) {
+            return true;
+        } else {
+            return $this->isMemberOfGroup($roleName);
+        }
+    }
+
     public function getGroups(): array
     {
         return Ldap::getInstance()->getGroupsByUsername($this->get('username'));
@@ -320,5 +331,14 @@ class User extends Model
         if (!(EmailService::getInstance()->send($this->get('email'), $subject, $body))) {
             throw new \RuntimeException('Beim Versand der E-Mail an ' . $this->get('email') . ' (ID ' . $this->data['id'] . ') ist ein Fehler aufgetreten.', 1522422201);
         }
+    }
+
+    public function checkPassword(string $password): bool
+    {
+        if (!$password) {
+            return false;
+        }
+
+        return Ldap::getInstance()->checkPassword($this->get('username'), $password);
     }
 }

@@ -1,13 +1,11 @@
 <?php
 
-use App\Service\AuthService;
-
-if (AuthService::istEingeloggt()) {
+if ($currentUser->isLoggedIn()) {
     $navItems = [
         'suche' => ['/', 'Mitgliedersuche', 'search'],
         'bearbeiten' => ['/user/_/edit', 'Meine Daten', 'user'],
-        'statistics' => AuthService::hatRecht('mvread') ? ['/statistics', 'Statistik', 'stats'] : null,
-        'admin' => AuthService::hatRecht('mvedit') ? ['/admin', 'Mitgliederverwaltung', 'wrench'] : null,
+        'statistics' => $currentUser->hasRole('mvread') ? ['/statistics', 'Statistik', 'stats'] : null,
+        'admin' => $currentUser->hasRole('mvedit') ? ['/admin', 'Mitgliederverwaltung', 'wrench'] : null,
         'logout' => ['/logout', 'Logout', 'log-out'],
         'homepage' => ['https://www.' . getenv('DOMAINNAME'), 'MHN-Webseite', 'home'],
         'datenschutz' => ['https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=4', 'Datenschutz', 'paragraph'],

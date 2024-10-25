@@ -7,18 +7,18 @@
 declare(strict_types=1);
 namespace App\Controller;
 
-use App\Service\Attribute\Route;
-use App\Service\AuthService;
+use App\Router\Attribute\Route;
+use App\Service\CurrentUser;
 use App\Service\Ldap;
 use Symfony\Component\HttpFoundation\Response;
 
 class AdminController extends Controller {
     #[Route('GET /admin')]
-    public function show(Ldap $ldap): Response {
+    public function show(Ldap $ldap, CurrentUser $user): Response {
         $this->requireRole('mvedit');
 
         $groups = [];
-        if (AuthService::hatRecht('rechte')) {
+        if ($user->hasRole('rechte')) {
             $groups = $ldap->getAllGroups($skipMembersOfGroups = ['alleMitglieder', 'listen']);
             usort($groups, function ($a, $b) {
                 return strnatcasecmp($a['name'], $b['name']);

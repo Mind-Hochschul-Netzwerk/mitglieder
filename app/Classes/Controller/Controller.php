@@ -3,31 +3,29 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Controller\Exception\AccessDeniedException;
-use App\Controller\Exception\InvalidUserDataException;
-use App\Controller\Exception\NotLoggedInException;
-use App\Service\AuthService;
+use App\Router\Exception\AccessDeniedException;
+use App\Router\Exception\InvalidUserDataException;
+use App\Router\Exception\NotLoggedInException;
+use App\Service\CurrentUser;
 use App\Service\Tpl;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class Controller {
-    protected Request $request;
-
-    public function __construct(Request $request) {
-        $this->request = $request;
+    public function __construct(protected Request $request)
+    {
     }
 
     protected function requireLogin(): void {
-        if (!AuthService::istEingeloggt()) {
+        if (!CurrentUser::getInstance()->isLoggedIn()) {
             throw new NotLoggedInException();
         }
     }
 
     protected function requireRole(string $role): void {
         $this->requireLogin();
-        if (!AuthService::hatRecht($role)) {
+        if (!CurrentUser::getInstance()->hasRole($role)) {
             throw new AccessDeniedException('Fehlendes Recht: ' . $role);
         }
     }

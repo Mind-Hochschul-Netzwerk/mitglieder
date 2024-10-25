@@ -5,12 +5,13 @@ namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
 use App\Repository\UserRepository;
-use App\Service\Attribute\Route;
+use App\Router\Attribute\Route;
 use App\Service\Db;
 use App\Service\PasswordService;
+use Symfony\Component\HttpFoundation\Request;
 
 class SearchController extends Controller {
-    public function __construct() {
+    public function __construct(protected Request $request) {
         // TODO: als Attribut der Klasse
         $this->requireLogin();
     }

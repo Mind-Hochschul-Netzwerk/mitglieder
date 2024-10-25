@@ -4,18 +4,19 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
-use App\Controller\Exception\AccessDeniedException;
-use App\Controller\Exception\InvalidUserDataException;
-use App\Controller\Exception\NotFoundException;
 use App\Model\User;
 use App\Repository\UserRepository;
-use App\Service\Attribute\Route;
-use App\Service\AuthService;
+use App\Router\Attribute\Route;
+use App\Router\Exception\AccessDeniedException;
+use App\Router\Exception\InvalidUserDataException;
+use App\Router\Exception\NotFoundException;
+use App\Service\CurrentUser;
 use App\Service\EmailService;
 use App\Service\ImageResizer;
 use App\Service\Ldap;
 use App\Service\Tpl;
 use Hengeb\Token\Token;
+use Symfony\Component\HttpFoundation\Request;
 
 class UserController extends Controller {
     // Maximale Größe von Profilbildern
@@ -42,12 +43,19 @@ class UserController extends Controller {
     }
 
     public static function retrieveByUsername(string $username): User {
-        $id = ($username === '_') ? AuthService::getUID() : UserRepository::getInstance()->getIdByUsername($username);
+        $id = ($username === '_') ? CurrentUser::getInstance()->get('id') : UserRepository::getInstance()->getIdByUsername($username);
         $user = $id ? UserRepository::getInstance()->findOneById($id) : null;
         if (!$user) {
             throw new NotFoundException('Ein Mitglied mit dieser Nummer existiert nicht.');;
         }
         return $user;
+    }
+
+    public function __construct(
+        protected Request $request,
+        private CurrentUser $currentUser
+    )
+    {
     }
 
     #[Route('GET /user')]
@@ -60,7 +68,7 @@ class UserController extends Controller {
     public function show(User $user): Response {
         $this->requireLogin();
         $db_modified = $user->get('db_modified');
-        $isAdmin = AuthService::hatRecht('mvread');
+        $isAdmin = $this->currentUser->hasRole('mvread');
 
         $templateVars = [
             'htmlTitle' => $user->get('fullName'),
@@ -70,7 +78,7 @@ class UserController extends Controller {
         if ($db_modified) {
             $templateVars['title'] .= ' <small>Stand: '. $user->get('db_modified')->format('d.m.Y') . '</small>';
         }
-        if (AuthService::ist($user->get('id')) || AuthService::hatRecht('mvedit')) {
+        if ($this->currentUser->get('id') === $user->get('id') || $this->currentUser->hasRole('mvedit')) {
             $templateVars['title'] .= ' <small><a href="' . $user->get('bearbeitenUrl') . '"><span class="glyphicon glyphicon-pencil"></span> Daten bearbeiten</a></small>';
         }
 
@@ -110,7 +118,7 @@ class UserController extends Controller {
 
     private function requirePermission(User $user): void {
         $this->requireLogin();
-        if (!AuthService::hatRecht('mvedit') && !AuthService::ist($user->get('id'))) {
+        if (!$this->currentUser->hasRole('mvedit') && $this->currentUser->get('id') !==  $user->get('id')) {
             throw new AccessDeniedException();
         }
     }
@@ -126,7 +134,7 @@ class UserController extends Controller {
             $templateVars['active_pane'] = $tab;
         }
 
-        if (!AuthService::ist($user->get('id')) && !AuthService::hatRecht('mvedit')) {
+        if ($this->currentUser->get('id') !==  $user->get('id') && !$this->currentUser->hasRole('mvedit')) {
             throw new AccessDeniedException();
         }
 
@@ -138,9 +146,9 @@ class UserController extends Controller {
             'dateOfJoining' => $user->get('dateOfJoining'),
             'groups' => $user->getGroups(),
             'db_modified_user' => UserRepository::getInstance()->findOneById((int)$user->get('db_modified_user_id')),
-            'isAdmin' => AuthService::hatRecht('mvedit'),
-            'isSuperAdmin' => AuthService::hatRecht('rechte'),
-            'isSelf' => AuthService::ist($user->get('id')),
+            'isAdmin' => $this->currentUser->hasRole('mvedit'),
+            'isSuperAdmin' => $this->currentUser->hasRole('rechte'),
+            'isSelf' => $this->currentUser->get('id') ===  $user->get('id'),
         ];
 
         return $this->render('UserController/bearbeiten', $templateVars);
@@ -152,7 +160,7 @@ class UserController extends Controller {
             'new_password2' => 'string untrimmed',
             'password' => 'string untrimmed',
         ]);
-        if ($input['new_password'] && !$input['new_password2'] && !$input['password'] && AuthService::checkPassword($input['new_password'], $user->get('id'))) {
+        if ($input['new_password'] && !$input['new_password2'] && !$input['password'] && $this->currentUser->checkPassword($input['new_password'])) {
             // nichts tun. Der Passwort-Manager des Users hat das Passwort eingefügt und autocomplete=new-password ignoriert
             return;
         }
@@ -165,9 +173,9 @@ class UserController extends Controller {
             $this->setTemplateVariable('new_password2_error', true);
         } else {
             // Admins dürfen Passwörter ohne Angabe des eigenen Passworts ändern, außer das eigene
-            if (AuthService::hatRecht('mvedit') && !AuthService::ist($user->get('id'))) {
+            if ($this->currentUser->hasRole('mvedit') && $this->currentUser->get('id') !==  $user->get('id')) {
                 $user->set('password', $input['new_password']);
-            } elseif (AuthService::checkPassword($_REQUEST['password'])) {
+            } elseif ($this->currentUser->checkPassword($_REQUEST['password'])) {
                 $user->set('password', $input['new_password']);
             } else {
                 $this->setTemplateVariable('old_password_error', true);
@@ -187,7 +195,7 @@ class UserController extends Controller {
             return;
         }
 
-        if (AuthService::hatRecht('mvedit')) {
+        if ($this->currentUser->hasRole('mvedit')) {
             $this->storeEmail($user, $email);
         } else {
             $this->setTemplateVariable('email_auth_info', true);
@@ -266,7 +274,7 @@ class UserController extends Controller {
         $input = $this->validatePayload(['groups' => 'string']);
         $groups = array_filter(array_unique(preg_split('/[\s,]+/', $input['groups'])));
 
-        if (AuthService::ist($user->get('id')) && (!in_array('rechte', $groups, true))) {
+        if ($this->currentUser->get('id') ===  $user->get('id') && (!in_array('rechte', $groups, true))) {
             throw new AccessDeniedException('Du kannst dir das Recht zur Rechtverwaltung nicht selbst entziehen.');
         }
 
@@ -280,7 +288,7 @@ class UserController extends Controller {
     private function handleResign(User $user) {
         $password = $this->request->getPayload()->getString('resignPassword');
         if ($password) {
-            if (!AuthService::checkPassword($password)) {
+            if (!$this->currentUser->checkPassword($password)) {
                 $this->setTemplateVariable('errorMessage', 'Das eingegebene Passwort ist nicht korrekt.');
             } else {
                 $user->set('resignation', 'now');
@@ -296,14 +304,14 @@ class UserController extends Controller {
                 ]);
                 $user->sendEmail('Bestätigung deiner Austrittserklärung', $text);
             }
-        } elseif (AuthService::hatRecht('mvedit')) {
+        } elseif ($this->currentUser->hasRole('mvedit')) {
             $resignOld = $user->get('resignation') !== null;
             $resignNew = $this->request->getPayload()->getBoolean('resign');
             if ($resignOld && !$resignNew) {
                 $user->set('resignation', null);
             } elseif (!$resignOld && $resignNew) {
                 $user->set('resignation', 'now');
-                $admin = UserRepository::getInstance()->findOneById(AuthService::getUID());
+                $admin = UserRepository::getInstance()->findOneById(Cs::getInstance()->currentUser->get('id'));
                 $text = Tpl::getInstance()->render('mails/resignation', [
                     'adminFullName' => $admin->get('fullName'),
                     'fullName' => $user->get('fullName'),
@@ -321,13 +329,13 @@ class UserController extends Controller {
     }
 
     private function delete(User $user): Response {
-        if (AuthService::ist($user->get('id'))) {
+        if ($this->currentUser->get('id') ===  $user->get('id')) {
             throw new AccessDeniedException('Du kannst dich nicht selbst löschen!');
         }
 
         UserRepository::getInstance()->delete($user);
 
-        $admin = UserRepository::getInstance()->findOneById(AuthService::getUID());
+        $admin = UserRepository::getInstance()->findOneById(Cs::getInstance()->currentUser->get('id'));
 
         $mailText = Tpl::getInstance()->render('mails/MvEdit-Info-Mitglied-Geloescht', [
             'adminName' => $admin->get('fullName'),
@@ -384,7 +392,7 @@ class UserController extends Controller {
         }
 
         // nur für die Mitgliederverwaltung
-        if (AuthService::hatRecht('mvedit')) {
+        if ($this->currentUser->hasRole('mvedit')) {
             $this->updateAdmin($user);
 
             if ($this->request->getPayload()->getBoolean('delete')) {
@@ -393,7 +401,7 @@ class UserController extends Controller {
         }
 
         // Gruppen aktualisieren
-        if (AuthService::hatRecht('rechte')) {
+        if ($this->currentUser->hasRole('rechte')) {
             $this->updateGroups($user);
         }
 
@@ -402,7 +410,7 @@ class UserController extends Controller {
 
         // Speichern
         $user->set('db_modified', 'now');
-        $user->set('db_modified_user_id', AuthService::getUID());
+        $user->set('db_modified_user_id', CurrentUser::getInstance()->get('id'));
         $this->setTemplateVariable('data_saved_info', true);
         UserRepository::getInstance()->save($user);
 
@@ -445,7 +453,7 @@ class UserController extends Controller {
             throw new InvalidUserDataException('Der Link ist abgelaufen oder ungültig.');
         }
 
-        AuthService::login($user->get('id'));
+        $this->currentUser->logIn($user);
 
         $this->storeEmail($user, $email);
 

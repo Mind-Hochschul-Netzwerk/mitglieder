@@ -10,13 +10,15 @@ namespace App\Controller;
 use App\Service\Ldap;
 use App\Service\Db;
 use App\Repository\UserRepository;
-use App\Service\Attribute\Route;
+use App\Router\Attribute\Route;
+use App\Service\CurrentUser;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class StatisticsController extends Controller {
     private array $invalidEmailsList;
 
-    public function __construct()
+    public function __construct(protected Request $request)
     {
         $this->requireRole('mvread');
         $this->invalidEmailsList = Ldap::getInstance()->getInvalidEmailsList();

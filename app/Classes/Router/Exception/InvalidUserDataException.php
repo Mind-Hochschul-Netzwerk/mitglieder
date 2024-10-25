@@ -1,5 +1,5 @@
 <?php
 
-namespace App\Controller\Exception;
+namespace App\Router\Exception;
 
 class InvalidUserDataException extends \Exception {}

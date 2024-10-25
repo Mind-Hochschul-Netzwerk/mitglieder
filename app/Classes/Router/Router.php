@@ -1,21 +1,22 @@
 <?php
 declare(strict_types=1);
-namespace App\Service;
+namespace App\Router;
 
 use App\Controller\AuthController;
 use App\Controller\Controller;
-use App\Controller\Exception\AccessDeniedException;
-use App\Controller\Exception\InvalidRouteException;
-use App\Controller\Exception\InvalidUserDataException;
-use App\Controller\Exception\NotFoundException;
-use App\Controller\Exception\NotLoggedInException;
-use App\Service\Attribute\Route;
+use App\Router\Exception\AccessDeniedException;
+use App\Router\Exception\InvalidRouteException;
+use App\Router\Exception\InvalidUserDataException;
+use App\Router\Exception\NotFoundException;
+use App\Router\Exception\NotLoggedInException;
+use App\Service\CurrentUser;
 use Exception;
 use InvalidArgumentException;
 use ReflectionMethod;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 /**
  * @author Henrik Gebauer <mensa@henrik-gebauer.de>
@@ -27,11 +28,6 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class Router {
     const ROUTES_CACHE_FILE = '/tmp/routes.cache.php';
-    /**
-     * contains the routes
-     * [matcher  => [HTTP method, path regex, query info, Controller class, function name]]
-     */
-    private array $routes = [];
 
     /**
      * known types for dependency injection
@@ -47,92 +43,19 @@ class Router {
 
     private Request $request;
 
+    private RouteMap $routeMap;
+
     public function __construct(string $controllerDir)
     {
-        $this->loadRoutesFromCache($controllerDir);
+        $this->routeMap = new RouteMap($controllerDir);
 
         $this->addType('string', fn($v) => $v);
-        $this->addType('int', fn($v) => intval($v));
-        $this->addType('bool', fn($v) => boolval($v));
-        $this->addType('float', fn($v) => floatval($v));
+        $this->addType('int', 'intval');
+        $this->addType('bool', 'boolval');
+        $this->addType('float', 'floatval');
 
-        $this->addType(ParameterBag::class, fn() => $this->request->getPayload());
-        $this->addType(Request::class, fn() => $this->request);
-    }
-
-    private function loadRoutesFromCache(string $controllerDir): void
-    {
-        $files = $this->collectControllerFiles($controllerDir);
-
-        if (!is_file(self::ROUTES_CACHE_FILE) || max($files) >= filemtime(self::ROUTES_CACHE_FILE)) {
-            $this->buildRoutesCache(array_keys($files));
-        } else {
-            $this->routes = include(self::ROUTES_CACHE_FILE);
-        }
-    }
-
-    /**
-     * @return array [filename => modified time]
-     */
-    private function collectControllerFiles(string $directory): array
-    {
-        $dir = dir($directory);
-        $files = [];
-        while (false !== ($file = $dir->read())) {
-            if ($file[0] === '.') {
-                continue;
-            }
-            $path = $directory . DIRECTORY_SEPARATOR . $file;
-            if (is_dir($path)) {
-                $files = [...$files, ...$this->collectControllerFiles($path)];
-            } else {
-                $files[$path] = filemtime($path);
-            }
-        }
-        $dir->close();
-        return $files;
-    }
-
-    private function getClassFromFile(string $file): string
-    {
-        $namespace = '';
-        $tokens = token_get_all(file_get_contents($file));
-
-        foreach ($tokens as $i => $token) {
-            if ($token[0] === T_NAMESPACE) {
-                $namespace = $tokens[$i+2][1];
-            } elseif ($token[0] === T_CLASS) {
-                $class = $tokens[$i+2][1];
-                return $namespace ? "$namespace\\$class" : $class;
-            }
-        }
-    }
-
-    private function buildRoutesCache(array $controllerFiles): void
-    {
-        $this->routes = [];
-        $classes = array_map(fn($file) => $this->getClassFromFile($file), $controllerFiles);
-
-        foreach ($classes as $classname) {
-            $class = new \ReflectionClass($classname);
-            foreach ($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-                $routes = $method->getAttributes(Route::class);
-                foreach ($routes as $route) {
-                    $matcher = $route->newInstance()->matcher;
-                    $this->add($matcher, $classname, $method->name);
-                }
-            }
-        }
-
-        $this->sortRoutes();
-        $this->cacheRoutes();
-    }
-
-    private function cacheRoutes(): void
-    {
-        $fp = fopen(self::ROUTES_CACHE_FILE, 'w');
-        fwrite($fp, '<?php return ' . var_export(($this->routes), true) . ';');
-        fclose($fp);
+        $this->addService(ParameterBag::class, fn() => $this->request->getPayload());
+        $this->addService(Request::class, fn() => $this->request);
     }
 
     /**
@@ -143,62 +66,7 @@ class Router {
      */
     public function add(string $matcher, string $controller, string $functionName): void
     {
-        $httpMethod = 'GET';
-        if (str_contains($matcher, ' ')) {
-            [$httpMethod, $matcher] = explode(' ', $matcher, 2);
-            $httpMethod = strtoupper($httpMethod);
-        }
-        [$pathPattern, $queryInfo] = $this->createPattern($matcher);
-        $this->routes[$httpMethod . ' ' . $matcher] = [$httpMethod, $pathPattern, $queryInfo, $controller, $functionName];
-    }
-
-    private function createPattern(string $matcher) {
-        $queryInfo = [];
-        if (str_contains($matcher, '?')) {
-            [$matcher, $queryMatcher] = explode('?', $matcher, 2);
-            $queryInfo = $this->createQueryInfo($queryMatcher);
-        }
-
-        $matcher = $this->substituteNamedParametersInMatcher($matcher);
-        $pathPattern = '(^' . preg_replace('=/+=', '/', '/' . $matcher . '/?') . '$)';
-
-        return [$pathPattern, $queryInfo];
-    }
-
-    private function substituteNamedParametersInMatcher(string $matcher): string {
-        $matcher = preg_replace('/\{([^:]+?)\}/', '(?P<$1>[^\/]*?)', $matcher);
-        $matcher = preg_replace('/\{(.+?):(.+?)\}/', '(?P<$2>$1)', $matcher);
-        $matcher = preg_replace('/\(\?P\<(.+?)=\>(.+?)\>/', '(?P<$2__$1>', $matcher);
-        return $matcher;
-    }
-
-    /**
-     * @param $queryMatcher is a query string like param1={name1}&param2={[0-9]+:name2}&param3=abc&param4={part1}-{partb}&param5
-     * @return queryInfo where keys are the parameter names and the values are regular expressions with named groups (or null if no value is expected)
-     */
-    private function createQueryInfo(string $queryMatcher): array {
-        $queryInfo = [];
-
-        $args = explode('&', $queryMatcher);
-        foreach ($args as $key_matcher) {
-            if (!str_contains($key_matcher, '=')) {
-                $queryInfo[$key_matcher] = null;
-                continue;
-            }
-            [$key, $matcher] = explode('=', $key_matcher, 2);
-            $matcher = $this->substituteNamedParametersInMatcher($matcher);
-            $pattern = '(^' . $matcher . '$)';
-            $queryInfo[$key] = $this->substituteNamedParametersInMatcher($pattern);
-        }
-
-        return $queryInfo;
-    }
-
-    private function sortRoutes(): void {
-        // sort by controller name, query info length DESC, preserve pre-order
-        uasort($this->routes, function (array $a, array $b) {
-            return $a[3] <=> $b[3] ?: count($b[2]) <=> count($a[2]);
-        });
+        $this->routeMap->add($matcher, $controller, $functionName);
     }
 
     public function addType(string $type, callable $retriever, ?string $identifierName = null): void {
@@ -212,8 +80,14 @@ class Router {
     public function dispatch(Request $request): Response {
         $this->request = $request;
 
+        if (!$this->request->hasSession()) {
+            $this->request->setSession(new Session());
+        }
+
+        CurrentUser::setRequest($this->request);
+
         try {
-            foreach ($this->routes as $matcher => [$httpMethod, $pathPattern, $queryInfo, $controller, $functionName]) {
+            foreach ($this->routeMap->getRoutes() as $matcher => [$httpMethod, $pathPattern, $queryInfo, $controller, $functionName]) {
                 if ($request->getMethod() !== $httpMethod || !preg_match($pathPattern, $request->getPathInfo(), $matches)) {
                     continue;
                 }
@@ -321,8 +195,10 @@ class Router {
     }
 
     private function call(string $class, string $functionName, array $matches): Response {
+        $constructor = new ReflectionMethod($class, '__construct');
+        $constructorArgs = $this->injectDependencies($constructor, $matches);
         $method = new ReflectionMethod($class, $functionName);
         $args = $this->injectDependencies($method, $matches);
-        return $method->invokeArgs(new $class($this->request), $args);
+        return $method->invokeArgs(new $class(...$constructorArgs), $args);
     }
 }

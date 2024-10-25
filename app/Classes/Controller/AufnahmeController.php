@@ -6,11 +6,10 @@ namespace App\Controller;
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
-use App\Controller\Exception\InvalidUserDataException;
 use App\Model\User;
 use App\Repository\UserRepository;
-use App\Service\Attribute\Route;
-use App\Service\AuthService;
+use App\Router\Attribute\Route;
+use App\Router\Exception\InvalidUserDataException;
 use App\Service\Ldap;
 use App\Service\Tpl;
 use Symfony\Component\HttpFoundation\Response;
@@ -242,7 +241,7 @@ class AufnahmeController extends Controller
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_exec($curl);
 
-        AuthService::logIn($user->get('id')); // Status neu laden
+        CurrentUser::getInstance()->logIn($user); // Status neu laden
 
         $this->sendMailToActivationTeam($user);
     }

@@ -7,7 +7,7 @@
 declare(strict_types=1);
 namespace App\Controller;
 
-use App\Service\Attribute\Route;
+use App\Router\Attribute\Route;
 use App\Service\Db;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -15,6 +15,7 @@ class WahlleitungController extends Controller {
     /**
      * Auflistung aller E-Mail-Adressen für die Wahlleitung
      */
+    #[DenyUnless(role: 'wahlleitung')]
     #[Route('GET /wahlleitung')]
     public function show(Db $db): Response {
         $this->requireRole('wahlleitung');

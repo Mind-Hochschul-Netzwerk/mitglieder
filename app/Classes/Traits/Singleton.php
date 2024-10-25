@@ -12,20 +12,14 @@ namespace App\Traits;
  */
 trait Singleton
 {
-    /** @var \MHN\Interfaces\Singleton|null */
-    private static $instance = null;
+    private static ?self $instance = null;
 
     /**
      * Gibt die Instanz der Klasse zurück
-     *
-     * @return \MHN\Interfaces\Singleton
      */
-    public static function getInstance()
+    public static function getInstance(): static
     {
-        if (self::$instance === null) {
-            self::$instance = new self();
-        }
-        return self::$instance;
+        return static::$instance ??= new static();
     }
 
     /**

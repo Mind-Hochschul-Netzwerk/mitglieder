@@ -4,11 +4,11 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
-use App\Controller\Exception\InvalidUserDataException;
 use App\Model\User;
 use App\Repository\UserRepository;
-use App\Service\Attribute\Route;
-use App\Service\AuthService;
+use App\Router\Attribute\Route;
+use App\Router\Exception\InvalidUserDataException;
+use App\Service\CurrentUser;
 use App\Service\Db;
 use App\Service\Tpl;
 use \Hengeb\Token\Token;
@@ -20,7 +20,7 @@ class AuthController extends Controller {
     }
 
     #[Route('POST /login')]
-    public function loginSubmitted(Db $db): Response {
+    public function loginSubmitted(Db $db, CurrentUser $currentUser): Response {
         $input = $this->validatePayload([
             'id' => 'required string',
             'password' => 'required string untrimmed',
@@ -43,24 +43,33 @@ class AuthController extends Controller {
             return $this->lostPassword($id);
         }
 
-        if ($id === null || !AuthService::checkPassword($input['password'], intval($id))) {
+        $user = null;
+        if ($id !== null) {
+            $user = UserRepository::getInstance()->findOneById(intval($id));
+            if ($user && !$user->checkPassword($input['password'])) {
+                $user = null;
+            }
+        }
+
+        if (!$user) {
             $this->setTemplateVariable('error_passwort_falsch', true);
             return $this->loginForm();
         }
 
         $redirectUrl = preg_replace('/\s/', '', $input['redirect']);
 
-        AuthService::logIn(intval($id));
+        $currentUser->logIn($user);
         return $this->redirect($redirectUrl);
     }
 
     #[Route('GET /logout')]
-    public function logout(): Response {
-        AuthService::logOut();
+    public function logout(CurrentUser $user): Response {
+        $user->logOut();
         return $this->render('AuthController/logout');
     }
 
     private function lostPassword(?int $id): Response {
+        // do not tell the user if $id === null
         if ($id !== null) {
             $user = UserRepository::getInstance()->findOneById((int)$id);
             $token = Token::encode([
@@ -106,7 +115,7 @@ class AuthController extends Controller {
     }
 
     #[Route('POST /lost-password?token={token}')]
-    public function resetPassword(string $token): Response {
+    public function resetPassword(string $token, CurrentUser $currentUser): Response {
         $user = $this->validatePasswordToken($token);
 
         $input = $this->validatePayload([
@@ -121,7 +130,8 @@ class AuthController extends Controller {
 
         $user->set('password', $input['password']);
         UserRepository::getInstance()->save($user);
-        AuthService::login($user->get('id'));
+        $currentUser->logIn($user);
+
         return $this->redirect('/');
     }
 }
