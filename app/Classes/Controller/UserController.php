@@ -9,7 +9,6 @@ use App\Repository\UserRepository;
 use App\Router\Attribute\Route;
 use App\Router\Exception\AccessDeniedException;
 use App\Router\Exception\InvalidUserDataException;
-use App\Router\Exception\NotFoundException;
 use App\Service\CurrentUser;
 use App\Service\EmailService;
 use App\Service\ImageResizer;
@@ -34,23 +33,6 @@ class UserController extends Controller {
     // Liste der von der Mitgliederverwaltung änderbaren Strings
     const bearbeiten_strings_admin = ['vorname', 'nachname'];
 
-    public static function retrieveById(string $id): User {
-        $user = UserRepository::getInstance()->findOneById(intval($id));
-        if (!$user) {
-            throw new NotFoundException('Ein Mitglied mit dieser Nummer existiert nicht.');;
-        }
-        return $user;
-    }
-
-    public static function retrieveByUsername(string $username): User {
-        $id = ($username === '_') ? CurrentUser::getInstance()->get('id') : UserRepository::getInstance()->getIdByUsername($username);
-        $user = $id ? UserRepository::getInstance()->findOneById($id) : null;
-        if (!$user) {
-            throw new NotFoundException('Ein Mitglied mit dieser Nummer existiert nicht.');;
-        }
-        return $user;
-    }
-
     public function __construct(
         protected Request $request,
         private CurrentUser $currentUser
@@ -63,8 +45,8 @@ class UserController extends Controller {
         return $this->redirect('/user/_');
     }
 
-    #[Route('GET /user/{\d+:id=>user}')]
-    #[Route('GET /user/{username=>user}')]
+    #[Route('GET /user/{\d+:id=>user}', allow: ['role' => 'user'])]
+    #[Route('GET /user/{username=>user}', allow: ['role' => 'user'])]
     public function show(User $user): Response {
         $this->requireLogin();
         $db_modified = $user->get('db_modified');
@@ -117,15 +99,14 @@ class UserController extends Controller {
     }
 
     private function requirePermission(User $user): void {
-        $this->requireLogin();
         if (!$this->currentUser->hasRole('mvedit') && $this->currentUser->get('id') !==  $user->get('id')) {
             throw new AccessDeniedException();
         }
     }
 
-    #[Route('GET /user/{username=>user}/edit')]
+    #[Route('GET /user/{username=>user}/edit', allow: ['role' => 'user'])]
     public function edit(User $user): Response {
-        $this->requirePermission($user);
+        $this->requirePermission($user); // TODO: als Attribut
 
         $templateVars = [];
 
@@ -175,7 +156,7 @@ class UserController extends Controller {
             // Admins dürfen Passwörter ohne Angabe des eigenen Passworts ändern, außer das eigene
             if ($this->currentUser->hasRole('mvedit') && $this->currentUser->get('id') !==  $user->get('id')) {
                 $user->set('password', $input['new_password']);
-            } elseif ($this->currentUser->checkPassword($_REQUEST['password'])) {
+            } elseif ($this->currentUser->checkPassword($input['password'])) {
                 $user->set('password', $input['new_password']);
             } else {
                 $this->setTemplateVariable('old_password_error', true);
@@ -311,9 +292,8 @@ class UserController extends Controller {
                 $user->set('resignation', null);
             } elseif (!$resignOld && $resignNew) {
                 $user->set('resignation', 'now');
-                $admin = UserRepository::getInstance()->findOneById(Cs::getInstance()->currentUser->get('id'));
                 $text = Tpl::getInstance()->render('mails/resignation', [
-                    'adminFullName' => $admin->get('fullName'),
+                    'adminFullName' => $this->currentUser->get('fullName'),
                     'fullName' => $user->get('fullName'),
                     'id' => $user->get('id'),
                 ]);
@@ -335,12 +315,10 @@ class UserController extends Controller {
 
         UserRepository::getInstance()->delete($user);
 
-        $admin = UserRepository::getInstance()->findOneById(Cs::getInstance()->currentUser->get('id'));
-
         $mailText = Tpl::getInstance()->render('mails/MvEdit-Info-Mitglied-Geloescht', [
-            'adminName' => $admin->get('fullName'),
-            'adminId' => $admin->get('id'),
-            'adminUsername' => $admin->get('username'),
+            'adminName' => $this->currentUser->get('fullName'),
+            'adminId' => $this->currentUser->get('id'),
+            'adminUsername' => $this->currentUser->get('username'),
             'deletedName' => $user->get('fullName'),
             'deletedId' => $user->get('id'),
             'deletedUsername' => $user->get('username'),
@@ -364,7 +342,7 @@ class UserController extends Controller {
         return $this->showMessage("Die Daten wurden aus der Mitgliederdatenbank gelöscht.");
     }
 
-    #[Route('POST /user/{username=>user}/update')]
+    #[Route('POST /user/{username=>user}/update', allow: ['role' => 'user'])]
     public function update(User $user): Response {
         $this->requirePermission($user);
 

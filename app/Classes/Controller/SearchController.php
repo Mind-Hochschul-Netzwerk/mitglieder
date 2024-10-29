@@ -8,16 +8,10 @@ use App\Repository\UserRepository;
 use App\Router\Attribute\Route;
 use App\Service\Db;
 use App\Service\PasswordService;
-use Symfony\Component\HttpFoundation\Request;
 
 class SearchController extends Controller {
-    public function __construct(protected Request $request) {
-        // TODO: als Attribut der Klasse
-        $this->requireLogin();
-    }
-
-    #[Route('GET /')]
-    #[Route('GET /search')]
+    #[Route('GET /', allow: ['role' => 'user'])]
+    #[Route('GET /search', allow: ['role' => 'user'])]
     public function form(): Response {
         return $this->render('SearchController/search');
     }
@@ -27,8 +21,8 @@ class SearchController extends Controller {
     // Felder, bei denen nur nach Übereinstimmung statt nach Substring gesucht wird (müssen auch in felder aufgeführt sein)
     const felder_eq = ['id', 'mensa_nr', 'plz', 'plz2'];
 
-    #[Route('GET /?q={query}')]
-    #[Route('GET /search?q={query}')]
+    #[Route('GET /?q={query}', allow: ['role' => 'user'])]
+    #[Route('GET /search?q={query}', allow: ['role' => 'user'])]
     public function search(string $query, Db $db): Response {
         // TODO filter einbauen über beschaeftigung, auskunft_* und für mvread für aufgabe_*
         $this->setTemplateVariable('query', $query);
@@ -82,9 +76,8 @@ class SearchController extends Controller {
         return $this->showResults($ids);
     }
 
-    #[Route('GET /search/resigned')]
+    #[Route('GET /search/resigned', allow: ['role' => 'mvread'])]
     public function showResigned(Db $db): Response {
-        $this->requireRole('mvread');
         $this->setTemplateVariable('query', ' '); // show the "search results" title even if the list is empty
         $ids = $db->query('SELECT id FROM mitglieder WHERE resignation IS NOT NULL')->getColumn();
         return $this->showResults($ids);

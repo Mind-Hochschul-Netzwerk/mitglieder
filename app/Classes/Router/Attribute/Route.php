@@ -11,7 +11,21 @@ use Attribute;
 
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_METHOD)]
 class Route {
-    public function __construct(public string $matcher)
+    /**
+     * @param $allow = [$property => $valueTemplate, ...] allow access if one of the conditions is fullfilled
+     *      Router will determine the $value of $valueTemplate and then check if $currentUser->{'has' . $property}($value) === true
+     *      ($value will be casted to int if neccessary)
+     *      i.e. a method of this name has to exist in the $currentUser object
+     *      $valueTemplate might be something like:
+     *          literal value like 'team', e.g. ['group' => 'team']: will check if current user has the group 'team'
+     *          list of literals like 'admin|superadmin', e.g. ['role' => 'admin|superadmin'] will check if the user has one of the roles
+     *          list of literals like 'admin&superadmin', e.g. ['role' => 'admin&superadmin'] will check if the user has all of the roles
+     *          a simple function call to an argument of the function like '$group->getName()' or '$user->getId()', e.g.
+     *              ['group' => '$group->getName()', 'id' => '$user->get("id")] will check if either
+     *              $currentUser->hasGroup($group->getName()) OR $currentUser->hasId($user->get("id")) is true
+     *              where $group and $user have to be parameters of the routing method
+     */
+    public function __construct(public string $matcher, public array $allow = [])
     {
     }
 }

@@ -15,11 +15,8 @@ class WahlleitungController extends Controller {
     /**
      * Auflistung aller E-Mail-Adressen für die Wahlleitung
      */
-    #[DenyUnless(role: 'wahlleitung')]
-    #[Route('GET /wahlleitung')]
+    #[Route('GET /wahlleitung', allow: ['role' => 'wahlleitung'])]
     public function show(Db $db): Response {
-        $this->requireRole('wahlleitung');
-
         $emails = $db->query('SELECT email FROM mitglieder ORDER BY email')->getColumn();
 
         $response = new Response(implode("\r\n", $emails));

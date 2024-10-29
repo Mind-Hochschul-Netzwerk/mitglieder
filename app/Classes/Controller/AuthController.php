@@ -12,6 +12,7 @@ use App\Service\CurrentUser;
 use App\Service\Db;
 use App\Service\Tpl;
 use \Hengeb\Token\Token;
+use Symfony\Component\HttpFoundation\Request;
 
 class AuthController extends Controller {
     #[Route('GET /login')]
@@ -95,7 +96,7 @@ class AuthController extends Controller {
 
     private function validatePasswordToken(string $token): User {
         try {
-            Token::decode($_REQUEST['token'], function ($data) use (&$user) {
+            Token::decode($token, function ($data) use (&$user) {
                 if (time() - $data[0] > 24*60*60) {
                     throw new \Exception('token expired');
                 }
@@ -133,5 +134,9 @@ class AuthController extends Controller {
         $currentUser->logIn($user);
 
         return $this->redirect('/');
+    }
+
+    public static function handleNotLoggedInException(\Exception $e, Request $request): Response {
+        return (new self($request))->loginForm();
     }
 }

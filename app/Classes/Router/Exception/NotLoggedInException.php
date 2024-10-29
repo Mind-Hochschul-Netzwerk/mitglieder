@@ -2,4 +2,4 @@
 
 namespace App\Router\Exception;
 
-class NotLoggedInException extends \Exception {}
+class NotLoggedInException extends AccessDeniedException {}

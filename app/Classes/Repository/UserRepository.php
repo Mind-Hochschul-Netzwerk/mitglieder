@@ -7,11 +7,9 @@ namespace App\Repository;
  */
 
 use App\Model\User;
-use DateTime;
-use App\Service\EmailService;
+use App\Service\CurrentUser;
 use App\Service\Ldap;
 use App\Service\Db;
-use App\Service\Tpl;
 
 /**
  * Repräsentiert ein User
@@ -33,6 +31,7 @@ class UserRepository extends Repository
         $user->hashedPassword = $data['password'];
 
         $user->ldapEntry = Ldap::getInstance()->getEntryByUsername($data['username']);
+
         if ($user->ldapEntry) {
             $data['vorname'] = $user->ldapEntry->getAttribute('givenName')[0];
             $data['nachname'] = $user->ldapEntry->getAttribute('sn')[0];
@@ -60,7 +59,23 @@ class UserRepository extends Repository
         if (!$entry) {
             return null;
         }
-        $id = intval($entry->getAttribute('uid')[0]);
+        $id = intval($entry->getAttribute('employeeNumber')[0]);
+        return $this->findOneById($id);
+    }
+
+    /**
+     * Lädt ein User zu einer gegebenen E-Mail-Adresse
+     */
+    public function findOneByUsername(string $username): ?User
+    {
+        if ($username === '_') {
+            return CurrentUser::getInstance()->getWrappedUser();
+        }
+        $entry = Ldap::getInstance()->getEntryByUsername($username);
+        if (!$entry) {
+            return null;
+        }
+        $id = intval($entry->getAttribute('employeeNumber')[0]);
         return $this->findOneById($id);
     }
 
@@ -87,7 +102,7 @@ class UserRepository extends Repository
         if (!$entry) {
             return null;
         }
-        return intval($entry->getAttribute('uid')[0]);
+        return intval($entry->getAttribute('employeeNumber')[0]);
     }
 
     /**

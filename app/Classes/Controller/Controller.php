@@ -4,10 +4,13 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Router\Exception\AccessDeniedException;
+use App\Router\Exception\InvalidRouteException;
 use App\Router\Exception\InvalidUserDataException;
+use App\Router\Exception\NotFoundException;
 use App\Router\Exception\NotLoggedInException;
 use App\Service\CurrentUser;
 use App\Service\Tpl;
+use Exception;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -101,5 +104,21 @@ class Controller {
             $values[$key] = $value;
         }
         return $values;
+    }
+
+    #[ExceptionHandler]
+    public static function handleException(Exception $e, Request $request): Response {
+        if ($e instanceof InvalidRouteException) {
+            return (new self($request))->showMessage($e->getMessage() ?: 'URL ungültig', 404);
+        } elseif ($e instanceof NotFoundException) {
+            return (new self($request))->showMessage($e->getMessage() ?: 'nicht gefunden', 404);
+        } elseif ($e instanceof AccessDeniedException) {
+            return (new self($request))->showMessage($e->getMessage() ?: 'fehlende Rechte', 403);
+        } elseif ($e instanceof InvalidUserDataException) {
+            return (new self($request))->showMessage($e->getMessage() ?: 'fehlerhafte Eingabedaten', 400);
+        } else {
+            error_log($e->getMessage());
+            return (new self($request))->showMessage('Ein interner Fehler ist aufgetreten.', 500);
+        }
     }
 }

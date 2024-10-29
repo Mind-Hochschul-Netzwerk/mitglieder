@@ -91,8 +91,9 @@ class RouteMap {
             foreach ($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
                 $routes = $method->getAttributes(Route::class);
                 foreach ($routes as $route) {
-                    $matcher = $route->newInstance()->matcher;
-                    $this->add($matcher, $classname, $method->name);
+                    $routeInstance = $route->newInstance();
+                    // TODO: combine with Route attribute of the class (CONCATENATE matcher and REPLACE allow)
+                    $this->add($routeInstance->matcher, $classname, $method->name, $routeInstance->allow);
                 }
             }
         }
@@ -105,8 +106,9 @@ class RouteMap {
      * @param $controller is the classname of a Controller subclass
      * @param $functionName is the function in the controller that will be called
      *                      the function takes the arguments in the same order they appear in the matcher
+     * @param $conditions see Route Attribute constructor
      */
-    public function add(string $matcher, string $controller, string $functionName): void
+    public function add(string $matcher, string $controller, string $functionName, array $conditions): void
     {
         $httpMethod = 'GET';
         if (str_contains($matcher, ' ')) {
@@ -114,7 +116,7 @@ class RouteMap {
             $httpMethod = strtoupper($httpMethod);
         }
         [$pathPattern, $queryInfo] = $this->createPattern($matcher);
-        $this->routes[$httpMethod . ' ' . $matcher] = [$httpMethod, $pathPattern, $queryInfo, $controller, $functionName];
+        $this->routes[$httpMethod . ' ' . $matcher] = [$httpMethod, $pathPattern, $queryInfo, $controller, $functionName, $conditions];
     }
 
     private function writeCache(): void

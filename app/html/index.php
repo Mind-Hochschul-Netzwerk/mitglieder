@@ -7,11 +7,13 @@ declare(strict_types=1);
 
 namespace App;
 
-use App\Controller\UserController;
-use App\Model\User;
+use App\Controller\AuthController;
+use App\Controller\Controller;
+use App\Router\Exception\NotLoggedInException;
 use App\Router\Router;
+use App\Service\CurrentUser;
+use App\Service\Tpl;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Session\Session;
 
 require_once '../vendor/autoload.php';
 
@@ -19,8 +21,17 @@ date_default_timezone_set('Europe/Berlin');
 setlocale(LC_TIME, 'german', 'deu_deu', 'deu', 'de_DE', 'de');
 
 $router = new Router(__DIR__ . '/../Classes/Controller');
-$router->addType(User::class, [UserController::class, 'retrieveByUsername'], 'username');
-$router->addType(User::class, [UserController::class, 'retrieveById'], 'id');
-$router->dispatch(Request::createFromGlobals())->send();
+
+// TODO: Als Attribute
+$router->addExceptionHandler(NotLoggedInException::class, [AuthController::class, 'handleNotLoggedInException']);
+$router->addExceptionHandler(\Exception::class, [Controller::class, 'handleException']);
+
+$request = Request::createFromGlobals();
+$currentUser = CurrentUser::getInstance();
+$currentUser->setRequest($request);
+
+Tpl::getInstance()->set('currentUser', $currentUser);
+
+$router->dispatch($request, $currentUser)->send();
 
 // TODO: CSRF tokens

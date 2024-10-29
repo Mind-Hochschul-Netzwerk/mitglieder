@@ -40,9 +40,7 @@ class Tpl
             [
                 'extendedTemplate' => null,
                 'extendTemplateVariables' => [],
-                'variables' => [
-                    'currentUser' => CurrentUser::getInstance(),
-                ],
+                'variables' => [],
             ],
         ];
     }

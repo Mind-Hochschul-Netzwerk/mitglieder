@@ -13,10 +13,8 @@ use App\Service\Ldap;
 use Symfony\Component\HttpFoundation\Response;
 
 class AdminController extends Controller {
-    #[Route('GET /admin')]
+    #[Route('GET /admin', allow: ['role' => 'mvedit'])]
     public function show(Ldap $ldap, CurrentUser $user): Response {
-        $this->requireRole('mvedit');
-
         $groups = [];
         if ($user->hasRole('rechte')) {
             $groups = $ldap->getAllGroups($skipMembersOfGroups = ['alleMitglieder', 'listen']);

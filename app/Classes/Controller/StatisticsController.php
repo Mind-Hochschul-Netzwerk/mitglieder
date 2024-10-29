@@ -11,7 +11,6 @@ use App\Service\Ldap;
 use App\Service\Db;
 use App\Repository\UserRepository;
 use App\Router\Attribute\Route;
-use App\Service\CurrentUser;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -20,11 +19,10 @@ class StatisticsController extends Controller {
 
     public function __construct(protected Request $request)
     {
-        $this->requireRole('mvread');
         $this->invalidEmailsList = Ldap::getInstance()->getInvalidEmailsList();
     }
 
-    #[Route('GET /statistics/invalidEmails')]
+    #[Route('GET /statistics/invalidEmails', allow: ['role' => 'mvread'])]
     public function showInvalidEmails(): Response
     {
         $users = [];
@@ -49,7 +47,7 @@ class StatisticsController extends Controller {
         ]);
     }
 
-    #[Route('GET /statistics')]
+    #[Route('GET /statistics', allow: ['role' => 'mvread'])]
     public function show(Db $db): Response
     {
         return $this->render('StatisticsController/main', [

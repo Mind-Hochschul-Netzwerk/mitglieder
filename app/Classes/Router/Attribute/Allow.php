@@ -10,7 +10,7 @@ use Attribute;
  */
 
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_METHOD | Attribute::TARGET_CLASS)]
-class DenyUnless {
+class Allow {
     /**
      * @param string $role string to get the required role, i.e.
      *                  '' => no role required
