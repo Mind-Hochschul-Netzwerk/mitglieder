@@ -38,7 +38,7 @@ class StatisticsController extends Controller {
                 'email' => substr($user->get('email'), 0, -strlen('.invalid')),
                 'aufnahmedatum' => $user->get('aufnahmedatum') ? $user->get('aufnahmedatum')->format('d.m.Y') : 'unbekannt',
                 'lastLogin' => $user->get('last_login') ? $user->get('last_login')->format('d.m.Y') : 'vor 2014',
-                'moodle' => ($user->get('last_login') && $user->get('last_login') > new \DateTime('2021-05-22')) ? 'ja' : 'nein',
+                'moodle' => ($user->get('last_login') && $user->get('last_login') > new \DateTimeImmutable('2021-05-22')) ? 'ja' : 'nein',
             ];
         }
 

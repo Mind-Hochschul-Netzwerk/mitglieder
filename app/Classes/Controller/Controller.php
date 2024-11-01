@@ -3,16 +3,13 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Router\Attribute\Route;
 use App\Router\Exception\AccessDeniedException;
+use App\Router\Exception\InvalidCsrfTokenException;
 use App\Router\Exception\InvalidRouteException;
 use App\Router\Exception\InvalidUserDataException;
 use App\Router\Exception\NotFoundException;
 use App\Router\Exception\NotLoggedInException;
-use App\Router\Router;
-use App\Service\CurrentUser;
 use App\Service\Tpl;
-use Exception;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -95,7 +92,7 @@ class Controller {
         return $values;
     }
 
-    public static function handleException(Exception $e, Request $request): Response {
+    public static function handleException(\Exception $e, Request $request): Response {
         if ($e instanceof InvalidRouteException) {
             return (new self($request))->showMessage($e->getMessage() ?: 'URL ungültig', 404);
         } elseif ($e instanceof NotLoggedInException) {
@@ -104,6 +101,8 @@ class Controller {
             return (new self($request))->showMessage($e->getMessage() ?: 'nicht gefunden', 404);
         } elseif ($e instanceof AccessDeniedException) {
             return (new self($request))->showMessage($e->getMessage() ?: 'fehlende Rechte', 403);
+        } elseif ($e instanceof InvalidCsrfTokenException) {
+            return (new self($request))->showMessage($e->getMessage() ?: 'Die Anfrage kann nicht wiederholt werden.', 400);
         } elseif ($e instanceof InvalidUserDataException) {
             return (new self($request))->showMessage($e->getMessage() ?: 'fehlerhafte Eingabedaten', 400);
         } else {

@@ -3,22 +3,19 @@ declare(strict_types=1);
 namespace App\Router;
 
 use App\Router\Exception\AccessDeniedException;
+use App\Router\Exception\InvalidCsrfTokenException;
 use App\Router\Exception\InvalidRouteException;
 use App\Router\Exception\InvalidUserDataException;
 use App\Router\Exception\NotFoundException;
 use App\Router\Exception\NotLoggedInException;
 use App\Router\Interface\CurrentUserInterface;
-use Exception;
-use InvalidArgumentException;
-use LogicException;
-use ReflectionFunction;
-use ReflectionMethod;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 /**
- * @author Henrik Gebauer <mensa@henrik-gebauer.de>
+ * @author Henrik Gebauer <henrik@mind-hochschul-netzwerk.de>
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
@@ -40,7 +37,7 @@ class Router {
      */
     private array $services = [];
 
-    private Request $request;
+    private ?Request $request = null;
     private ?CurrentUserInterface $currentUser;
 
     private RouteMap $routeMap;
@@ -85,7 +82,7 @@ class Router {
         $this->currentUser = $currentUser;
 
         try {
-            foreach ($this->routeMap->getRoutes() as $matcher => [$httpMethod, $pathPattern, $queryInfo, $controller, $functionName, $conditions]) {
+            foreach ($this->routeMap->getRoutes() as $matcher => [$httpMethod, $pathPattern, $queryInfo, $controller, $functionName, $conditions, $checkCsrfToken]) {
                 if ($this->request->getMethod() !== $httpMethod || !preg_match($pathPattern, $this->request->getPathInfo(), $matches)) {
                     continue;
                 }
@@ -98,15 +95,48 @@ class Router {
 
                 $matches = $this->prepareMatches($matches);
 
-                return $this->callConditionally($controller, $functionName, $matches, $conditions);
+                return $this->callConditionally($controller, $functionName, $matches, $conditions, checkCsrfToken: $checkCsrfToken);
             }
             throw new InvalidRouteException();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return $this->handleException($e);
         }
     }
 
-    private function handleException(Exception $e): Response {
+    public function createCsrfToken(): string
+    {
+        if (!$this->request) {
+            throw new \LogicException('cannot start session before calling Router::dispatch');
+        }
+        if (!$this->request->hasSession()) {
+            $this->request->setSession(new Session());
+        }
+        $token = bin2hex(random_bytes(32));
+        $csrfTokens = $this->request->getSession()->get('csrfTokens', []);
+        $csrfTokens[$token] = time();
+        // limit to a maximum of 50 tokens in the storage
+        $csrfTokens = array_slice($csrfTokens, -50);
+        $this->request->getSession()->set('csrfTokens', $csrfTokens);
+        return $token;
+    }
+
+    /**
+     * @throws AccessDeniedException
+     */
+    private function checkCsrfToken(): void
+    {
+        $token = $this->request->getPayload()->get('_csrf_token');
+        $csrfTokens = $this->request->getSession()->get('csrfTokens', []);
+        // invalidate tokens after 1 hour
+        $csrfTokens = array_filter($csrfTokens, fn($time) => $time + 3600 > time());
+        if (!isset($csrfTokens[$token])) {
+            throw new InvalidCsrfTokenException();
+        }
+        unset($csrfTokens[$token]);
+        $this->request->getSession()->set('csrfTokens', $csrfTokens);
+    }
+
+    private function handleException(\Exception $e): Response {
         $this->exception = $e;
 
         if ($this->controller && method_exists($this->controller, 'handleException')) {
@@ -120,7 +150,7 @@ class Router {
                     return $this->callConditionally($handler[0], $handler[1], arguments: [$e]);
                 // closure
                 } else {
-                    $function = new ReflectionFunction($handler);
+                    $function = new \ReflectionFunction($handler);
                     $args = [$e, ...$this->injectDependencies($function, [], 1)];
                     return $function->invokeArgs($args);
                 }
@@ -129,7 +159,7 @@ class Router {
         return $this->defaultExceptionHandler($e);
     }
 
-    private function defaultExceptionHandler(Exception $e): Response {
+    private function defaultExceptionHandler(\Exception $e): Response {
         $header = ['Content-Type' => 'text/plain; charset=utf-8'];
         if ($e instanceof InvalidRouteException) {
             return new Response($e->getMessage() ?: 'path not found', 404, $header);
@@ -139,6 +169,8 @@ class Router {
             return new Response($e->getMessage() ?: 'resource not found', 404, $header);
         } elseif ($e instanceof AccessDeniedException) {
             return new Response($e->getMessage() ?: 'permission required', 403, $header);
+        } elseif ($e instanceof InvalidCsrfTokenException) {
+            return new Response($e->getMessage() ?: 'request cannot be repeated', 400, $header);
         } elseif ($e instanceof InvalidUserDataException) {
             return new Response($e->getMessage() ?: 'submitted data is missing or invalid', 400, $header);
         } else {
@@ -186,7 +218,7 @@ class Router {
         try {
             $repository = null;
             if (!method_exists($type, 'getRepository')) {
-                throw new Exception();
+                throw new \Exception();
             }
 
             $repository = [$type, 'getRepository']()::getInstance();
@@ -215,9 +247,9 @@ class Router {
                 }
             }
 
-            throw new Exception();
-        } catch (Exception $e) {
-            throw new InvalidArgumentException('no retriever found for model ' . $type . ($identifier ? (' identified by $' . $identifierName) : ''));
+            throw new \Exception();
+        } catch (\Exception $e) {
+            throw new \InvalidArgumentException('no retriever found for model ' . $type . ($identifier ? (' identified by $' . $identifierName) : ''));
         }
     }
 
@@ -229,16 +261,16 @@ class Router {
 
         // default retriever: $className::getInstance
         if (method_exists($className, 'getInstance')) {
-            $method = new ReflectionMethod($className, 'getInstance');
+            $method = new \ReflectionMethod($className, 'getInstance');
             if ($method->isStatic()) {
                 return $method->invoke(null);
             }
         }
 
-        throw new InvalidArgumentException('no retriever found for service ' . $className);
+        throw new \InvalidArgumentException('no retriever found for service ' . $className);
     }
 
-    private function injectDependencies(ReflectionMethod|ReflectionFunction $method, array $matches, int $skipParameters = 0): array {
+    private function injectDependencies(\ReflectionMethod|\ReflectionFunction $method, array $matches, int $skipParameters = 0): array {
         $args = [];
         foreach ($method->getParameters() as $i=>$parameter) {
             if ($i < $skipParameters) {
@@ -265,16 +297,19 @@ class Router {
         return $args;
     }
 
-    private function callConditionally(object|string $controller, string $functionName, array $matches = [], array $conditions = [], array $arguments = []): Response
+    private function callConditionally(object|string $controller, string $functionName, array $matches = [], array $conditions = [], array $arguments = [], bool $checkCsrfToken = false): Response
     {
         if (!is_object($controller)) {
-            $constructor = new ReflectionMethod($controller, '__construct');
+            $constructor = new \ReflectionMethod($controller, '__construct');
             $constructorArgs = $this->injectDependencies($constructor, $matches);
             $this->controller = new $controller(...$constructorArgs);
         } else {
             $this->controller = $controller;
         }
-        $method = new ReflectionMethod($this->controller, $functionName);
+        if ($checkCsrfToken) {
+            $this->checkCsrfToken($this->request->getPayload()->get('_csrf_token'));
+        }
+        $method = new \ReflectionMethod($this->controller, $functionName);
         $args = [...$arguments, ...$this->injectDependencies($method, $matches, skipParameters: count($arguments))];
         (new ConditionChecker($this->currentUser, $conditions))->check($args);
         return $method->invokeArgs($this->controller, $args);

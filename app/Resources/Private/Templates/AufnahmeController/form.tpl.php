@@ -30,6 +30,7 @@ foreach ($alerts as $name=>$text) {
 <p>wir freuen uns, dich als neues Mitglied im Mind-Hochschul-Netzwerk zu begrüßen! Bevor es losgehen kann, musst du deine Zugangsdaten festlegen und entscheiden, welche Daten du im Netzwerk freigeben möchtest.</p>
 
 <form method="post">
+<input type="hidden" name="_csrf_token" value="<?=$csrfToken()?>">
 
 <h3>Deine Zugangsdaten</h3>
 

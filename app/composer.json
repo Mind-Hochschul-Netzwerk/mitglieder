@@ -4,12 +4,12 @@
     "type": "project",
     "require": {
         "php": ">=8.0",
-        "symfony/ldap": "^5.2",
-        "phpmailer/phpmailer": "^6.3",
-        "hengeb/db": "^0.0",
-        "hengeb/token": "^0.0",
-        "symfony/http-foundation": "^7.0",
-        "symfony/mime": "^7.1"
+        "symfony/ldap": ">=5.2",
+        "phpmailer/phpmailer": ">=6.3",
+        "hengeb/db": ">=0.4",
+        "hengeb/token": ">=0.0",
+        "symfony/http-foundation": ">=7.0",
+        "symfony/mime": ">=7.1"
     },
     "autoload": {
         "psr-4": {

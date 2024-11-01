@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use Symfony\Component\HttpFoundation\Response;
 use App\Model\User;
 use App\Repository\UserRepository;
 use App\Router\Attribute\Route;
@@ -16,6 +15,7 @@ use App\Service\Ldap;
 use App\Service\Tpl;
 use Hengeb\Token\Token;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller {
     // Maximale Größe von Profilbildern
@@ -333,7 +333,7 @@ class UserController extends Controller {
         return $this->showMessage("Die Daten wurden aus der Mitgliederdatenbank gelöscht.");
     }
 
-    #[Route('POST /user/{username=>user}/update', allow: ['role' => 'mvedit', 'id' => '$user->get("id")'])]
+    #[Route('POST /user/{username=>user}/edit', allow: ['role' => 'mvedit', 'id' => '$user->get("id")'])]
     public function update(User $user): Response {
         $input = $this->validatePayload(array_fill_keys(self::bearbeiten_strings_ungeprueft, 'string'));
         foreach ($input as $key=>$value) {
@@ -381,7 +381,7 @@ class UserController extends Controller {
         $this->setTemplateVariable('data_saved_info', true);
         UserRepository::getInstance()->save($user);
 
-        // und neu laden (insb. beim Löschen wichtig, sonst müssten alls Keys einzeln zurückgesetzt werden)
+        // und neu laden (insb. beim Löschen wichtig, sonst müssten alle Keys einzeln zurückgesetzt werden)
         return $this->edit(UserRepository::getInstance()->findOneById($user->get('id')));
     }
 

@@ -7,7 +7,6 @@ use App\Model\User;
 use App\Repository\UserRepository;
 use App\Router\Exception\NotLoggedInException;
 use App\Router\Interface\CurrentUserInterface;
-use LogicException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 
@@ -89,7 +88,7 @@ class CurrentUser implements Singleton, CurrentUserInterface {
     public function logIn(User $user)
     {
         if (!$this->request) {
-            throw new LogicException('request is not set', 1729975906);
+            throw new \LogicException('request is not set', 1729975906);
         }
         $this->request->getSession()->set('id', $user->get('id'));
         $this->user = $user;
@@ -100,7 +99,7 @@ class CurrentUser implements Singleton, CurrentUserInterface {
     public function logOut(): void
     {
         if (!$this->request) {
-            throw new LogicException('request is not set', 1729975906);
+            throw new \LogicException('request is not set', 1729975906);
         }
         $this->request->getSession()->remove('id');
         $this->user = null;

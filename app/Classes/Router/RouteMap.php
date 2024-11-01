@@ -93,7 +93,7 @@ class RouteMap {
                 foreach ($routes as $route) {
                     $routeInstance = $route->newInstance();
                     // TODO: combine with Route attribute of the class (CONCATENATE matcher and REPLACE allow)
-                    $this->add($routeInstance->matcher, $classname, $method->name, $routeInstance->allow);
+                    $this->add($routeInstance->matcher, $classname, $method->name, $routeInstance->allow, $routeInstance->checkCsrfToken);
                 }
             }
         }
@@ -108,7 +108,7 @@ class RouteMap {
      *                      the function takes the arguments in the same order they appear in the matcher
      * @param $conditions see Route Attribute constructor
      */
-    public function add(string $matcher, string $controller, string $functionName, array $conditions): void
+    private function add(string $matcher, string $controller, string $functionName, array $conditions, ?bool $checkCsrfToken): void
     {
         $httpMethod = 'GET';
         if (str_contains($matcher, ' ')) {
@@ -116,7 +116,8 @@ class RouteMap {
             $httpMethod = strtoupper($httpMethod);
         }
         [$pathPattern, $queryInfo] = $this->createPattern($matcher);
-        $this->routes[$httpMethod . ' ' . $matcher] = [$httpMethod, $pathPattern, $queryInfo, $controller, $functionName, $conditions];
+        $checkCsrfToken ??= $httpMethod !== 'GET';
+        $this->routes[$httpMethod . ' ' . $matcher] = [$httpMethod, $pathPattern, $queryInfo, $controller, $functionName, $conditions, $checkCsrfToken];
     }
 
     private function writeCache(): void

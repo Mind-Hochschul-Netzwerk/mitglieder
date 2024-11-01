@@ -179,7 +179,8 @@ if (!empty($errorMessage)) {
     <li <?=$active_pane === 'account' ? 'class="active"' : ''?> ><a data-toggle="tab" href="#account">MHN-Mitgliedskonto</a></li>
 </ul>
 
-<form enctype="multipart/form-data" method="post" id="profile-form" action="/user/<?=$username?>/update">
+<form enctype="multipart/form-data" method="post" id="profile-form">
+<input type="hidden" name="_csrf_token" value="<?=$csrfToken()?>">
 
 <div class="tab-content">
     <div class="tab-pane <?=$active_pane === 'basisdaten' ? 'active' : ''?>" id="basisdaten">

@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use Symfony\Component\HttpFoundation\Response;
 use App\Model\User;
 use App\Repository\UserRepository;
 use App\Router\Attribute\Route;
@@ -11,8 +10,9 @@ use App\Router\Exception\InvalidUserDataException;
 use App\Service\CurrentUser;
 use App\Service\Db;
 use App\Service\Tpl;
-use \Hengeb\Token\Token;
+use Hengeb\Token\Token;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller {
     #[Route('GET /login')]

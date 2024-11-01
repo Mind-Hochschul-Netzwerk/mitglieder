@@ -7,6 +7,7 @@ $this->extends('Layout/layout', [
 ?>
 
 <form method="post" id="passwordForm">
+<input type="hidden" name="_csrf_token" value="<?=$csrfToken()?>">
 
 <?php
 $this->include('Layout/alert', [

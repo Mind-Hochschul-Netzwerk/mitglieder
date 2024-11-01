@@ -7,10 +7,10 @@ namespace App\Model;
  */
 
 use App\Repository\UserRepository;
-use DateTime;
 use App\Service\EmailService;
 use App\Service\Ldap;
 use App\Service\Tpl;
+use DateTimeImmutable;
 use DateTimeInterface;
 
 /**
@@ -227,30 +227,29 @@ class User extends Model
     }
 
     /**
-     * Erstellt ein DateTime-Objekt (oder null)
+     * Erstellt ein DateTimeInterface-Objekt (oder null)
      *
-     * @var null|string|int|DateTime $dateTime string (für strtotime), int (Timestamp) oder DateTime
+     * @param null|string|int|DateTimeInterface $dateTime string (für strtotime), int (Timestamp) oder DateTimeInterface
      * @throws \TypeError wenn $dateTime einen nicht unterstützten Datentyp hat
      */
-    private function makeDateTime(null|string|int|DateTime $dateTime): DateTimeInterface
+    private function makeDateTime(null|string|int|DateTimeInterface $dateTime): DateTimeInterface
     {
-        $type = gettype($dateTime);
-        if ($type === 'NULL') {
+        if ($dateTime === null) {
             return null;
-        } elseif ($type === 'integer') {
+        } elseif (is_int($dateTime)) {
             if ($dateTime === 0) {
                 return null;
             }
-            return new DateTime('@' . $dateTime); // TODO DateTimeImmutable
-        } elseif ($type === 'string') {
+            return new DateTimeImmutable('@' . $dateTime);
+        } elseif (is_string($dateTime)) {
             if ($dateTime === '') {
                 return null;
             }
-            return new DateTime($dateTime); // TODO DateTimeImmutable
-        } elseif ($type === 'object' && get_class($dateTime) === 'DateTime') {
+            return new DateTimeImmutable($dateTime);
+        } elseif (is_object($dateTime) && $dateTime instanceof \DateTimeInterface) {
             return $dateTime;
         } else {
-            throw new \TypeError("Value is expected to be DateTime, null, string or integer. $type given.", 1494775564);
+            throw new \TypeError("Value is expected to be DateTime, null, string or integer. " . gettype($dateTime) . " given.", 1494775564);
         }
     }
 
