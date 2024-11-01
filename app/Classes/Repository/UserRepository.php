@@ -81,6 +81,9 @@ class UserRepository extends Repository
 
     public function isUsernameAvailable(string $username): bool
     {
+        if (!User::isUsernameFormatValid($username)) {
+            return false;
+        }
         $existingId = $this->getIdByUsername($username);
         if ($existingId !== null) {
             return false;

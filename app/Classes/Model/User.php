@@ -341,4 +341,14 @@ class User extends Model
 
         return Ldap::getInstance()->checkPassword($this->get('username'), $password);
     }
+
+    /**
+     * check if a username has a valid format
+     * the username has to start with a letter and may only contain letters, numbers and the symbols '.' '_' '-'
+     * @param $username string to check
+     */
+    public static function isUsernameFormatValid(string $username): bool
+    {
+        return preg_match('/^[a-z][a-z0-9\-_.]*$/i', $username);
+    }
 }

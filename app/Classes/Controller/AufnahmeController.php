@@ -171,7 +171,7 @@ class AufnahmeController extends Controller
             return;
         }
 
-        if (!preg_match('/^[A-Za-z][A-Za-z0-9\-_.]*$/', $this->username)) {
+        if (!User::isUsernameFormatValid($this->username)) {
             $this->readyToSave = false;
             $this->setTemplateVariable('usernameInvalid', true);
             return;
