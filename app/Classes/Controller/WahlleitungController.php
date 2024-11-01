@@ -25,3 +25,4 @@ class WahlleitungController extends Controller {
         return $response;
     }
 }
+            

@@ -3,11 +3,13 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Router\Attribute\Route;
 use App\Router\Exception\AccessDeniedException;
 use App\Router\Exception\InvalidRouteException;
 use App\Router\Exception\InvalidUserDataException;
 use App\Router\Exception\NotFoundException;
 use App\Router\Exception\NotLoggedInException;
+use App\Router\Router;
 use App\Service\CurrentUser;
 use App\Service\Tpl;
 use Exception;
@@ -18,19 +20,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 class Controller {
     public function __construct(protected Request $request)
     {
-    }
-
-    protected function requireLogin(): void {
-        if (!CurrentUser::getInstance()->isLoggedIn()) {
-            throw new NotLoggedInException();
-        }
-    }
-
-    protected function requireRole(string $role): void {
-        $this->requireLogin();
-        if (!CurrentUser::getInstance()->hasRole($role)) {
-            throw new AccessDeniedException('Fehlendes Recht: ' . $role);
-        }
     }
 
     protected function setTemplateVariable(string $key, mixed $value): void {
@@ -106,10 +95,11 @@ class Controller {
         return $values;
     }
 
-    #[ExceptionHandler]
     public static function handleException(Exception $e, Request $request): Response {
         if ($e instanceof InvalidRouteException) {
             return (new self($request))->showMessage($e->getMessage() ?: 'URL ungültig', 404);
+        } elseif ($e instanceof NotLoggedInException) {
+            return (new AuthController($request))->loginForm();
         } elseif ($e instanceof NotFoundException) {
             return (new self($request))->showMessage($e->getMessage() ?: 'nicht gefunden', 404);
         } elseif ($e instanceof AccessDeniedException) {

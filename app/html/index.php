@@ -22,8 +22,6 @@ setlocale(LC_TIME, 'german', 'deu_deu', 'deu', 'de_DE', 'de');
 
 $router = new Router(__DIR__ . '/../Classes/Controller');
 
-// TODO: Als Attribute
-$router->addExceptionHandler(NotLoggedInException::class, [AuthController::class, 'handleNotLoggedInException']);
 $router->addExceptionHandler(\Exception::class, [Controller::class, 'handleException']);
 
 $request = Request::createFromGlobals();

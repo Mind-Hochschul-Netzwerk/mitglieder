@@ -10,8 +10,7 @@ use App\Service\Db;
 use App\Service\PasswordService;
 
 class SearchController extends Controller {
-    #[Route('GET /', allow: ['role' => 'user'])]
-    #[Route('GET /search', allow: ['role' => 'user'])]
+    #[Route('GET /(search|)', allow: ['role' => 'user'])]
     public function form(): Response {
         return $this->render('SearchController/search');
     }
@@ -21,8 +20,7 @@ class SearchController extends Controller {
     // Felder, bei denen nur nach Übereinstimmung statt nach Substring gesucht wird (müssen auch in felder aufgeführt sein)
     const felder_eq = ['id', 'mensa_nr', 'plz', 'plz2'];
 
-    #[Route('GET /?q={query}', allow: ['role' => 'user'])]
-    #[Route('GET /search?q={query}', allow: ['role' => 'user'])]
+    #[Route('GET /(search|)?q={query}', allow: ['role' => 'user'])]
     public function search(string $query, Db $db): Response {
         // TODO filter einbauen über beschaeftigung, auskunft_* und für mvread für aufgabe_*
         $this->setTemplateVariable('query', $query);

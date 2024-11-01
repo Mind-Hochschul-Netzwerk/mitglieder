@@ -10,6 +10,7 @@ use App\Router\Exception\NotLoggedInException;
 use App\Router\Interface\CurrentUserInterface;
 use Exception;
 use InvalidArgumentException;
+use LogicException;
 use ReflectionFunction;
 use ReflectionMethod;
 use Symfony\Component\HttpFoundation\ParameterBag;
@@ -44,6 +45,8 @@ class Router {
 
     private RouteMap $routeMap;
     private array $exceptionHandlers = [];
+    private ?object $controller = null;
+    private ?\Exception $exception = null;
 
     public function __construct(string $controllerDir)
     {
@@ -56,8 +59,10 @@ class Router {
         $this->addType('bool', 'boolval');
         $this->addType('float', 'floatval');
 
-        $this->addService(ParameterBag::class, fn() => $this->request->getPayload());
+        $this->addService(self::class, fn() => $this);
         $this->addService(Request::class, fn() => $this->request);
+        $this->addService(ParameterBag::class, fn() => $this->request->getPayload());
+        $this->addService(\Exception::class, fn() => $this->exception);
     }
 
     public function addType(string $type, callable $retriever, ?string $identifierName = null): void
@@ -81,11 +86,11 @@ class Router {
 
         try {
             foreach ($this->routeMap->getRoutes() as $matcher => [$httpMethod, $pathPattern, $queryInfo, $controller, $functionName, $conditions]) {
-                if ($request->getMethod() !== $httpMethod || !preg_match($pathPattern, $request->getPathInfo(), $matches)) {
+                if ($this->request->getMethod() !== $httpMethod || !preg_match($pathPattern, $this->request->getPathInfo(), $matches)) {
                     continue;
                 }
                 foreach ($queryInfo as $parameterName => $parameterPattern) {
-                    if (!$request->query->has($parameterName) || !preg_match($parameterPattern, $request->query->getString($parameterName), $parameterMatches)) {
+                    if (!$this->request->query->has($parameterName) || !preg_match($parameterPattern, $this->request->query->getString($parameterName), $parameterMatches)) {
                         continue 2;
                     }
                     $matches += $parameterMatches;
@@ -102,11 +107,17 @@ class Router {
     }
 
     private function handleException(Exception $e): Response {
+        $this->exception = $e;
+
+        if ($this->controller && method_exists($this->controller, 'handleException')) {
+            return $this->callConditionally($this->controller, 'handleException');
+        }
+
         foreach ($this->exceptionHandlers as $exceptionClass => $handler) {
             if (is_a($e::class, $exceptionClass, true)) {
                 // $handler = [$className, $methodName]
                 if (is_array($handler)) {
-                    return $this->call($handler[0], $handler[1], [], [$e]);
+                    return $this->callConditionally($handler[0], $handler[1], arguments: [$e]);
                 // closure
                 } else {
                     $function = new ReflectionFunction($handler);
@@ -244,62 +255,28 @@ class Router {
                 if ($arg === null || $arg === []) {
                     throw new NotFoundException();
                 }
-                $args[] = $arg;
+                $args[$parameter->getName()] = $arg;
                 continue;
             // inject services (or throw InvalidArgumentException)
             } else {
-                $args[] = $this->getService($type);
+                $args[$parameter->getName()] = $this->getService($type);
             }
         }
         return $args;
     }
 
-    /**
-     * @throws AccessDeniedException none of the conditions is met
-     * @throws NotLoggedInException if user is not even logged in (should be thrown in CurrentUser)
-     */
-    private function checkConditions(array $conditions, array $args): void
+    private function callConditionally(object|string $controller, string $functionName, array $matches = [], array $conditions = [], array $arguments = []): Response
     {
-        if (!$conditions) {
-            return;
+        if (!is_object($controller)) {
+            $constructor = new ReflectionMethod($controller, '__construct');
+            $constructorArgs = $this->injectDependencies($constructor, $matches);
+            $this->controller = new $controller(...$constructorArgs);
+        } else {
+            $this->controller = $controller;
         }
-
-        foreach ($conditions as $propertyName => $valueTemplate) {
-            $method = new ReflectionMethod($this->currentUser, 'has' . $propertyName);
-            $type = (string)$method->getParameters()[0]->getType();
-
-            // TODO: template string, combinations (see Route attribute constructor)
-            $value = $valueTemplate;
-
-            if ($type === 'int') {
-                $value = intval($value);
-            }
-
-            if ($method->invoke($this->currentUser, $value)) {
-                return;
-            }
-        }
-
-        // none of the conditions was met
-        throw new AccessDeniedException();
-    }
-
-    private function callConditionally(string $class, string $functionName, array $matches, array $conditions): Response
-    {
-        $constructor = new ReflectionMethod($class, '__construct');
-        $constructorArgs = $this->injectDependencies($constructor, $matches);
-        $method = new ReflectionMethod($class, $functionName);
-        $args = $this->injectDependencies($method, $matches);
-        $this->checkConditions($conditions, $args);
-        return $method->invokeArgs(new $class(...$constructorArgs), $args);
-    }
-
-    private function call(string $class, string $functionName, array $matches, array $arguments = []): Response
-    {
-        $constructor = new ReflectionMethod($class, '__construct');
-        $constructorArgs = $this->injectDependencies($constructor, $matches);
-        $method = new ReflectionMethod($class, $functionName);
+        $method = new ReflectionMethod($this->controller, $functionName);
         $args = [...$arguments, ...$this->injectDependencies($method, $matches, skipParameters: count($arguments))];
-        return $method->invokeArgs(new $class(...$constructorArgs), $args);
+        (new ConditionChecker($this->currentUser, $conditions))->check($args);
+        return $method->invokeArgs($this->controller, $args);
     }
 }

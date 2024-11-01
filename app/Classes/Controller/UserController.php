@@ -48,7 +48,6 @@ class UserController extends Controller {
     #[Route('GET /user/{\d+:id=>user}', allow: ['role' => 'user'])]
     #[Route('GET /user/{username=>user}', allow: ['role' => 'user'])]
     public function show(User $user): Response {
-        $this->requireLogin();
         $db_modified = $user->get('db_modified');
         $isAdmin = $this->currentUser->hasRole('mvread');
 
@@ -98,16 +97,8 @@ class UserController extends Controller {
         return $this->render('UserController/profil', $templateVars);
     }
 
-    private function requirePermission(User $user): void {
-        if (!$this->currentUser->hasRole('mvedit') && $this->currentUser->get('id') !==  $user->get('id')) {
-            throw new AccessDeniedException();
-        }
-    }
-
-    #[Route('GET /user/{username=>user}/edit', allow: ['role' => 'user'])]
+    #[Route('GET /user/{username=>user}/edit', allow: ['role' => 'mvedit', 'id' => '$user->get("id")'])]
     public function edit(User $user): Response {
-        $this->requirePermission($user); // TODO: als Attribut
-
         $templateVars = [];
 
         $tab = $this->request->query->getString('tab');
@@ -342,10 +333,8 @@ class UserController extends Controller {
         return $this->showMessage("Die Daten wurden aus der Mitgliederdatenbank gelöscht.");
     }
 
-    #[Route('POST /user/{username=>user}/update', allow: ['role' => 'user'])]
+    #[Route('POST /user/{username=>user}/update', allow: ['role' => 'mvedit', 'id' => '$user->get("id")'])]
     public function update(User $user): Response {
-        $this->requirePermission($user);
-
         $input = $this->validatePayload(array_fill_keys(self::bearbeiten_strings_ungeprueft, 'string'));
         foreach ($input as $key=>$value) {
             $user->set($key, $value);
