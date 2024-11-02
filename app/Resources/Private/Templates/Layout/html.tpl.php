@@ -24,6 +24,6 @@
     <script src="/js/bootstrap-toggle.min.js"></script>
     <script src="/js/MHN.js"></script>
 
-    <?=$this->get('@@contents')?>
+    <?=$_contents->raw?>
   </body>
 </html>

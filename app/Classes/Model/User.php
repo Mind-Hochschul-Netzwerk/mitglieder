@@ -86,7 +86,7 @@ class User extends Model
         case 'bearbeitenUrl':
             return '/user/' . $this->data['username'] . '/edit';
         case 'profilLink':
-            return '<a href="' . $this->get('profilUrl') . '">' . Tpl::getInstance()->escape($this->get('fullName')) . '</a>';
+            return '<a href="' . $this->get('profilUrl') . '">' . Tpl::htmlEscape($this->get('fullName')) . '</a>';
         case 'dateOfJoining';
             if ($this->get('membership_confirmation')) {
                 return $this->get('membership_confirmation');
@@ -157,7 +157,7 @@ class User extends Model
                     $this->data[$key] = (string)$value;
                 } elseif ($defaultType === 'boolean') {
                     $this->data[$key] = (bool)$value;
-                } elseif ($defaultType === 'float') {
+                } elseif ($defaultType === 'double') {
                     $this->data[$key] = (float)$value;
                 } else {
                     throw new \TypeError("Invalid data type for $key: $type.", 1494775686);
@@ -246,7 +246,7 @@ class User extends Model
                 return null;
             }
             return new DateTimeImmutable($dateTime);
-        } elseif (is_object($dateTime) && $dateTime instanceof \DateTimeInterface) {
+        } elseif ($dateTime instanceof \DateTimeInterface) {
             return $dateTime;
         } else {
             throw new \TypeError("Value is expected to be DateTime, null, string or integer. " . gettype($dateTime) . " given.", 1494775564);

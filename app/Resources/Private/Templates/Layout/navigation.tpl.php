@@ -1,5 +1,5 @@
 <?php
-
+// echo var_export($currentUser->isLoggedIn());
 if ($currentUser->isLoggedIn()) {
     $navItems = [
         'suche' => ['/', 'Mitgliedersuche', 'search'],

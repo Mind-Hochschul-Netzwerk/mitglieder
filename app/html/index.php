@@ -28,5 +28,3 @@ Tpl::getInstance()->set('currentUser', $currentUser);
 Tpl::getInstance()->set('csrfToken', [$router, 'createCsrfToken']);
 
 $router->dispatch($request, $currentUser)->send();
-
-// TODO: CSRF tokens

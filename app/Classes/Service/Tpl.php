@@ -8,18 +8,12 @@ namespace App\Service;
  */
 
 /**
- * escape
- */
-function e(mixed $value): mixed {
-    return Tpl::getInstance()->escape($value);
-}
-
-/**
- * Template-Engine
+ * template engine
  */
 class Tpl
 {
     const TEMPLATES_DIR = '/var/www/Resources/Private/Templates';
+    const PROXY_CLASS = TemplateVariableProxy::class;
 
     /**
      * a context is a tuple ['extendedTemplate', 'extendTemplateVariables', 'variables']
@@ -46,81 +40,68 @@ class Tpl
     }
 
     /**
-     * Setzt eine Variable*
-     *
-     * @param string $var
-     * @param mixed $val
+     * safely escape html string
      */
-    public function set(string $var, $val) {
-        $this->getContext()['variables'][$var] = $val;
-    }
-
-    public function &getRootContextVariables() {
-        return $this->contexts[0]['variables'];
-    }
-
-    public function &getParentContextVariables() {
-        if (count($this->contexts) < 2) {
-            throw new \LogicException('there is no parent context');
-        }
-        return $this->contexts[count($this->contexts) - 2]['variables'];
-    }
-
-    public function &getContextVariables(): array {
-        return $this->getContext()['variables'];
-    }
-
-    public function &getContext(): array {
-        return $this->contexts[count($this->contexts) - 1];
-    }
-
-    public function get($var): mixed {
-        return array_merge(...array_column($this->contexts, 'variables'))[$var] ?? null;
-    }
-
-    public function escape(mixed $value): mixed {
-        if (is_array($value)) {
-            return array_map(fn($v) => $this->escape($v), $value);
-        } elseif (is_string($value)) {
-            return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-        } else {
-            return $value;
-        }
+    public static function htmlEscape(mixed $string): string
+    {
+        return htmlspecialchars((string)$string, ENT_QUOTES, 'UTF-8');
     }
 
     /**
-     * Stellt ein Template dar.
-     *
-     * @param string $tpl
-     * @param bool $display ausgeben und nicht nur zurückgegeben
-     * @throws \UnexpectedValueException wenn das Template nicht existiert
-     * @return string gerenderter Inhalt
+     * stores a variable
      */
-    public function render($templateName, array $variables = [])
+    public function set(string $var, $val): void
+    {
+        $this->getContext()['variables'][$var] = $val;
+    }
+
+    public function &getContext(): array
+    {
+        return $this->contexts[count($this->contexts) - 1];
+    }
+
+    /**
+     * render a template and return the rendered template
+     *
+     * @param string $templateName name of the template without extension
+     * @param array $variables (optional) variables in the scope of the template
+     * @param mixed &$returnValue (optional) value may be set by the template, e.g. subject of a generated mail
+     * @throws \UnexpectedValueException if the template does not exist
+     */
+    public function render(string $templateName, array $variables = [], mixed &$returnValue = null)
     {
         $this->contexts[] = [
             'extendedTemplate' => '',
             'extendedTemplateVariables' => [],
             'variables' => $variables
         ];
-        $allVariables = $this->escape(array_merge(...array_column($this->contexts, 'variables')));
 
-        extract($allVariables);
+        $templateFilename = self::TEMPLATES_DIR . "/$templateName";
+        foreach (['.php' => 'html', '.tpl.php' => 'html', '.txt.php' => 'raw'] as $extension=>$escapeType) {
+            if (is_file($templateFilename . $extension)) {
+                break;
+            }
+        }
+        if (!is_file($templateFilename . $extension)) {
+            throw new \UnexpectedValueException("the template $templateName does not exist.", 1493681481);
+        }
 
-        if (!is_file(self::TEMPLATES_DIR . "/$templateName.tpl.php")) {
-            throw new \UnexpectedValueException("Template $templateName existiert nicht.", 1493681481);
+        $allVariables = array_merge(...array_column($this->contexts, 'variables'));
+        // create proxies and extract them as local variables
+        foreach ($allVariables as $key=>$value) {
+            $$key = self::PROXY_CLASS::create($key, $value, $escapeType);
         }
 
         $this->startRecording();
-        include self::TEMPLATES_DIR . "/$templateName.tpl.php";
+        include $templateFilename . $extension;
         $contents = $this->stopRecording();
 
         $context = $this->getContext();
 
         if ($context['extendedTemplate']) {
             $contents = $this->render($context['extendedTemplate'], [
-                ...['@@contents' => $contents],
-                ...$context['extendedTemplateVariables']
+                ...['_contents' => $contents],
+                ...$context['extendedTemplateVariables'],
             ]);
         }
 
@@ -129,14 +110,7 @@ class Tpl
     }
 
     /**
-     *
-     */
-    public function include($templateName, array $variables = []): void {
-        echo $this->render($templateName, $variables);
-    }
-
-    /**
-     * Output-Buffering unterbrechen
+     * stop output buffering
      */
     public function stopRecording(): string
     {
@@ -146,15 +120,25 @@ class Tpl
     }
 
     /**
-     * Output-Buffering wieder aufnehmen
+     * start output buffering
      */
     public function startRecording()
     {
         ob_start();
     }
 
-    public function extends(string $templateName, array $variables = []) {
+    /**
+     * call this from within a template with $this->extends if the template extends another one
+     */
+    private function extends(string $templateName, array $variables = []) {
         $this->getContext()['extendedTemplate'] = $templateName;
         $this->getContext()['extendedTemplateVariables'] = $variables;
+    }
+
+    /**
+     * include a template (call this from within a template as $this->include)
+     */
+    private function include($templateName, array $variables = []): void {
+        echo $this->render($templateName, $variables);
     }
 }

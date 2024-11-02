@@ -17,13 +17,13 @@ class RouteMap {
 
     /**
      * contains the routes
-     * [matcher  => [HTTP method, path regex, query info, Controller class, function name]]
+     * [matcher  => [HTTP method, path regex, query info, Controller class, function name, allow rules, check csrf token]]
      */
     private array $routes = [];
 
     public function __construct(public string $controllerDir)
     {
-        $this->cacheFile = '/tmp/routes.cache.' . md5($controllerDir) . '.php';
+        $this->cacheFile = '/tmp/routes.cache.' . hash('xxh3', $controllerDir) . '.php';
         $this->loadRoutesFromCache();
     }
 

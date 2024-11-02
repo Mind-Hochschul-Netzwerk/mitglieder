@@ -316,7 +316,7 @@ class AufnahmeController extends Controller
             'id' => $newUser->get('id'),
             'fullName' => $newUser->get('fullName'),
             'email' => $newUser->get('email'),
-        ]);
+        ], $subject);
 
         $ids = Ldap::getInstance()->getIdsByGroup('aktivierung');
         foreach ($ids as $id) {
@@ -324,7 +324,7 @@ class AufnahmeController extends Controller
             if ($user === null) {
                 continue;
             }
-            $user->sendEmail('Neues Mitglied', $text);
+            $user->sendEmail($subject, $text);
         }
     }
 }

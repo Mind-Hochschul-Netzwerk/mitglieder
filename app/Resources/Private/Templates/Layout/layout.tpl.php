@@ -4,9 +4,9 @@ $this->include('Layout/navigation')
 ?>
 
 <div class="main"><div class="container-fluid">
-    <?=!empty($title) ? "<h1>" . $this->get('title') . "</h1>" : ''?>
+    <?=$title ? ("<h1>" . $title->raw() . "</h1>") : ''?>
 
-    <?=$this->get('@@contents')?>
+    <?=$_contents->raw?>
 
     <hr />
 </div></div> <!-- /main -->

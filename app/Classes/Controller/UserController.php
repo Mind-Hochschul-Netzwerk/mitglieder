@@ -172,8 +172,8 @@ class UserController extends Controller {
         } else {
             $this->setTemplateVariable('email_auth_info', true);
             $token = Token::encode([time(), $user->get('id'), $email], $user->get('email'), getenv('TOKEN_KEY'));
-            $text = Tpl::getInstance()->render('mails/email-auth', ['token' => $token]);
-            EmailService::getInstance()->send($email, 'E-Mail-Änderung', $text);
+            $text = Tpl::getInstance()->render('mails/email-auth', ['token' => $token], $subject);
+            EmailService::getInstance()->send($email, $subject, $text);
         }
     }
 
@@ -267,14 +267,14 @@ class UserController extends Controller {
                 $text = Tpl::getInstance()->render('mails/resignation', [
                     'fullName' => $user->get('fullName'),
                     'id' => $user->get('id'),
-                ]);
-                EmailService::getInstance()->send('vorstand@mind-hochschul-netzwerk.de', 'Austrittserklärung', $text);
-                EmailService::getInstance()->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', 'Austrittserklärung', $text);
+                ], $subject);
+                EmailService::getInstance()->send('vorstand@mind-hochschul-netzwerk.de', $subject, $text);
+                EmailService::getInstance()->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', $subject, $text);
                 $text = Tpl::getInstance()->render('mails/resignationConfirmation', [
                     'fullName' => $user->get('fullName'),
                     'id' => $user->get('id'),
-                ]);
-                $user->sendEmail('Bestätigung deiner Austrittserklärung', $text);
+                ], $subject);
+                $user->sendEmail($subject, $text);
             }
         } elseif ($this->currentUser->hasRole('mvedit')) {
             $resignOld = $user->get('resignation') !== null;
@@ -287,14 +287,14 @@ class UserController extends Controller {
                     'adminFullName' => $this->currentUser->get('fullName'),
                     'fullName' => $user->get('fullName'),
                     'id' => $user->get('id'),
-                ]);
-                EmailService::getInstance()->send('vorstand@mind-hochschul-netzwerk.de', 'Austrittserklärung eingetragen', $text);
-                EmailService::getInstance()->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', 'Austrittserklärung eingetragen', $text);
+                ], $subject);
+                EmailService::getInstance()->send('vorstand@mind-hochschul-netzwerk.de', $subject, $text);
+                EmailService::getInstance()->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', $subject, $text);
                 $text = Tpl::getInstance()->render('mails/resignationConfirmation', [
                     'fullName' => $user->get('fullName'),
                     'id' => $user->get('id'),
-                ]);
-                $user->sendEmail('Bestätigung deiner Austrittserklärung', $text);
+                ], $subject);
+                $user->sendEmail($subject, $text);
             }
         }
     }
@@ -314,7 +314,7 @@ class UserController extends Controller {
             'deletedId' => $user->get('id'),
             'deletedUsername' => $user->get('username'),
             'deletedEmail' => $user->get('email'),
-        ]);
+        ], $subject);
 
         // Alle Mitglieder der Mitgliederbetreuung (mvedit) informieren
         $ids = Ldap::getInstance()->getIdsByGroup('mvedit');
@@ -324,13 +324,13 @@ class UserController extends Controller {
                 continue;
             }
             try {
-                $user->sendEmail('Information über gelöschtes Mitglied', $mailText);
+                $user->sendEmail($subject, $mailText);
             } catch (\RuntimeException $e) {
                 throw $e;
             }
         }
 
-        return $this->showMessage("Die Daten wurden aus der Mitgliederdatenbank gelöscht.");
+        return $this->showMessage("Bestätigung", "Die Daten wurden aus der Mitgliederdatenbank gelöscht.");
     }
 
     #[Route('POST /user/{username=>user}/edit', allow: ['role' => 'mvedit', 'id' => '$user->get("id")'])]
@@ -399,8 +399,8 @@ class UserController extends Controller {
         $text = Tpl::getInstance()->render('mails/email-changed', [
             'fullName' => $user->get('fullName'),
             'email' => $email,
-        ]);
-        EmailService::getInstance()->send($oldMail, 'E-Mail-Änderung', $text);
+        ], $subject);
+        EmailService::getInstance()->send($oldMail, $subject, $text);
 
         $this->setTemplateVariable('email_changed', true);
     }

@@ -9,6 +9,6 @@ use Symfony\Component\HttpFoundation\Response;
 class GroupController extends Controller {
     #[Route('GET /groups', allow: ['role' => 'user'])]
     public function index(): Response {
-        return $this->showMessage("hi");
+        return $this->showMessage("Gruppen", "hi");
     }
 }

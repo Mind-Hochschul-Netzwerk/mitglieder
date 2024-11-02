@@ -1,8 +1,9 @@
+<?php $returnValue = $subject = 'Austrittserklärung'; ?>
 Liebes Mitglied des Vorstands / der Mitgliederbetreuung,
 
 das Mitglied <?=$fullName?> (MHN-Mitgliedsnummer <?=$id?>) hat den Austritt aus dem Verein erklärt.
 
-<?php if (!empty($adminFullName)): ?>
+<?php if (!empty($adminFullName)): $returnValue = $subject = 'Austrittserklärung eingetragen'; ?>
 Der Austritt wurde von <?=$adminFullName?> eingetragen.
 <?php endif; ?>
 

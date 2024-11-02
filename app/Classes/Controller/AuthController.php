@@ -81,10 +81,10 @@ class AuthController extends Controller {
             $text = Tpl::getInstance()->render('mails/lost-password', [
                 'fullName' => $user->get('fullName'),
                 'url' => 'https://mitglieder.' . getenv('DOMAINNAME') . '/lost-password?token=' . $token,
-            ]);
+            ], $subject);
 
             try {
-                $user->sendEmail('Passwort vergessen', $text);
+                $user->sendEmail($subject, $text);
             } catch (\RuntimeException $e) {
                 return new Response("Fehler beim Versenden der E-Mail.");
             }

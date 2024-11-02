@@ -419,17 +419,17 @@ if (!empty($errorMessage)) {
 
             <div class="row">
                 <div class="col-sm-2">Aufnahmedatum</div>
-                <div class="col-sm-10"><?=($aufnahmedatum !== null ? $aufnahmedatum->format('d.m.Y') : 'unbekannt')?></div>
+                <div class="col-sm-10"><?=$aufnahmedatum?->format('d.m.Y') ?? 'unbekannt'?></div>
             </div>
 
             <div class="row">
                 <div class="col-sm-2">Letzte Bearbeitung</div>
-                <div class="col-sm-10"><?= $db_modified === null ? 'unbekannt' : $db_modified->format('d.m.Y H:i:s') ?> durch <?= $db_modified_user === null ? 'unbekannt' : $db_modified_user->get('profilLink') ?></div>
+                <div class="col-sm-10"><?=$db_modified?->format('d.m.Y H:i:s') ?? 'unbekannt'?> durch <?=$db_modified_user?->get('profilLink')->raw() ?? 'unbekannt'?></div>
             </div>
 
             <div class="row">
                 <div class="col-sm-2">Vereinseintritt</div>
-                <div class="col-sm-10"><?=($dateOfJoining !== null ? $dateOfJoining->format('d.m.Y') : 'kein Mitglied')?></div>
+                <div class="col-sm-10"><?=$dateOfJoining?->format('d.m.Y') ?? 'kein Mitglied'?></div>
             </div>
 
             <div class="row">
@@ -488,7 +488,7 @@ if (!empty($errorMessage)) {
                 </div>
 
                 <?php if ($isSuperAdmin): ?>
-                    <?=form_row('Gruppen ändern', [['groups', implode(', ', $groups), 'placeholder' => 'Trennen durch Komma. Mögliche Werte siehe Menüpunkt „Mitgliederverwaltung”', 'sichtbarkeit' => false]])?>
+                    <?=form_row('Gruppen ändern', [['groups', $groups->implode(', '), 'placeholder' => 'Trennen durch Komma. Mögliche Werte siehe Menüpunkt „Mitgliederverwaltung”', 'sichtbarkeit' => false]])?>
                 <?php endif; ?>
 
                 <div class="form-group row">

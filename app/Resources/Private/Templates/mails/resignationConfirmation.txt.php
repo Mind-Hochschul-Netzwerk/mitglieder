@@ -1,3 +1,4 @@
+<?php $returnValue = $subject = 'Bestätigung deiner Austrittserklärung'; ?>
 Liebe/r <?=$fullName?>,
 
 hiermit bestätigen wir dir, dass du deinen Austritt aus dem Mind-Hochschul-Netzwerk erklärt hast.

@@ -31,11 +31,17 @@ class Controller {
         return new Response(Tpl::getInstance()->render($templateName, $data));
     }
 
-    public function showMessage(string $message, int $responseCode = 200): Response {
-        $response = $this->render('Layout/layout', [
-            '@@contents' => $message,
-        ]);
+    public function showError(string $message, int $responseCode = 200): Response {
+        $response = $this->render('Layout/errorpage', ['text' => $message]);
         $response->setStatusCode($responseCode);
+        return $response;
+    }
+
+    public function showMessage(string $title, string $message): Response {
+        $response = $this->render('Layout/message', [
+            'title' => $title,
+            'text' => $message,
+        ]);
         return $response;
     }
 
@@ -94,20 +100,20 @@ class Controller {
 
     public static function handleException(\Exception $e, Request $request): Response {
         if ($e instanceof InvalidRouteException) {
-            return (new self($request))->showMessage($e->getMessage() ?: 'URL ungültig', 404);
+            return (new self($request))->showError($e->getMessage() ?: 'URL ungültig', 404);
         } elseif ($e instanceof NotLoggedInException) {
             return (new AuthController($request))->loginForm();
         } elseif ($e instanceof NotFoundException) {
-            return (new self($request))->showMessage($e->getMessage() ?: 'nicht gefunden', 404);
+            return (new self($request))->showError($e->getMessage() ?: 'nicht gefunden', 404);
         } elseif ($e instanceof AccessDeniedException) {
-            return (new self($request))->showMessage($e->getMessage() ?: 'fehlende Rechte', 403);
+            return (new self($request))->showError($e->getMessage() ?: 'fehlende Rechte', 403);
         } elseif ($e instanceof InvalidCsrfTokenException) {
-            return (new self($request))->showMessage($e->getMessage() ?: 'Die Anfrage kann nicht wiederholt werden.', 400);
+            return (new self($request))->showError($e->getMessage() ?: 'Die Anfrage kann nicht wiederholt werden.', 400);
         } elseif ($e instanceof InvalidUserDataException) {
-            return (new self($request))->showMessage($e->getMessage() ?: 'fehlerhafte Eingabedaten', 400);
+            return (new self($request))->showError($e->getMessage() ?: 'fehlerhafte Eingabedaten', 400);
         } else {
             error_log($e->getMessage());
-            return (new self($request))->showMessage('Ein interner Fehler ist aufgetreten.', 500);
+            return (new self($request))->showError('Ein interner Fehler ist aufgetreten.', 500);
         }
     }
 }
