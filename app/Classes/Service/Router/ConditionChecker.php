@@ -1,9 +1,10 @@
 <?php
 declare(strict_types=1);
-namespace App\Router;
+namespace App\Service\Router;
 
-use App\Router\Exception\AccessDeniedException;
-use App\Router\Interface\CurrentUserInterface;
+use App\Service\Router\Exception\AccessDeniedException;
+use App\Service\Router\Exception\NotLoggedInException;
+use App\Service\Router\Interface\CurrentUserInterface;
 
 /**
  * @author Henrik Gebauer <henrik@mind-hochschul-netzwerk.de>
@@ -20,7 +21,6 @@ class ConditionChecker {
     )
     {
     }
-
 
     /**
      * evaluate the value of a value template of a rule's 'allow' condition
@@ -138,7 +138,7 @@ class ConditionChecker {
 
     /**
      * @throws AccessDeniedException none of the conditions is met
-     * @throws NotLoggedInException if user is not even logged in (should be thrown in CurrentUser)
+     * @throws NotLoggedInException if user is not even logged in
      */
     public function check(array $args): void
     {
@@ -165,6 +165,6 @@ class ConditionChecker {
         }
 
         // none of the conditions was met
-        throw new AccessDeniedException();
+        throw $this->currentUser->isLoggedIn() ? new AccessDeniedException() : new NotLoggedInException();
     }
 }

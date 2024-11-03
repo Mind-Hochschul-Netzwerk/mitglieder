@@ -1,4 +1,6 @@
-<?php $returnValue = $subject = 'Passwort vergessen'; ?>
+<?php
+$returnValue = $subject = 'Passwort vergessen';
+?>
 Hallo <?=$fullName?>,
 
 Du hast angegeben, dass du dein Passwort für deinen Zugang zum MinD-Hochschul-Netzwerk

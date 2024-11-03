@@ -8,8 +8,8 @@ namespace App\Controller;
 
 use App\Model\User;
 use App\Repository\UserRepository;
-use App\Router\Attribute\Route;
-use App\Router\Exception\InvalidUserDataException;
+use App\Service\Router\Attribute\Route;
+use App\Service\Router\Exception\InvalidUserDataException;
 use App\Service\Ldap;
 use App\Service\Tpl;
 use Symfony\Component\HttpFoundation\Response;
@@ -81,14 +81,14 @@ class AufnahmeController extends Controller
     private $password = '';
     private $readyToSave = true;
 
-    #[Route('GET /aufnahme?token={token}')]
+    #[Route('GET /aufnahme?token={token}', allow: true)]
     public function show(string $token): Response
     {
         $this->prepare($token);
         return $this->showForm();
     }
 
-    #[Route('POST /aufnahme?token={token}')]
+    #[Route('POST /aufnahme?token={token}', allow: true)]
     public function submit(string $token): Response {
         $this->prepare($token);
         $this->checkEnteredUsername();

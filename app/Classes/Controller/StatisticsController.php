@@ -8,9 +8,9 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Service\Ldap;
-use App\Service\Db;
+use Hengeb\Db\Db;
 use App\Repository\UserRepository;
-use App\Router\Attribute\Route;
+use App\Service\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 

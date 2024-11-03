@@ -7,14 +7,14 @@ $this->extends('Layout/layout', [
 ?>
 
 <form method="post" id="passwordForm">
-<input type="hidden" name="_csrf_token" value="<?=$csrfToken()?>">
+<?=$_csrf_token()->inputHidden()?>
 
 <?php
-$this->include('Layout/alert', [
-    'alert_id' => 'AlertWiederholungFalsch',
-    'alert_type' => 'danger',
-    'alert_hide' => empty($wiederholung_falsch),
-    'alert_text' => 'Die Wiederholung stimmt nicht mit dem Passwort überein.',
+$this->include('partials/alert', [
+    'alertId' => 'AlertWiederholungFalsch',
+    'type' => 'danger',
+    'alertHide' => empty($wiederholung_falsch),
+    'text' => 'Die Wiederholung stimmt nicht mit dem Passwort überein.',
 ]);
 ?>
 

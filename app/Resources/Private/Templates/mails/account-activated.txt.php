@@ -1,4 +1,6 @@
-<?php $returnValue = $subject = 'Neues Mitglied'; ?>
+<?php
+$returnValue = $subject = 'Neues Mitglied';
+?>
 Liebes Mitglied der Mitgliederbetreuung,
 
 soeben hat ein neues Mitglied seinen Zugang aktiviert und somit dem Aufnahmeprozess abgeschlossen.

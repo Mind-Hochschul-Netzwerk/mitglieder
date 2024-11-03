@@ -3,12 +3,12 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Router\Exception\AccessDeniedException;
-use App\Router\Exception\InvalidCsrfTokenException;
-use App\Router\Exception\InvalidRouteException;
-use App\Router\Exception\InvalidUserDataException;
-use App\Router\Exception\NotFoundException;
-use App\Router\Exception\NotLoggedInException;
+use App\Service\Router\Exception\AccessDeniedException;
+use App\Service\Router\Exception\InvalidCsrfTokenException;
+use App\Service\Router\Exception\InvalidRouteException;
+use App\Service\Router\Exception\InvalidUserDataException;
+use App\Service\Router\Exception\NotFoundException;
+use App\Service\Router\Exception\NotLoggedInException;
 use App\Service\Tpl;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

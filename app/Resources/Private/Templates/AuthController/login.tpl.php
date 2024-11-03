@@ -8,8 +8,8 @@ $this->extends('Layout/layout', [
   <div class="modal-dialog" role="document">
     <div class="modal-content">
 <form method="post" action="/login">
-<input type="hidden" name="_csrf_token" value="<?=$csrfToken()?>">
-    <input type="hidden" name="redirect" value="<?=$redirectUrl?>" >
+    <?=$_csrf_token()->inputHidden()?>
+    <?=$redirectUrl->inputHidden(name: 'redirect')?>
       <div class="modal-header">
         <h4 class="modal-title" id="myModalLabel">Login ins MHN-Mitgliederverzeichnis</h4>
       </div>
@@ -17,9 +17,9 @@ $this->extends('Layout/layout', [
         <h4>Gib deine Mitgliedsdaten ein, um dich anzumelden.</h4>
 
 <?php if (!empty($lost_password)) {
-    $this->include('Layout/alert', [
-      'alert_type' => 'success',
-      'alert_text' => "Falls ein entsprechendes Benutzerkonto gefunden wurde, wurde eine E-Mail an deine E-Mail-Adresse gesendet.",
+    $this->include('partials/alert', [
+      'type' => 'success',
+      'text' => "Falls ein entsprechendes Benutzerkonto gefunden wurde, wurde eine E-Mail an deine E-Mail-Adresse gesendet.",
     ]);
 } ?>
         <?php if (!empty($error_passwort_falsch)): ?>

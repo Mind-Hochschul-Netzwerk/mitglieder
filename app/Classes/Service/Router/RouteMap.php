@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
-namespace App\Router;
+namespace App\Service\Router;
 
-use App\Router\Attribute\Route;
+use App\Service\Router\Attribute\Route;
 
 /**
  * @author Henrik Gebauer <mensa@henrik-gebauer.de>
@@ -108,7 +108,7 @@ class RouteMap {
      *                      the function takes the arguments in the same order they appear in the matcher
      * @param $conditions see Route Attribute constructor
      */
-    private function add(string $matcher, string $controller, string $functionName, array $conditions, ?bool $checkCsrfToken): void
+    private function add(string $matcher, string $controller, string $functionName, array|bool $conditions, ?bool $checkCsrfToken): void
     {
         $httpMethod = 'GET';
         if (str_contains($matcher, ' ')) {

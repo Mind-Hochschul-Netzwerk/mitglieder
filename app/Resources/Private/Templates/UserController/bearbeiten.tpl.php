@@ -100,27 +100,27 @@ $changes = $error = $password_error = false;
 // Alerts generieren
 
 if (!empty($profilbild_format_unbekannt)) {
-    $this->include('Layout/alert', [
-        'alert_type' => 'danger',
-        'alert_text' => 'Das Dateiformat des Profilbilds wurde nicht erkannt oder wird nicht unterstützt. Unterstützte Formate: JPEG, PNG.',
+    $this->include('partials/alert', [
+        'type' => 'danger',
+        'text' => 'Das Dateiformat des Profilbilds wurde nicht erkannt oder wird nicht unterstützt. Unterstützte Formate: JPEG, PNG.',
     ]);
     $active_pane = 'profilbild';
     $changes = $error = true;
 }
 
 if (!empty($profilbild_uploadfehler)) {
-    $this->include('Layout/alert', [
-        'alert_type' => 'danger',
-        'alert_text' => 'Beim Upload des Profilbilds ist es leider zu einem unbekannten Fehler gekommen. Bitte wende dich an die Mitgliederbetreuung.',
+    $this->include('partials/alert', [
+        'type' => 'danger',
+        'text' => 'Beim Upload des Profilbilds ist es leider zu einem unbekannten Fehler gekommen. Bitte wende dich an die Mitgliederbetreuung.',
     ]);
     $active_pane = 'profilbild';
     $changes = $error = true;
 }
 
 if (!empty($email_error)) {
-    $this->include('Layout/alert', [
-        'alert_type' => 'danger',
-        'alert_text' => 'Die eigegebene E-Mail-Adresse ist ungültig. Die E-Mail-Adresse und wurde nicht gespeichert.',
+    $this->include('partials/alert', [
+        'type' => 'danger',
+        'text' => 'Die eigegebene E-Mail-Adresse ist ungültig. Die E-Mail-Adresse und wurde nicht gespeichert.',
     ]);
     $changes = $error = true;
 } else {
@@ -128,17 +128,17 @@ if (!empty($email_error)) {
 }
 
 if (!empty($email_changed)) {
-    $this->include('Layout/alert', [
-        'alert_type' => 'success',
-        'alert_text' => 'Deine E-Mail-Adresse wurde erfolgreich geändert.',
+    $this->include('partials/alert', [
+        'type' => 'success',
+        'text' => 'Deine E-Mail-Adresse wurde erfolgreich geändert.',
     ]);
 }
 
-$this->include('Layout/alert', [
-    'alert_id' => 'AlertWiederholungFalsch',
-    'alert_type' => 'danger',
-    'alert_hide' => empty($new_password2_error),
-    'alert_text' => 'Die Wiederholung stimmt nicht mit dem neuen Passwort überein.',
+$this->include('partials/alert', [
+    'alertId' => 'AlertWiederholungFalsch',
+    'type' => 'danger',
+    'alertHide' => empty($new_password2_error),
+    'text' => 'Die Wiederholung stimmt nicht mit dem neuen Passwort überein.',
 ]);
 
 if (!empty($new_password2_error)) {
@@ -147,25 +147,25 @@ if (!empty($new_password2_error)) {
 }
 
 if (!empty($old_password_error)) {
-    $this->include('Layout/alert', [
-        'alert_type' => 'danger',
-        'alert_text' => 'Das alte Passwort ist falsch. Das Passwort wurde nicht geändert.',
+    $this->include('partials/alert', [
+        'type' => 'danger',
+        'text' => 'Das alte Passwort ist falsch. Das Passwort wurde nicht geändert.',
     ]);
     $active_pane = 'basisdaten';
     $password_error = $changes = $error = true;
 }
 
 if (!empty($data_saved_info)) {
-    $this->include('Layout/alert', [
-        'alert_type' => 'success',
-        'alert_text' => (!$error ? 'Deine Daten wurden geändert.' : 'Die anderen Änderungen wurden gespeichert.') . (!empty($email_auth_info) ? ' Bitte schau in dein E-Mail-Postfach, um die Änderung deiner E-Mail-Adresse abzuschließen.' : ''),
+    $this->include('partials/alert', [
+        'type' => 'success',
+        'text' => (!$error ? 'Deine Daten wurden geändert.' : 'Die anderen Änderungen wurden gespeichert.') . (!empty($email_auth_info) ? ' Bitte schau in dein E-Mail-Postfach, um die Änderung deiner E-Mail-Adresse abzuschließen.' : ''),
     ]);
 }
 
 if (!empty($errorMessage)) {
-    $this->include('Layout/alert', [
-        'alert_type' => 'warning',
-        'alert_text' => $errorMessage,
+    $this->include('partials/alert', [
+        'type' => 'warning',
+        'text' => $errorMessage,
     ]);
 }
 ?>
@@ -180,7 +180,7 @@ if (!empty($errorMessage)) {
 </ul>
 
 <form enctype="multipart/form-data" method="post" id="profile-form">
-<input type="hidden" name="_csrf_token" value="<?=$csrfToken()?>">
+<?=$_csrf_token()->inputHidden()?>
 
 <div class="tab-content">
     <div class="tab-pane <?=$active_pane === 'basisdaten' ? 'active' : ''?>" id="basisdaten">

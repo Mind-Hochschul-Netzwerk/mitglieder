@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace App\Router\Attribute;
+namespace App\Service\Router\Attribute;
 
 use Attribute;
 
@@ -12,7 +12,14 @@ use Attribute;
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_METHOD)]
 class Route {
     /**
-     * @param array $allow = [$property => $valueTemplate, ...] allow access if one of the conditions is fullfilled
+     * @param string $matcher "METHOD /path?query", e.g. "GET /search?q={query}" where path and query may contain named placeholders
+     *      the name of each placeholder has to match the name of an argument of the controller method
+     *      you can include a bit of regex in the placeholder like: {[0-9]+:id} to allow only numbers in the "id" argument
+     *      you can use a placeholder to retrieve a model like: {id=>user} to fetch a user by its id attribute
+     * @param array|bool $allow
+     *      true: allow public access
+     *      false: deny access (inactive route)
+     *      array:  [$property => $valueTemplate, ...] allow access if one of the conditions is fullfilled
      *      Router will determine the $value of $valueTemplate and then check if $currentUser->{'has' . $property}($value) === true
      *      ($value will be casted to int if neccessary)
      *      i.e. a method of this name has to exist in the $currentUser object
@@ -26,7 +33,7 @@ class Route {
      *              where $group and $user have to be parameters of the routing method
      * @param bool $checkCsrfToken null => auto by HTTP method (GET: false, otherwise: true)
      */
-    public function __construct(public string $matcher, public array $allow = [], public ?bool $checkCsrfToken = null)
+    public function __construct(public string $matcher, public array|bool $allow, public ?bool $checkCsrfToken = null)
     {
     }
 }

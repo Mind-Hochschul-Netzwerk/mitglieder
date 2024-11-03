@@ -5,8 +5,8 @@ namespace App\Service;
 use App\Interfaces\Singleton;
 use App\Model\User;
 use App\Repository\UserRepository;
-use App\Router\Exception\NotLoggedInException;
-use App\Router\Interface\CurrentUserInterface;
+use App\Service\Router\Exception\NotLoggedInException;
+use App\Service\Router\Interface\CurrentUserInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 
@@ -72,7 +72,7 @@ class CurrentUser implements Singleton, CurrentUserInterface {
     public function hasRole(string $roleName): bool
     {
         if (!$this->user) {
-            throw new NotLoggedInException();
+            return false;
         }
         return $this->user->hasRole($roleName);
     }
@@ -80,7 +80,7 @@ class CurrentUser implements Singleton, CurrentUserInterface {
     public function hasId(int $id): bool
     {
         if (!$this->user) {
-            throw new NotLoggedInException();
+            return false;
         }
         return $this->user->get('id') === $id;
     }

@@ -5,8 +5,8 @@ namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
 use App\Repository\UserRepository;
-use App\Router\Attribute\Route;
-use App\Service\Db;
+use App\Service\Router\Attribute\Route;
+use Hengeb\Db\Db;
 use App\Service\PasswordService;
 
 class SearchController extends Controller {

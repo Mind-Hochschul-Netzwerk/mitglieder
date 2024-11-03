@@ -5,22 +5,22 @@ namespace App\Controller;
 
 use App\Model\User;
 use App\Repository\UserRepository;
-use App\Router\Attribute\Route;
-use App\Router\Exception\InvalidUserDataException;
 use App\Service\CurrentUser;
-use App\Service\Db;
+use App\Service\Router\Attribute\Route;
+use App\Service\Router\Exception\InvalidUserDataException;
 use App\Service\Tpl;
+use Hengeb\Db\Db;
 use Hengeb\Token\Token;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller {
-    #[Route('GET /login')]
+    #[Route('GET /login', allow: true)]
     public function loginForm(): Response {
         return $this->render('AuthController/login', ['redirectUrl' => $this->request->getPathInfo()]);
     }
 
-    #[Route('POST /login')]
+    #[Route('POST /login', allow: true)]
     public function loginSubmitted(Db $db, CurrentUser $currentUser): Response {
         $input = $this->validatePayload([
             'id' => 'required string',
@@ -63,7 +63,7 @@ class AuthController extends Controller {
         return $this->redirect($redirectUrl);
     }
 
-    #[Route('GET /logout')]
+    #[Route('GET /logout', allow: true)]
     public function logout(CurrentUser $user): Response {
         $user->logOut();
         return $this->render('AuthController/logout');
@@ -109,13 +109,13 @@ class AuthController extends Controller {
         return $user;
     }
 
-    #[Route('GET /lost-password?token={token}')]
+    #[Route('GET /lost-password?token={token}', allow: true)]
     public function resetPasswordForm(string $token): Response {
         $user = $this->validatePasswordToken($token);
         return $this->render('AuthController/lost-password');
     }
 
-    #[Route('POST /lost-password?token={token}')]
+    #[Route('POST /lost-password?token={token}', allow: true)]
     public function resetPassword(string $token, CurrentUser $currentUser): Response {
         $user = $this->validatePasswordToken($token);
 

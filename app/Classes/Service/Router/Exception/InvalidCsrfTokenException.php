@@ -1,5 +1,5 @@
 <?php
 
-namespace App\Router\Exception;
+namespace App\Service\Router\Exception;
 
 class InvalidCsrfTokenException extends InvalidUserDataException {}

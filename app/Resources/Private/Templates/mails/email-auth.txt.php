@@ -1,4 +1,6 @@
-<?php $returnValue = $subject = 'E-Mail-Änderung'; ?>
+<?php
+$returnValue = $subject = 'E-Mail-Änderung';
+?>
 Hallo <?=$fullName?>,
 
 Bitte rufe die folgende Adresse auf, um die Änderung deiner E-Mail-Adresse in der MHN-Datenbank zu bestätigen:

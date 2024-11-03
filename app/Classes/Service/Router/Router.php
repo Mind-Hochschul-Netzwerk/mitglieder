@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
-namespace App\Router;
+namespace App\Service\Router;
 
-use App\Router\Exception\AccessDeniedException;
-use App\Router\Exception\InvalidCsrfTokenException;
-use App\Router\Exception\InvalidRouteException;
-use App\Router\Exception\InvalidUserDataException;
-use App\Router\Exception\NotFoundException;
-use App\Router\Exception\NotLoggedInException;
-use App\Router\Interface\CurrentUserInterface;
+use App\Service\Router\Exception\AccessDeniedException;
+use App\Service\Router\Exception\InvalidCsrfTokenException;
+use App\Service\Router\Exception\InvalidRouteException;
+use App\Service\Router\Exception\InvalidUserDataException;
+use App\Service\Router\Exception\NotFoundException;
+use App\Service\Router\Exception\NotLoggedInException;
+use App\Service\Router\Interface\CurrentUserInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -297,7 +297,7 @@ class Router {
         return $args;
     }
 
-    private function callConditionally(object|string $controller, string $functionName, array $matches = [], array $conditions = [], array $arguments = [], bool $checkCsrfToken = false): Response
+    private function callConditionally(object|string $controller, string $functionName, array $matches = [], array|bool $conditions = true, array $arguments = [], bool $checkCsrfToken = false): Response
     {
         if (!is_object($controller)) {
             $constructor = new \ReflectionMethod($controller, '__construct');
@@ -311,7 +311,11 @@ class Router {
         }
         $method = new \ReflectionMethod($this->controller, $functionName);
         $args = [...$arguments, ...$this->injectDependencies($method, $matches, skipParameters: count($arguments))];
-        (new ConditionChecker($this->currentUser, $conditions))->check($args);
+        if (is_array($conditions)) {
+            (new ConditionChecker($this->currentUser, $conditions))->check($args);
+        } elseif ($conditions === false) {
+            throw new AccessDeniedException('inactive route');
+        }
         return $method->invokeArgs($this->controller, $args);
     }
 }

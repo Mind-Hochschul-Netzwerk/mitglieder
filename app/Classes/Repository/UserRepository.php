@@ -9,7 +9,7 @@ namespace App\Repository;
 use App\Model\User;
 use App\Service\CurrentUser;
 use App\Service\Ldap;
-use App\Service\Db;
+use Hengeb\Db\Db;
 
 /**
  * Repräsentiert ein User

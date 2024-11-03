@@ -5,9 +5,9 @@ namespace App\Controller;
 
 use App\Model\User;
 use App\Repository\UserRepository;
-use App\Router\Attribute\Route;
-use App\Router\Exception\AccessDeniedException;
-use App\Router\Exception\InvalidUserDataException;
+use App\Service\Router\Attribute\Route;
+use App\Service\Router\Exception\AccessDeniedException;
+use App\Service\Router\Exception\InvalidUserDataException;
 use App\Service\CurrentUser;
 use App\Service\EmailService;
 use App\Service\ImageResizer;
@@ -40,13 +40,13 @@ class UserController extends Controller {
     {
     }
 
-    #[Route('GET /user')]
+    #[Route('GET /user', allow: ['isLoggedIn' => true])]
     public function showSelf(): Response {
         return $this->redirect('/user/_');
     }
 
-    #[Route('GET /user/{\d+:id=>user}', allow: ['role' => 'user'])]
-    #[Route('GET /user/{username=>user}', allow: ['role' => 'user'])]
+    #[Route('GET /user/{\d+:id=>user}', allow: ['isLoggedIn' => true])]
+    #[Route('GET /user/{username=>user}', allow: ['isLoggedIn' => true])]
     public function show(User $user): Response {
         $db_modified = $user->get('db_modified');
         $isAdmin = $this->currentUser->hasRole('mvread');
@@ -405,7 +405,7 @@ class UserController extends Controller {
         $this->setTemplateVariable('email_changed', true);
     }
 
-    #[Route('GET /email_auth?token={token}')]
+    #[Route('GET /email_auth?token={token}', allow: true)]
     public function emailAuth(string $token): Response {
         try {
             Token::decode($token, function ($data) use (&$user, &$email) {

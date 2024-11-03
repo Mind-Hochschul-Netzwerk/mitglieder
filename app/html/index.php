@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace App;
 
 use App\Controller\Controller;
-use App\Router\Exception\InvalidRouteException;
-use App\Router\Router;
+use App\Service\Router\Exception\InvalidRouteException;
+use App\Service\Router\Router;
 use App\Service\CurrentUser;
 use App\Service\Tpl;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,6 +25,6 @@ $currentUser = CurrentUser::getInstance();
 $currentUser->setRequest($request);
 
 Tpl::getInstance()->set('currentUser', $currentUser);
-Tpl::getInstance()->set('csrfToken', [$router, 'createCsrfToken']);
+Tpl::getInstance()->set('_csrf_token', [$router, 'createCsrfToken']);
 
 $router->dispatch($request, $currentUser)->send();
