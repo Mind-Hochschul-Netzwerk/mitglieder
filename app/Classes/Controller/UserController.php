@@ -5,14 +5,14 @@ namespace App\Controller;
 
 use App\Model\User;
 use App\Repository\UserRepository;
-use App\Service\Router\Attribute\Route;
-use App\Service\Router\Exception\AccessDeniedException;
-use App\Service\Router\Exception\InvalidUserDataException;
 use App\Service\CurrentUser;
 use App\Service\EmailService;
 use App\Service\ImageResizer;
 use App\Service\Ldap;
 use App\Service\Tpl;
+use Hengeb\Router\Attribute\Route;
+use Hengeb\Router\Exception\AccessDeniedException;
+use Hengeb\Router\Exception\InvalidUserDataException;
 use Hengeb\Token\Token;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

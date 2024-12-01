@@ -8,11 +8,11 @@ declare(strict_types=1);
 namespace App;
 
 use App\Controller\Controller;
-use App\Service\Router\Exception\InvalidRouteException;
-use App\Service\Router\Router;
 use App\Service\CurrentUser;
 use App\Service\TemplateVariable;
 use App\Service\Tpl;
+use Hengeb\Router\Exception\InvalidRouteException;
+use Hengeb\Router\Router;
 use Symfony\Component\HttpFoundation\Request;
 
 require_once '../vendor/autoload.php';

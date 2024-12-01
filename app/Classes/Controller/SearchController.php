@@ -3,11 +3,11 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use Symfony\Component\HttpFoundation\Response;
 use App\Repository\UserRepository;
-use App\Service\Router\Attribute\Route;
-use Hengeb\Db\Db;
 use App\Service\PasswordService;
+use Hengeb\Db\Db;
+use Hengeb\Router\Attribute\Route;
+use Symfony\Component\HttpFoundation\Response;
 
 class SearchController extends Controller {
     #[Route('GET /(search|)', allow: ['loggedIn' => true])]

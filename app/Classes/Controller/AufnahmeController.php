@@ -9,10 +9,10 @@ namespace App\Controller;
 use App\Model\User;
 use App\Repository\UserRepository;
 use App\Service\CurrentUser;
-use App\Service\Router\Attribute\Route;
-use App\Service\Router\Exception\InvalidUserDataException;
 use App\Service\Ldap;
 use App\Service\Tpl;
+use Hengeb\Router\Attribute\Route;
+use Hengeb\Router\Exception\InvalidUserDataException;
 use Symfony\Component\HttpFoundation\Response;
 
 /**

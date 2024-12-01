@@ -5,8 +5,8 @@ namespace App\Service;
 use App\Interfaces\Singleton;
 use App\Model\User;
 use App\Repository\UserRepository;
-use App\Service\Router\Exception\NotLoggedInException;
-use App\Service\Router\Interface\CurrentUserInterface;
+use Hengeb\Router\Exception\NotLoggedInException;
+use Hengeb\Router\Interface\CurrentUserInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 

@@ -7,9 +7,9 @@
 declare(strict_types=1);
 namespace App\Controller;
 
-use App\Service\Router\Attribute\Route;
 use App\Service\CurrentUser;
 use App\Service\Ldap;
+use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 class AdminController extends Controller {

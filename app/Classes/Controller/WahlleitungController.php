@@ -7,8 +7,8 @@
 declare(strict_types=1);
 namespace App\Controller;
 
-use App\Service\Router\Attribute\Route;
 use Hengeb\Db\Db;
+use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 class WahlleitungController extends Controller {

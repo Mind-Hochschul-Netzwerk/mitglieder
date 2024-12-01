@@ -10,7 +10,7 @@ namespace App\Controller;
 use App\Service\Ldap;
 use Hengeb\Db\Db;
 use App\Repository\UserRepository;
-use App\Service\Router\Attribute\Route;
+use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 

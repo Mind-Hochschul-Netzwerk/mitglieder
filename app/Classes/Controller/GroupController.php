@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Service\Router\Attribute\Route;
+use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 class GroupController extends Controller {
