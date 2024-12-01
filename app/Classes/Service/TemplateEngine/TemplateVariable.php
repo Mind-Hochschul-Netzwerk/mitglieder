@@ -123,7 +123,7 @@ class TemplateVariable implements \Iterator, \ArrayAccess, \Countable {
      */
     public function raw(): string
     {
-        if (is_callable($this->value)) {
+        if ($this->value instanceof \Closure) {
             return $this->value();
         } elseif (is_array($this->value)) {
             return $this->json();
@@ -375,7 +375,6 @@ class TemplateVariable implements \Iterator, \ArrayAccess, \Countable {
 
     public function select(array $options, ...$attributes): string
     {
-        $attributes['type'] ??= 'checkbox';
         $attributes['name'] ??= $this->name;
 
         $label = '';
@@ -394,8 +393,6 @@ class TemplateVariable implements \Iterator, \ArrayAccess, \Countable {
             array_keys($options)
         )) . '</select>';
     }
-
-
 
     protected function htmlAttributes(array $attributes): string {
         return implode(array_map(function ($key) use ($attributes) {

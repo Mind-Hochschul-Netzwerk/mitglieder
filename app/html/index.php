@@ -26,7 +26,7 @@ $currentUser = CurrentUser::getInstance();
 $currentUser->setRequest($request);
 
 Tpl::getInstance()->set('currentUser', $currentUser);
-Tpl::getInstance()->set('_csrf_token', [$router, 'createCsrfToken']);
+Tpl::getInstance()->set('_csrf_token', fn() => $router->createCsrfToken());
 TemplateVariable::$timezone = new \DateTimeZone('Europe/Berlin');
 
 $router->dispatch($request, $currentUser)->send();
