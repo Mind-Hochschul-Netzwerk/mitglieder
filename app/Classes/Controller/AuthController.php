@@ -17,7 +17,15 @@ use Symfony\Component\HttpFoundation\Response;
 class AuthController extends Controller {
     #[Route('GET /login', allow: true)]
     public function loginForm(): Response {
-        return $this->render('AuthController/login', ['redirectUrl' => $this->request->getPathInfo()]);
+        if (CurrentUser::getInstance()->isLoggedIn()) {
+            return $this->redirect('/');
+        }
+        $redirect = $this->request->getPathInfo();
+        return $this->render('AuthController/login', [
+            'redirect' => $redirect,
+            'id' => '',
+            'password' => '',
+        ]);
     }
 
     #[Route('POST /login', allow: true)]
@@ -31,7 +39,11 @@ class AuthController extends Controller {
 
         if (!$input['id'] && $input['password']) {
             $this->setTemplateVariable('error_username_leer', true);
-            return $this->loginForm();
+            return $this->render('AuthController/login', [
+                'redirect' => $input['redirect'],
+                'id' => '',
+                'password' => '',
+            ]);
         }
 
         $id = $db->query('SELECT id FROM mitglieder WHERE id=:id OR username=:username OR email=:email', [
@@ -54,7 +66,11 @@ class AuthController extends Controller {
 
         if (!$user) {
             $this->setTemplateVariable('error_passwort_falsch', true);
-            return $this->loginForm();
+            return $this->render('AuthController/login', [
+                'redirect' => $input['redirect'],
+                'id' => $input['id'],
+                'password' => '',
+            ]);
         }
 
         $redirectUrl = preg_replace('/\s/', '', $input['redirect']);
@@ -112,7 +128,10 @@ class AuthController extends Controller {
     #[Route('GET /lost-password?token={token}', allow: true)]
     public function resetPasswordForm(string $token): Response {
         $user = $this->validatePasswordToken($token);
-        return $this->render('AuthController/lost-password');
+        return $this->render('AuthController/lost-password', [
+            'password' => '',
+            'password2' => '',
+        ]);
     }
 
     #[Route('POST /lost-password?token={token}', allow: true)]

@@ -9,7 +9,7 @@ $this->extends('Layout/layout', [
     <div class="modal-content">
 <form method="post" action="/login">
     <?=$_csrf_token()->inputHidden()?>
-    <?=$redirectUrl->inputHidden(name: 'redirect')?>
+    <?=$redirect->inputHidden()?>
       <div class="modal-header">
         <h4 class="modal-title" id="myModalLabel">Login ins MHN-Mitgliederverzeichnis</h4>
       </div>
@@ -29,12 +29,12 @@ $this->extends('Layout/layout', [
         <div id="alertBenutzerkennung" class="alert alert-danger <?=(empty($error_username_leer)) ? 'hide' : ''?>">Gib deinen Benutzernamen oder E-Mail-Adresse an.</div>
         <div class="row form-group">
             <div class="col-sm-12">
-                <input id="uid" name="id" type="text" placeholder="Benutzername, Mitgliedsnummer oder E-Mail-Adresse" class="form-control" />
+                <?=$id->input(placeholder: "Benutzername, Mitgliedsnummer oder E-Mail-Adresse")?>
             </div>
         </div>
         <div class="row form-group">
             <div class="col-sm-12">
-                <input name="password" type="password" placeholder="Passwort" class="form-control" />
+                <?=$password->input(type: 'password', placeholder: "Passwort")?>
             </div>
         </div>
 
@@ -54,7 +54,7 @@ $this->extends('Layout/layout', [
 function check_username() {
     $("#alertBenutzerkennung").addClass("hide");
     $("#alertFalsch").addClass("hide");
-    if ($("#uid").val() == "") {
+    if ($("#id").val() == "") {
         $("#alertBenutzerkennung").removeClass("hide");
         return false;
     }

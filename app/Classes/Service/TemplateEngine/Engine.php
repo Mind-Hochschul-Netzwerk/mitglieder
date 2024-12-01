@@ -10,9 +10,9 @@ namespace App\Service\TemplateEngine;
 /**
  * template engine
  */
-class TemplateEngine
+class Engine
 {
-    protected string $proxyClass = TemplateVariableProxy::class;
+    protected string $proxyClass = TemplateVariable::class;
 
     /**
      * a context is a tuple ['extendedTemplate', 'extendTemplateVariables', 'variables']
@@ -51,6 +51,20 @@ class TemplateEngine
     public function &getContext(): array
     {
         return $this->contexts[count($this->contexts) - 1];
+    }
+
+    /**
+     * check if a template variable is set and truish
+     */
+    public function check(&$variable): bool
+    {
+        if (empty($variable)) {
+            return false;
+        } elseif ($variable instanceof TemplateVariable) {
+            return $variable->isTrue();
+        } else {
+            return boolval($variable);
+        }
     }
 
     /**

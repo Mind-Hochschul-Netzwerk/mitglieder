@@ -40,13 +40,13 @@ class UserController extends Controller {
     {
     }
 
-    #[Route('GET /user', allow: ['isLoggedIn' => true])]
+    #[Route('GET /user', allow: ['loggedIn' => true])]
     public function showSelf(): Response {
         return $this->redirect('/user/_');
     }
 
-    #[Route('GET /user/{\d+:id=>user}', allow: ['isLoggedIn' => true])]
-    #[Route('GET /user/{username=>user}', allow: ['isLoggedIn' => true])]
+    #[Route('GET /user/{\d+:id=>user}', allow: ['loggedIn' => true])]
+    #[Route('GET /user/{username=>user}', allow: ['loggedIn' => true])]
     public function show(User $user): Response {
         $db_modified = $user->get('db_modified');
         $isAdmin = $this->currentUser->hasRole('mvread');
@@ -75,12 +75,12 @@ class UserController extends Controller {
                 'zweitstudium', 'nebenfach', 'abschluss', 'zweitstudium', 'hochschulaktivitaeten', 'stipendien',
                 'auslandsaufenthalte', 'praktika', 'beruf'] as $feld) {
                 if (!$user->get('sichtbarkeit_' . $feld)) {
-                    $templateVars[$feld] = '';
+                    $templateVars[$feld] = null;
                 }
             }
             if (!$user->get('sichtbarkeit_plz_ort')) {
-                $templateVars['plz'] = '';
-                $templateVars['ort'] = '';
+                $templateVars['plz'] = null;
+                $templateVars['ort'] = null;
             }
         }
 
@@ -116,14 +116,22 @@ class UserController extends Controller {
         $templateVars += [
             'fullName' => $user->get('fullName'),
             'dateOfJoining' => $user->get('dateOfJoining'),
-            'groups' => $user->getGroups(),
+            'groups' => implode(', ', $user->getGroups()),
             'db_modified_user' => UserRepository::getInstance()->findOneById((int)$user->get('db_modified_user_id')),
             'isAdmin' => $this->currentUser->hasRole('mvedit'),
             'isSuperAdmin' => $this->currentUser->hasRole('rechte'),
             'isSelf' => $this->currentUser->get('id') ===  $user->get('id'),
         ];
 
-        return $this->render('UserController/bearbeiten', $templateVars);
+        return $this->render('UserController/bearbeiten', [
+            ...$templateVars,
+            'bildLoeschen' => false,
+            'delete' => false,
+            'resign' => (bool)$user->get('resignation'),
+            'password' => '',
+            'new_password' => '',
+            'new_password2' => '',
+        ]);
     }
 
     private function updatePassword(User $user): void {
@@ -382,6 +390,7 @@ class UserController extends Controller {
         UserRepository::getInstance()->save($user);
 
         // und neu laden (insb. beim Löschen wichtig, sonst müssten alle Keys einzeln zurückgesetzt werden)
+        // TODO: redirect. store messages in session
         return $this->edit(UserRepository::getInstance()->findOneById($user->get('id')));
     }
 

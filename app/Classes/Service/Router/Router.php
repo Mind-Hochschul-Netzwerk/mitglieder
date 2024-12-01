@@ -139,6 +139,9 @@ class Router {
     private function handleException(\Exception $e): Response {
         $this->exception = $e;
 
+        // stop possible output buffering (e.g. if the exception was thrown during the rendering of a template)
+        ob_end_clean();
+
         if ($this->controller && method_exists($this->controller, 'handleException')) {
             return $this->callConditionally($this->controller, 'handleException');
         }

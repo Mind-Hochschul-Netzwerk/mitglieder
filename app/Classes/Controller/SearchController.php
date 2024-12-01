@@ -10,9 +10,9 @@ use Hengeb\Db\Db;
 use App\Service\PasswordService;
 
 class SearchController extends Controller {
-    #[Route('GET /(search|)', allow: ['role' => 'user'])]
+    #[Route('GET /(search|)', allow: ['loggedIn' => true])]
     public function form(): Response {
-        return $this->render('SearchController/search');
+        return $this->render('SearchController/search', ['query' => '']);
     }
 
     // Felder mit |s bzw |s* nur mit sichtbarkeit
@@ -20,7 +20,7 @@ class SearchController extends Controller {
     // Felder, bei denen nur nach Übereinstimmung statt nach Substring gesucht wird (müssen auch in felder aufgeführt sein)
     const felder_eq = ['id', 'mensa_nr', 'plz', 'plz2'];
 
-    #[Route('GET /(search|)?q={query}', allow: ['role' => 'user'])]
+    #[Route('GET /(search|)?q={query}', allow: ['loggedIn' => true])]
     public function search(string $query, Db $db): Response {
         // TODO filter einbauen über beschaeftigung, auskunft_* und für mvread für aufgabe_*
         $this->setTemplateVariable('query', $query);

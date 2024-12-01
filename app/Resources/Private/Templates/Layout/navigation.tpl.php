@@ -1,11 +1,10 @@
 <?php
-// echo var_export($currentUser->isLoggedIn());
-if ($currentUser->isLoggedIn()) {
+if ($currentUser->isLoggedIn()->isTrue()) {
     $navItems = [
         'suche' => ['/', 'Mitgliedersuche', 'search'],
         'bearbeiten' => ['/user/_/edit', 'Meine Daten', 'user'],
-        'statistics' => $currentUser->hasRole('mvread') ? ['/statistics', 'Statistik', 'stats'] : null,
-        'admin' => $currentUser->hasRole('mvedit') ? ['/admin', 'Mitgliederverwaltung', 'wrench'] : null,
+        'statistics' => $currentUser->hasRole('mvread')->isTrue() ? ['/statistics', 'Statistik', 'stats'] : null,
+        'admin' => $currentUser->hasRole('mvedit')->isTrue() ? ['/admin', 'Mitgliederverwaltung', 'wrench'] : null,
         'logout' => ['/logout', 'Logout', 'log-out'],
         'homepage' => ['https://www.' . getenv('DOMAINNAME'), 'MHN-Webseite', 'home'],
         'datenschutz' => ['https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=4', 'Datenschutz', 'paragraph'],
@@ -39,12 +38,11 @@ if ($currentUser->isLoggedIn()) {
         <div class="collapse navbar-collapse" id="bs-sidebar-navbar-collapse-1">
             <ul class="nav navbar-nav">
 <?php
-
 foreach ($navItems as $itemname => $item) {
     if (!$item) {
         continue;
     }
-    $class = (!empty($navId) and $navId === $itemname) ? 'active' : '';
+    $class = ($this->check($navId) && $navId === $itemname) ? 'active' : '';
     echo "<li class='$class'><a href='$item[0]'>$item[1]<span class='pull-right showopacity glyphicon glyphicon-$item[2]'></span></a></li>\n";
 }
 ?>

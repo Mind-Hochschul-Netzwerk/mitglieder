@@ -13,7 +13,7 @@ $this->extends('Layout/layout', [
 
 <div class="form-group row">
     <div class="col-sm-10">
-        <input name="q" type="search" placeholder="Suche" class="form-control" value="<?=!empty($query)?$query:""?>" />
+        <?=$query->input(name: 'q', type: 'search', placeholder: 'Suche')?>
     </div>
     <div class="col-sm-2">
         <button type="submit" class="btn btn-success" onclick="return suchen();"><span class="glyphicon glyphicon-search"></span> Suchen</button>
@@ -22,7 +22,7 @@ $this->extends('Layout/layout', [
 
 </form>
 
-<?php if (!empty($query) || !empty($ergebnisse)): ?>
+<?php if (!empty($ergebnisse)): ?>
     <div id="suchergebnisse">
     <h2>Suchergebnisse</h2>
 

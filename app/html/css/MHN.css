@@ -273,6 +273,10 @@ div.profil-checkbox:first-line {
     border-bottom-right-radius: 4px;
 }
 
+label > [type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
 div.checkbox {
     margin-left: 4em;
 }

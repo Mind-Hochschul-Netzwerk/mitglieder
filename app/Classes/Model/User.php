@@ -51,6 +51,8 @@ class User extends Model
         $this->set('password', $password);
         $this->setEmail($email);
 
+        // TODO: Aufnahmedatum wird gespeichert mit Uhrzeit 0:00 Uhr UTC.
+        //       Falls der Antrag kurz nach Mitternacht in Deutschland ausgefüllt wird, liegt das Aufnahmedatum daher um 1 Tag daneben
         $this->setData('aufnahmedatum', 'now');
         $this->setData('db_modified', 'now');
     }

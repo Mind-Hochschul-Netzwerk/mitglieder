@@ -13,7 +13,7 @@ $this->extends('Layout/layout', [
 $this->include('partials/alert', [
     'alertId' => 'AlertWiederholungFalsch',
     'type' => 'danger',
-    'alertHide' => empty($wiederholung_falsch),
+    'hide' => !$this->check($wiederholung_falsch),
     'text' => 'Die Wiederholung stimmt nicht mit dem Passwort überein.',
 ]);
 ?>
@@ -23,14 +23,14 @@ $this->include('partials/alert', [
 <div class='form-group row '>
     <label for='input-password' class='col-sm-2 col-form-label'>Neues Passwort</label>
     <div class='col-sm-10'>
-        <input id='input-password' name='password' type='password' class='form-control' placeholder='neues Passwort' title='neues Passwort' required>
+        <?=$password->input(id: 'input-password', type: 'password', placeholder: 'neues Passwort', required: true)?>
     </div>
 </div>
 
 <div class='form-group row '>
-    <label for='input-password' class='col-sm-2 col-form-label'>Passwort wiederholen</label>
+    <label for='input-password2' class='col-sm-2 col-form-label'>Passwort wiederholen</label>
     <div class='col-sm-10'>
-        <input id='input-password2' name='password2' type='password' class='form-control' placeholder='neues Passwort' title='neues Passwort'>
+        <?=$password2->input(id: 'input-password2', type: 'password', placeholder: 'Wiederholung', required: true)?>
     </div>
 </div>
 
@@ -45,8 +45,8 @@ $this->include('partials/alert', [
 
 <script>
 document.getElementById("passwordForm").addEventListener("submit", function (e) {
-    let input1 = document.getElementById("input-password").value;
-    let input2 = document.getElementById("input-password2").value;
+    let input1 = document.querySelector("[name='password']").value;
+    let input2 = document.querySelector("[name='password2']").value;
     if (input1 !== input2) {
         document.getElementById("AlertWiederholungFalsch").classList.remove("hide");
         e.preventDefault();

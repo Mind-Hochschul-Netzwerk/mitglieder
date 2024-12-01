@@ -11,6 +11,7 @@ use App\Controller\Controller;
 use App\Service\Router\Exception\InvalidRouteException;
 use App\Service\Router\Router;
 use App\Service\CurrentUser;
+use App\Service\TemplateVariable;
 use App\Service\Tpl;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -26,5 +27,6 @@ $currentUser->setRequest($request);
 
 Tpl::getInstance()->set('currentUser', $currentUser);
 Tpl::getInstance()->set('_csrf_token', [$router, 'createCsrfToken']);
+TemplateVariable::$timezone = new \DateTimeZone('Europe/Berlin');
 
 $router->dispatch($request, $currentUser)->send();

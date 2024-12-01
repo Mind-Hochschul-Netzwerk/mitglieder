@@ -9,6 +9,6 @@ abstract class Model {
 
     public static function getRepository(): Repository
     {
-        return self::$repositoryClass::getInstance();
+        return static::$repositoryClass::getInstance();
     }
 }

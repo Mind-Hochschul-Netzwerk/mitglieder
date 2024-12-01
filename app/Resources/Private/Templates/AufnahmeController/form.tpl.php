@@ -1,5 +1,7 @@
 <?php
 
+use App\Service\TemplateVariable;
+
 $this->extends('Layout/layout', [
     'htmlTitle' => 'Benutzerkonto aktivieren',
     'title' => 'Benutzerkonto aktivieren',
@@ -10,13 +12,13 @@ $alerts = [
     'usernameMissing' => 'Bitte wähle einen Benutzernamen.',
     'usernameInvalid' => 'Dein Benutzername enthält ungültige Zeichen.',
     'usernameUsed' => 'Dieser Benutzername wird bereits verwendet.',
-    'emailUsed' => 'Die E-Mail-Adresse ' . $email . ' wird bereits von einem anderen Mitglied verwendet. Bitte wende dich an die Mitgliederbetreuung, um das Problem zu lösen.',
+    'emailUsed' => "Die E-Mail-Adresse $email wird bereits von einem anderen Mitglied verwendet. Bitte wende dich an die Mitgliederbetreuung, um das Problem zu lösen.",
     'passwordMissing' => 'Bitte wähle ein Passwort.',
     'passwordMismatch' => 'Das Passwort und die Wiederholung stimmen nicht überein.',
 ];
 
 foreach ($alerts as $name=>$text) {
-    if (!empty($$name)) {
+    if ($this->check($$name)) {
         $this->include('partials/alert', [
             'type' => 'danger',
             'text' => $text,
@@ -24,9 +26,14 @@ foreach ($alerts as $name=>$text) {
     }
 }
 
+// extract
+foreach ($data as $k=>$v) {
+    $$k = $v;
+}
+
 ?>
 
-<p>Hallo <?=$data['mhn_vorname']?>,</p>
+<p>Hallo <?=$mhn_vorname?>,</p>
 <p>wir freuen uns, dich als neues Mitglied im Mind-Hochschul-Netzwerk zu begrüßen! Bevor es losgehen kann, musst du deine Zugangsdaten festlegen und entscheiden, welche Daten du im Netzwerk freigeben möchtest.</p>
 
 <form method="post">
@@ -38,22 +45,20 @@ foreach ($alerts as $name=>$text) {
 
 <div class='form-group row '>
     <label for='input-username' class='col-sm-2 col-form-label'>Benutzername</label>
-    <div class='col-sm-10'>
-        <input id='input-username' name='username' class='form-control'  title='Benutzername' value="<?=$username?>" required>
-    </div>
+    <div class='col-sm-10'><?=$username->input()?></div>
 </div>
 
 <div class='form-group row '>
     <label for='input-password' class='col-sm-2 col-form-label'>Passwort</label>
     <div class='col-sm-10'>
-        <input id='input-password' name='password' type='password' class='form-control' placeholder='neues Passwort' title='neues Passwort' required>
+        <?=$password->input(id: 'input-password', type: 'password', required: true, placeholder: 'neues Passwort', autoComplete: 'new-password')?>
     </div>
 </div>
 
 <div class='form-group row '>
     <label for='input-password2' class='col-sm-2 col-form-label'>Passwort wiederholen</label>
     <div class='col-sm-10'>
-        <input id='input-password2' name='password2' type='password' class='form-control' placeholder='neues Passwort' title='neues Passwort'>
+        <?=$password2->input(id: 'input-password2', type: 'password', required: true, placeholder: 'neues Passwort')?>
     </div>
 </div>
 
@@ -74,9 +79,9 @@ Deine angegeben Daten und die Freigabeeinstellungen kannst du jederzeit in deine
 <div class="form-group row">
     <div class="col-sm-2">Meine Adresse (Hauptwohnsitz)</div>
     <div class="col-sm-10 ">
-        <div><label><input type="radio" name="sichtbarkeit_adresse" value="1" required> für Mitglieder freigeben</label></div>
-        <div><label><input type="radio" name="sichtbarkeit_adresse" value="2" required> eingeschränkt freigeben: nur PLZ, Ort und Land, aber nicht Straße/Hausnr. und Adresszusatz</label></div>
-        <div><label><input type="radio" name="sichtbarkeit_adresse" value="0" required> nicht freigeben</label></div>
+        <div><?=$sichtbarkeit_adresse->box(type: 'radio', value: 1, required: true, label: "für Mitglieder freigeben")?></div>
+        <div><?=$sichtbarkeit_adresse->box(type: 'radio', value: 2, required: true, label: "eingeschränkt freigeben: nur PLZ, Ort und Land, aber nicht Straße/Hausnr. und Adresszusatz")?></div>
+        <div><?=$sichtbarkeit_adresse->box(type: 'radio', value: 0, required: true, label: "nicht freigeben")?></div>
     </div>
 </div>
 
@@ -95,8 +100,8 @@ Darüber hinaus kannst du deine E-Mail-Adresse freigeben, sodass Mitglieder dich
 <div class="form-group row">
     <div class="col-sm-2">E-Mail-Adresse</div>
     <div class="col-sm-10 ">
-        <label><input type="radio" name="sichtbarkeit_email" value="1" required> für Mitglieder freigeben</label>
-        <label><input type="radio" name="sichtbarkeit_email" value="0" required> nicht freigeben</label>
+        <?=$sichtbarkeit_email->box(type: 'radio', value: 1, required: true, label: "für Mitglieder freigeben")?>
+        <?=$sichtbarkeit_email->box(type: 'radio', value: 0, required: true, label: "nicht freigeben")?>
     </div>
 </div>
 
@@ -105,25 +110,25 @@ Darüber hinaus kannst du deine E-Mail-Adresse freigeben, sodass Mitglieder dich
 <div class="form-group row">
     <div class="col-sm-2">Telefonnummer</div>
     <div class="col-sm-10 ">
-        <label><input type="radio" name="sichtbarkeit_telefon" value="1" required> für Mitglieder freigeben</label>
-        <label><input type="radio" name="sichtbarkeit_telefon" value="0" required> nicht freigeben</label>
+        <?=$sichtbarkeit_telefon->box(type: 'radio', value: 1, required: true, label: "für Mitglieder freigeben")?>
+        <?=$sichtbarkeit_telefon->box(type: 'radio', value: 0, required: true, label: "nicht freigeben")?>
     </div>
 </div>
 
 <div class="form-group row">
     <div class="col-sm-2">Geburtsdatum / Alter</div>
     <div class="col-sm-10 ">
-        <label><input type="radio" name="sichtbarkeit_geburtstag" value="1" required> für Mitglieder freigeben</label>
-        <label><input type="radio" name="sichtbarkeit_geburtstag" value="0" required> nicht freigeben</label>
+        <?=$sichtbarkeit_geburtstag->box(type: 'radio', value: 1, required: true, label: "für Mitglieder freigeben")?>
+        <?=$sichtbarkeit_geburtstag->box(type: 'radio', value: 0, required: true, label: "nicht freigeben")?>
     </div>
 </div>
 
-<?php if ($data['mhn_mensa_nr']): ?>
+<?php if ("$mhn_mensa_nr"): ?>
 <div class="form-group row">
     <div class="col-sm-2">Mensa-Nummer</div>
     <div class="col-sm-10 ">
-        <label><input type="radio" name="sichtbarkeit_mensa_nr" value="1" required> für Mitglieder freigeben</label>
-        <label><input type="radio" name="sichtbarkeit_mensa_nr" value="0" required> nicht freigeben</label>
+        <?=$sichtbarkeit_mensa_nr->box(type: 'radio', value: 1, required: true, label: "für Mitglieder freigeben")?>
+        <?=$sichtbarkeit_mensa_nr->box(type: 'radio', value: 0, required: true, label: "nicht freigeben")?>
     </div>
 </div>
 <?php endif; ?>
@@ -131,49 +136,49 @@ Darüber hinaus kannst du deine E-Mail-Adresse freigeben, sodass Mitglieder dich
 <div class="form-group row">
     <div class="col-sm-2">Ausbildung und Studium</div>
     <div class="col-sm-10 ">
-        <label><input type="radio" name="sichtbarkeit_studium" value="1" required> für Mitglieder freigeben</label>
-        <label><input type="radio" name="sichtbarkeit_studium" value="0" required> nicht freigeben</label>
+        <?=$sichtbarkeit_studium->box(type: 'radio', value: 1, required: true, label: "für Mitglieder freigeben")?>
+        <?=$sichtbarkeit_studium->box(type: 'radio', value: 0, required: true, label: "nicht freigeben")?>
     </div>
 </div>
 
 <div class="form-group row">
     <div class="col-sm-2">Beruf und Tätigkeit</div>
     <div class="col-sm-10 ">
-        <label><input type="radio" name="sichtbarkeit_beruf" value="1" required> für Mitglieder freigeben</label>
-        <label><input type="radio" name="sichtbarkeit_beruf" value="0" required> nicht freigeben</label>
+        <?=$sichtbarkeit_beruf->box(type: 'radio', value: 1, required: true, label: "für Mitglieder freigeben")?>
+        <?=$sichtbarkeit_beruf->box(type: 'radio', value: 0, required: true, label: "nicht freigeben")?>
     </div>
 </div>
 
 <p>Bei den folgenden Daten kannst du nicht auswählen, ob sie freigegeben werden sollen. Wenn du nicht möchtest,
 dass andere Mitglieder sie sehen können, kannst du sie aus deinem Profil löschen.</p>
 
-<?php if ($data['mhn_titel']): ?>
+<?php if ("$mhn_titel"): ?>
 <div class="form-group row">
     <div class="col-sm-2">akademischer Titel</div>
     <div class="col-sm-10 ">
-        <label><input type="radio" name="uebernahme_titel" value="1" required> in mein Profil übernehmen</label>
-        <label><input type="radio" name="uebernahme_titel" value="0" required> Angaben löschen</label>
+        <?=$uebernahme_titel->box(type: 'radio', value: 1, required: true, label: "in mein Profil übernehmen")?>
+        <?=$uebernahme_titel->box(type: 'radio', value: 0, required: true, label: "Angaben löschen")?>
     </div>
 </div>
 <?php endif; ?>
 
-<?php if ($data['mhn_homepage']): ?>
+<?php if ("$mhn_homepage"): ?>
 <div class="form-group row">
     <div class="col-sm-2">Homepage</div>
     <div class="col-sm-10 ">
-        <label><input type="radio" name="uebernahme_homepage" value="1" required> in mein Profil übernehmen</label>
-        <label><input type="radio" name="uebernahme_homepage" value="0" required> Angaben löschen</label>
+        <?=$uebernahme_homepage->box(type: 'radio', value: 1, required: true, label: "in mein Profil übernehmen")?>
+        <?=$uebernahme_homepage->box(type: 'radio', value: 0, required: true, label: "Angaben löschen")?>
     </div>
 </div>
 <?php endif; ?>
 
-<?php if ($data['mhn_zws_strasse'] || $data['mhn_zws_zusatz'] || $data['mhn_zws_plz'] || $data['mhn_zws_ort'] || $data['mhn_zws_land']): ?>
+<?php if ("$mhn_zws_strasse$mhn_zws_zusatz$mhn_zws_plz$mhn_zws_ort$mhn_zws_land"): ?>
 <div class="form-group row">
     <div class="col-sm-2">Zweitwohnsitz</div>
     <div class="col-sm-10 ">
-        <label><input type="radio" name="uebernahme_zweitwohnsitz" value="1" required> in mein Profil übernehmen</label>
-        <label><input type="radio" name="uebernahme_zweitwohnsitz" value="1" required> nur PLZ, Ort, Land übernehmen</label>
-        <label><input type="radio" name="uebernahme_zweitwohnsitz" value="0" required> Angaben löschen</label>
+        <?=$uebernahme_zweitwohnsitz->box(type: 'radio', value: 1, required: true, label: "in mein Profil übernehmen")?>
+        <?=$uebernahme_zweitwohnsitz->box(type: 'radio', value: 2, required: true, label: "nur PLZ, Ort, Land übernehmen")?>
+        <?=$uebernahme_zweitwohnsitz->box(type: 'radio', value: 0, required: true, label: "Angaben löschen")?>
     </div>
 </div>
 <?php endif; ?>
@@ -181,8 +186,8 @@ dass andere Mitglieder sie sehen können, kannst du sie aus deinem Profil lösch
 <div class="form-group row">
     <div class="col-sm-2">Sprachen, Hobbies, Interessen, Ehrenamt</div>
     <div class="col-sm-10 ">
-        <label><input type="radio" name="uebernahme_interessen" value="1" required> in mein Profil übernehmen</label>
-        <label><input type="radio" name="uebernahme_interessen" value="0" required> Angaben löschen</label>
+        <?=$uebernahme_interessen->box(type: 'radio', value: 1, required: true, label: "in mein Profil übernehmen")?>
+        <?=$uebernahme_interessen->box(type: 'radio', value: 0, required: true, label: "Angaben löschen")?>
     </div>
 </div>
 

@@ -8,6 +8,7 @@ namespace App\Controller;
 
 use App\Model\User;
 use App\Repository\UserRepository;
+use App\Service\CurrentUser;
 use App\Service\Router\Attribute\Route;
 use App\Service\Router\Exception\InvalidUserDataException;
 use App\Service\Ldap;
@@ -74,12 +75,25 @@ class AufnahmeController extends Controller
      'aufgabe_sonstiges' => '',
     */
 
-    private $token = '';
-    private $data = [];
+    private string $token = '';
+    private array $data = [];
 
-    private $username = '';
-    private $password = '';
-    private $readyToSave = true;
+    private string $username = '';
+    private string $password = '';
+    private array $accessFlags = [
+        'sichtbarkeit_adresse' => -1,
+        'sichtbarkeit_email' => -1,
+        'sichtbarkeit_telefon' => -1,
+        'sichtbarkeit_geburtstag' => -1,
+        'sichtbarkeit_mensa_nr' => -1,
+        'sichtbarkeit_studium' => -1,
+        'sichtbarkeit_beruf' => -1,
+        'uebernahme_titel' => -1,
+        'uebernahme_homepage' => -1,
+        'uebernahme_zweitwohnsitz' => -1,
+        'uebernahme_interessen' => -1,
+    ];
+    private bool $readyToSave = true;
 
     #[Route('GET /aufnahme?token={token}', allow: true)]
     public function show(string $token): Response
@@ -93,6 +107,21 @@ class AufnahmeController extends Controller
         $this->prepare($token);
         $this->checkEnteredUsername();
         $this->checkEnteredPassword();
+
+        $this->accessFlags = $this->validatePayload([
+            'sichtbarkeit_adresse' => 'uint',
+            'sichtbarkeit_email' => 'uint',
+            'sichtbarkeit_telefon' => 'uint',
+            'sichtbarkeit_geburtstag' => 'uint',
+            'sichtbarkeit_mensa_nr' => 'uint',
+            'sichtbarkeit_studium' => 'uint',
+            'sichtbarkeit_beruf' => 'uint',
+            'uebernahme_titel' => 'uint',
+            'uebernahme_homepage' => 'uint',
+            'uebernahme_zweitwohnsitz' => 'uint',
+            'uebernahme_interessen' => 'uint',
+        ]);
+
         if ($this->readyToSave) {
             $this->save();
             return $this->redirect('/user/_/edit/?tab=profilbild');
@@ -208,8 +237,10 @@ class AufnahmeController extends Controller
 
     private function showForm(): Response
     {
-        return $this->render('AufnahmeController/form', [
+        return $this->render('AufnahmeController/form', $this->accessFlags + [
             'username' => $this->username ? $this->username : $this->suggestUsername(),
+            'password' => '',
+            'password2' => '',
             'data' => $this->data,
         ]);
     }
@@ -248,58 +279,44 @@ class AufnahmeController extends Controller
 
     private function processAccessFlags(User $user)
     {
-        $input = $this->validatePayload([
-            'sichtbarkeit_adresse' => 'uint',
-            'sichtbarkeit_email' => 'uint',
-            'sichtbarkeit_telefon' => 'uint',
-            'sichtbarkeit_geburtstag' => 'uint',
-            'sichtbarkeit_mensa_nr' => 'uint',
-            'sichtbarkeit_studium' => 'uint',
-            'sichtbarkeit_beruf' => 'uint',
-            'uebernahme_titel' => 'uint',
-            'uebernahme_homepage' => 'uint',
-            'uebernahme_zweitwohnsitz' => 'uint',
-            'uebernahme_interessen' => 'uint',
-        ]);
+        $user->set('sichtbarkeit_strasse', $this->accessFlags['sichtbarkeit_adresse'] === 1);
+        $user->set('sichtbarkeit_adresszusatz', $this->accessFlags['sichtbarkeit_adresse'] === 1);
+        $user->set('sichtbarkeit_plz_ort', $this->accessFlags['sichtbarkeit_adresse'] >= 1);
+        $user->set('sichtbarkeit_land', $this->accessFlags['sichtbarkeit_adresse'] >= 1);
+        $user->set('sichtbarkeit_email', (bool) $this->accessFlags['sichtbarkeit_email']);
+        $user->set('sichtbarkeit_geburtstag', (bool) $this->accessFlags['sichtbarkeit_geburtstag']);
+        $user->set('sichtbarkeit_mensa_nr', (bool) $this->accessFlags['sichtbarkeit_mensa_nr']);
+        $user->set('sichtbarkeit_telefon', (bool) $this->accessFlags['sichtbarkeit_telefon']);
+        $user->set('sichtbarkeit_beschaeftigung', (bool) $this->accessFlags['sichtbarkeit_beruf']);
+        $user->set('sichtbarkeit_beruf', (bool) $this->accessFlags['sichtbarkeit_beruf']);
+        $user->set('sichtbarkeit_studienort', (bool) $this->accessFlags['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_studienfach', (bool) $this->accessFlags['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_unityp', (bool) $this->accessFlags['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_schwerpunkt', (bool) $this->accessFlags['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_nebenfach', (bool) $this->accessFlags['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_abschluss', (bool) $this->accessFlags['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_zweitstudium', (bool) $this->accessFlags['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_hochschulaktivitaeten', (bool) $this->accessFlags['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_stipendien', (bool) $this->accessFlags['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_auslandsaufenthalte', (bool) $this->accessFlags['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_praktika', (bool) $this->accessFlags['sichtbarkeit_studium']);
 
-        $user->set('sichtbarkeit_strasse', $input['sichtbarkeit_adresse'] === 1);
-        $user->set('sichtbarkeit_adresszusatz', $input['sichtbarkeit_adresse'] === 1);
-        $user->set('sichtbarkeit_plz_ort', $input['sichtbarkeit_adresse'] >= 1);
-        $user->set('sichtbarkeit_land', $input['sichtbarkeit_adresse'] >= 1);
-        $user->set('sichtbarkeit_email', (bool) $input['sichtbarkeit_email']);
-        $user->set('sichtbarkeit_geburtstag', (bool) $input['sichtbarkeit_geburtstag']);
-        $user->set('sichtbarkeit_mensa_nr', (bool) $input['sichtbarkeit_mensa_nr']);
-        $user->set('sichtbarkeit_telefon', (bool) $input['sichtbarkeit_telefon']);
-        $user->set('sichtbarkeit_beschaeftigung', (bool) $input['sichtbarkeit_beruf']);
-        $user->set('sichtbarkeit_beruf', (bool) $input['sichtbarkeit_beruf']);
-        $user->set('sichtbarkeit_studienort', (bool) $input['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_studienfach', (bool) $input['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_unityp', (bool) $input['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_schwerpunkt', (bool) $input['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_nebenfach', (bool) $input['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_abschluss', (bool) $input['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_zweitstudium', (bool) $input['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_hochschulaktivitaeten', (bool) $input['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_stipendien', (bool) $input['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_auslandsaufenthalte', (bool) $input['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_praktika', (bool) $input['sichtbarkeit_studium']);
-
-        if (!$input['uebernahme_titel']) {
+        if (!$this->accessFlags['uebernahme_titel']) {
             $user->set('titel', '');
         }
-        if ($input['uebernahme_zweitwohnsitz'] !== 1) {
+        if ($this->accessFlags['uebernahme_zweitwohnsitz'] !== 1) {
             $user->set('strasse2', '');
             $user->set('adresszusatz2', '');
         }
-        if ($input['uebernahme_zweitwohnsitz'] === 0) {
+        if ($this->accessFlags['uebernahme_zweitwohnsitz'] === 0) {
             $user->set('plz2', '');
             $user->set('ort2', '');
             $user->set('land2', '');
         }
-        if (!$input['uebernahme_homepage']) {
+        if (!$this->accessFlags['uebernahme_homepage']) {
             $user->set('homepage', '');
         }
-        if (!$input['uebernahme_interessen']) {
+        if (!$this->accessFlags['uebernahme_interessen']) {
             $user->set('sprachen', '');
             $user->set('hobbys', '');
             $user->set('interessen', '');

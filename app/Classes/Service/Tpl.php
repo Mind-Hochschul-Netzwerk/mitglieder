@@ -7,14 +7,14 @@ namespace App\Service;
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
-use App\Service\TemplateEngine\TemplateEngine;
+use App\Service\TemplateEngine\Engine;
 
 /**
  * template engine
  */
-class Tpl extends TemplateEngine
+class Tpl extends Engine
 {
-    protected string $proxyClass = TemplateVariableProxy::class;
+    protected string $proxyClass = TemplateVariable::class;
 
     private static ?self $instance = null;
     public static function getInstance(): self {

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Service\CurrentUser;
 use App\Service\Router\Exception\AccessDeniedException;
 use App\Service\Router\Exception\InvalidCsrfTokenException;
 use App\Service\Router\Exception\InvalidRouteException;
@@ -98,10 +99,12 @@ class Controller {
         return $values;
     }
 
-    public static function handleException(\Exception $e, Request $request): Response {
+    public static function handleException(\Exception $e, Request $request, CurrentUser $user): Response {
+        $requireLogin = $e instanceof AccessDeniedException || $e instanceof NotFoundException;
+
         if ($e instanceof InvalidRouteException) {
             return (new self($request))->showError($e->getMessage() ?: 'URL ungültig', 404);
-        } elseif ($e instanceof NotLoggedInException) {
+        } elseif ($e instanceof NotLoggedInException || $requireLogin && !$user->isLoggedIn()) {
             return (new AuthController($request))->loginForm();
         } elseif ($e instanceof NotFoundException) {
             return (new self($request))->showError($e->getMessage() ?: 'nicht gefunden', 404);

@@ -101,7 +101,7 @@ class ConditionChecker {
      */
     private function getValueChecker(string $propertyName): callable
     {
-        foreach (["has$propertyName", "is$propertyName"] as $methodName) {
+        foreach (["has$propertyName", "is$propertyName", $propertyName] as $methodName) {
             if (!method_exists($this->currentUser, $methodName)) {
                 continue;
             }
@@ -148,7 +148,7 @@ class ConditionChecker {
 
         foreach ($this->conditions as $propertyName => $valueTemplate) {
             // create a two-dimensional array of values
-            $valueTemplates = array_map(fn($v) => explode('&', $v), explode('|', $valueTemplate));
+            $valueTemplates = array_map(fn($v) => explode('&', $v), explode('|', (string)$valueTemplate));
             foreach ($valueTemplates as $conjunction) {
                 $conjunctionMeets = true;
                 foreach ($conjunction as $templateString) {
