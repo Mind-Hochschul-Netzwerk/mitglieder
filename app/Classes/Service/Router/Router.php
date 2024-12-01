@@ -23,8 +23,6 @@ use Symfony\Component\HttpFoundation\Session\Session;
  * Router
  */
 class Router {
-    const ROUTES_CACHE_FILE = '/tmp/routes.cache.php';
-
     /**
      * known types for dependency injection
      * [[string $type, callable $retriever, ?string $identifier], ...]
@@ -67,9 +65,9 @@ class Router {
         $this->types[] = [$type, $retriever, $identifierName];
     }
 
-    public function addService(string $class, callable $retriever): void
+    public function addService(string $class, object $objectOrRetriever): void
     {
-        $this->services[$class] = $retriever;
+        $this->services[$class] = $objectOrRetriever;
     }
 
     public function addExceptionHandler(string $exceptionClass, callable $handler): void
@@ -80,6 +78,11 @@ class Router {
     public function dispatch(Request $request, ?CurrentUserInterface $currentUser = null): Response {
         $this->request = $request;
         $this->currentUser = $currentUser;
+
+        if ($currentUser) {
+            $this->addService($currentUser::class, $this->currentUser);
+            $this->addService(CurrentUserInterface::class, $this->currentUser);
+        }
 
         try {
             foreach ($this->routeMap->getRoutes() as $matcher => [$httpMethod, $pathPattern, $queryInfo, $controller, $functionName, $conditions, $checkCsrfToken]) {
@@ -257,9 +260,11 @@ class Router {
     }
 
     private function getService(string $className): object {
-        $retriever = $this->services[$className] ?? null;
-        if ($retriever) {
-            return $retriever();
+        $objectOrRetriever = $this->services[$className] ?? null;
+        if ($objectOrRetriever instanceof \Closure) {
+            return $objectOrRetriever();
+        } elseif ($objectOrRetriever) {
+            return $objectOrRetriever;
         }
 
         // default retriever: $className::getInstance
@@ -270,10 +275,13 @@ class Router {
             }
         }
 
-        throw new \InvalidArgumentException('no retriever found for service ' . $className);
+        // default retriever: create new object
+        $constructor = new \ReflectionMethod($className, '__construct');
+        $constructorArgs = $this->injectDependencies($constructor, []);
+        return new $className(...$constructorArgs);
     }
 
-    private function injectDependencies(\ReflectionMethod|\ReflectionFunction $method, array $matches, int $skipParameters = 0): array {
+    private function injectDependencies(\ReflectionMethod|\ReflectionFunction $method, array $matches = [], int $skipParameters = 0): array {
         $args = [];
         foreach ($method->getParameters() as $i=>$parameter) {
             if ($i < $skipParameters) {
@@ -315,6 +323,9 @@ class Router {
         $method = new \ReflectionMethod($this->controller, $functionName);
         $args = [...$arguments, ...$this->injectDependencies($method, $matches, skipParameters: count($arguments))];
         if (is_array($conditions)) {
+            if (!$this->currentUser) {
+                throw new \LogicException('router has conditions but currentUser is NULL');
+            }
             (new ConditionChecker($this->currentUser, $conditions))->check($args);
         } elseif ($conditions === false) {
             throw new AccessDeniedException('inactive route');
