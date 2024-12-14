@@ -7,14 +7,12 @@ namespace App\Service;
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
-use App\Service\TemplateEngine\Engine;
-
 /**
  * template engine
  */
-class Tpl extends Engine
+class Tpl extends \Hengeb\Simplates\Engine
 {
-    protected string $proxyClass = TemplateVariable::class;
+    public string $proxyClass = TemplateVariable::class;
 
     private static ?self $instance = null;
     public static function getInstance(): self {

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "deea6d341bc9ae1302917729924954c5",
+    "content-hash": "5569f2da02bb015eca1915b0bb2fa61a",
     "packages": [
         {
             "name": "hengeb/db",
@@ -91,6 +91,48 @@
                 "source": "https://github.com/hengeb/router/tree/v0.1"
             },
             "time": "2024-12-01T23:40:09+00:00"
+        },
+        {
+            "name": "hengeb/simplates",
+            "version": "v0.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/hengeb/simplates.git",
+                "reference": "2fbbca6b129df88dc94dd4caaf47c7a6292a7800"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/hengeb/simplates/zipball/2fbbca6b129df88dc94dd4caaf47c7a6292a7800",
+                "reference": "2fbbca6b129df88dc94dd4caaf47c7a6292a7800",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Hengeb\\Simplates\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Henrik Gebauer",
+                    "email": "code@henrik-gebauer.de",
+                    "homepage": "https://www.henrik-gebauer.de",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Template Engine for lightweight templates with automatic escaping",
+            "support": {
+                "issues": "https://github.com/hengeb/simplates/issues",
+                "source": "https://github.com/hengeb/simplates/tree/v0.0.2"
+            },
+            "time": "2024-12-14T22:41:36+00:00"
         },
         {
             "name": "hengeb/token",
@@ -437,16 +479,16 @@
         },
         {
             "name": "symfony/mime",
-            "version": "v7.2.0",
+            "version": "v7.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/mime.git",
-                "reference": "cc84a4b81f62158c3846ac7ff10f696aae2b524d"
+                "reference": "7f9617fcf15cb61be30f8b252695ed5e2bfac283"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/mime/zipball/cc84a4b81f62158c3846ac7ff10f696aae2b524d",
-                "reference": "cc84a4b81f62158c3846ac7ff10f696aae2b524d",
+                "url": "https://api.github.com/repos/symfony/mime/zipball/7f9617fcf15cb61be30f8b252695ed5e2bfac283",
+                "reference": "7f9617fcf15cb61be30f8b252695ed5e2bfac283",
                 "shasum": ""
             },
             "require": {
@@ -501,7 +543,7 @@
                 "mime-type"
             ],
             "support": {
-                "source": "https://github.com/symfony/mime/tree/v7.2.0"
+                "source": "https://github.com/symfony/mime/tree/v7.2.1"
             },
             "funding": [
                 {
@@ -517,7 +559,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-11-23T09:19:39+00:00"
+            "time": "2024-12-07T08:50:44+00:00"
         },
         {
             "name": "symfony/options-resolver",
@@ -610,8 +652,8 @@
             "type": "library",
             "extra": {
                 "thanks": {
-                    "name": "symfony/polyfill",
-                    "url": "https://github.com/symfony/polyfill"
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
                 }
             },
             "autoload": {
@@ -692,8 +734,8 @@
             "type": "library",
             "extra": {
                 "thanks": {
-                    "name": "symfony/polyfill",
-                    "url": "https://github.com/symfony/polyfill"
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
                 }
             },
             "autoload": {
@@ -776,8 +818,8 @@
             "type": "library",
             "extra": {
                 "thanks": {
-                    "name": "symfony/polyfill",
-                    "url": "https://github.com/symfony/polyfill"
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
                 }
             },
             "autoload": {
@@ -850,8 +892,8 @@
             "type": "library",
             "extra": {
                 "thanks": {
-                    "name": "symfony/polyfill",
-                    "url": "https://github.com/symfony/polyfill"
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
                 }
             },
             "autoload": {

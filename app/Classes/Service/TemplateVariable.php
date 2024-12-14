@@ -2,9 +2,7 @@
 declare(strict_types=1);
 namespace App\Service;
 
-use App\Service\TemplateEngine\Engine;
-
-class TemplateVariable extends \App\Service\TemplateEngine\TemplateVariable {
+class TemplateVariable extends \Hengeb\Simplates\TemplateVariable {
     public function input(...$attributes): string
     {
         $attributes['class'] ??= 'form-control';
@@ -37,7 +35,7 @@ class TemplateVariable extends \App\Service\TemplateEngine\TemplateVariable {
         return '<span class="input-group-addon">' . $this->box(
             label: false, class: "input-group-addon", name: $name, dataHeight: 32, dataWidth: 50,
             dataToggle: 'toggle', dataOnstyle: 'success', dataOffstyle: 'danger',
-            dataOn: Engine::htmlEscape('<span class="glyphicon glyphicon-eye-open"></span>'),
-            dataOff: Engine::htmlEscape('<span class="glyphicon glyphicon-eye-close"></span>')) . '</span>';
+            dataOn: $this->engine->htmlEscape('<span class="glyphicon glyphicon-eye-open"></span>'),
+            dataOff: $this->engine->htmlEscape('<span class="glyphicon glyphicon-eye-close"></span>')) . '</span>';
     }
 }

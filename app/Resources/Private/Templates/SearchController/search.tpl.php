@@ -22,7 +22,7 @@ $this->extends('Layout/layout', [
 
 </form>
 
-<?php if (!empty($ergebnisse)): ?>
+<?php if ($this->check($ergebnisse)): ?>
     <div id="suchergebnisse">
     <h2>Suchergebnisse</h2>
 
