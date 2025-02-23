@@ -46,3 +46,14 @@ function callApi(method = "GET", url = "", data = {}, loader = undefined) {
         return response.json();
     });
 }
+
+function formatTime(timestamp, includeDate = true, includeTime = true) {
+    let options = {};
+    if (includeDate) {
+        options.year = options.month = options.day = "2-digit";
+    }
+    if (includeTime) {
+        options.hour = options.minute = "2-digit";
+    }
+    return timestamp.toLocaleDateString("de-DE", options);
+}
