@@ -6,31 +6,79 @@ namespace App\Repository;
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
+use App\Model\User;
 use App\Model\UserAgreement;
+use Hengeb\Db\Db;
 
 class UserAgreementRepository extends Repository
 {
-    public function findAllByUserId(): array
+    private Db $db;
+
+    public function __construct()
     {
-        $rows = Db::getInstance()->query('SELECT id, timestamp FROM user_agreements ORDER BY id DESC')->getAll();
-        return array_map(fn($row) => Agreement::fromDatabase(...$row), $rows);
+        $this->db = Db::getInstance();
     }
 
-    public function findOneById(int $id): ?Agreement
+    public function findAllByUser(User $user): array
     {
-        $result = Db::getInstance()->query('SELECT id, text, timestamp FROM agreements WHERE id = :id', ['id' => $id]);
-        return ($result->getRowCount() === 0) ? null : Agreement::fromDatabase(...$result->getRow());
+        $rows = $this->db->query('SELECT ua.id, ua.user_id, ua.agreement_id, ua.timestamp, ua.action, ua.admin_id
+          FROM user_agreements AS ua
+          JOIN agreements as a ON ua.agreement_id = a.id
+          WHERE ua.user_id=:user_id ORDER BY ua.id DESC', [
+            'user_id' => $user->get('id'),
+          ])->getAll();
+        return array_map(fn($row) => UserAgreement::fromDatabase(...$row), $rows);
     }
 
-    public function store(Agreement $agreement): void
+    public function findLatestByUserPerName(User $user): array
     {
-        if ($agreement->id) {
-            throw new \InvalidArgumentException('Agreement texts may never be changed, create a new id');
+        $rows = $this->db->query('SELECT name, ua.id, user_id, agreement_id, ua.timestamp, action, admin_id FROM user_agreements AS ua
+          JOIN agreements AS a ON ua.agreement_id = a.id
+          WHERE ua.id IN (
+            SELECT MAX(ua.id) FROM user_agreements AS ua
+            JOIN agreements as a ON ua.agreement_id = a.id
+            WHERE ua.user_id=:user_id
+            GROUP BY a.name ORDER BY ua.id DESC
+          ) ORDER BY name', [
+            'user_id' => $user->get('id'),
+          ])->getAll();
+        $names = array_column($rows, 'name');
+        array_walk($rows, function(&$row) {
+            unset($row['name']);
+        });
+        return array_combine(
+            keys: $names,
+            values: array_map(fn($row) => UserAgreement::fromDatabase(...$row), $rows)
+        );
+    }
+
+    public function findLatestByUserAndName(User $user, string $name): ?UserAgreement
+    {
+        $row = $this->db->query('SELECT ua.id, user_id, agreement_id, ua.timestamp, action, admin_id FROM user_agreements AS ua
+          JOIN agreements AS a ON ua.agreement_id = a.id
+          WHERE a.name = :name AND ua.user_id = :user_id
+          ORDER BY ua.id DESC LIMIT 1', [
+            'name' => $name,
+            'user_id' => $user->get('id'),
+          ])->getRow();
+        if (!$row) {
+          return null;
         }
-        $agreement->id = Db::getInstance()->query('INSERT INTO agreements SET text=:text, timestamp=:timestamp', [
-            'text' => $agreement->text,
-            'timestamp' => $agreement->timestamp,
+        return UserAgreement::fromDatabase(...$row);
+    }
+
+    public function persist(UserAgreement $item): void
+    {
+        if ($item->id) {
+            throw new \InvalidArgumentException('UserAgreements may never be changed, create a new one');
+        }
+        $item->id = $this->db->query('INSERT INTO user_agreements SET
+          user_id=:user_id, agreement_id=:agreement_id, timestamp=:timestamp, action=:action, admin_id=:admin_id', [
+            'user_id' => $item->user->get('id'),
+            'agreement_id' => $item->agreement->id,
+            'timestamp' => $item->timestamp,
+            'action' => $item->action,
+            'admin_id' => $item->admin?->get('id'),
         ])->getInsertId();
     }
-
 }

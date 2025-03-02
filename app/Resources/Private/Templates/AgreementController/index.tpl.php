@@ -4,7 +4,6 @@ $this->extends('Layout/layout', [
     'navId' => 'suche',
     'title' => 'Einwilligungstexte',
 ]);
-
 ?>
 
 <style>
@@ -24,9 +23,7 @@ $this->extends('Layout/layout', [
 <form id="agreement">
     <div class="form-group row">
         <div class="col-sm-2"><label>Bezeichnung:</label></div>
-        <div class="col-sm-10"><!--<input class='form__name form-control'>-->
-        <select class='form__name form-control'></select>
-    </div>
+        <div class="col-sm-10"><select class='form__name form-control'></select></div>
     </div>
     <div class="form-group row"><div class="col-sm-12">
         <textarea class='form__text form-control' rows="10"></textarea>
@@ -50,7 +47,6 @@ $this->extends('Layout/layout', [
 </template>
 
 <script>
-
 const table = document.querySelector('#agreements tbody');
 const form = document.getElementById('agreement');
 const name = form.querySelector(".form__name");
@@ -58,27 +54,13 @@ const text = form.querySelector(".form__text");
 const button = form.querySelector("button");
 const template = document.getElementById('rowTemplate');
 const loader = document.querySelector(".loader");
-let csrfToken = "";
 
 form.addEventListener("submit", (e) => {
     e.preventDefault();
-    fetch("/agreements", {
-        method: "POST",
-        headers: {
-            "X-CSRF-Token": csrfToken
-        },
-        body: JSON.stringify({
-            name: name.value,
-            text: text.value
-        })
-    })
-    .then((response) => {
-        if (!response.ok) {
-            throw new Error("");
-        }
-        csrfToken = response.headers.get("x-csrf-token");
-        return response.json();
-    })
+    callApi("POST", "/agreements/api", {
+        name: name.value,
+        text: text.value
+    }, loader)
     .then((data) => handleResponse(data))
     .catch((error) => {
         alert("Beim Speichern der Daten ist ein Fehler aufgetreten.");
@@ -97,7 +79,7 @@ function loadAgreement(name, value) {
 }
 
 function handleResponse(data) {
-    loader.classList.add("hidden");
+    name.innerHTML = "";
     table.innerHTML = "";
 
     const names = [...new Set(data.map(item => item.name))];
@@ -105,16 +87,14 @@ function handleResponse(data) {
         document.createElement("option"), {textContent: item})
     ));
 
-
     if (data.length > 0) {
         loadAgreement(data[0].name, data[0].text);
-
     }
     data.forEach(agreement => {
         const clone = template.content.cloneNode(true);
         clone.querySelector('.name').textContent = agreement.name;
         clone.querySelector('.version').textContent = agreement.version;
-        clone.querySelector('.timestamp').textContent = formatTime(new Date(agreement.timestamp));
+        clone.querySelector('.timestamp').textContent = formatTime(agreement.timestamp);
         clone.querySelector('tr').addEventListener("click", e => {
             loadAgreement(agreement.name, agreement.text);
             table.querySelector('tr.active').classList.remove('active');
@@ -126,12 +106,5 @@ function handleResponse(data) {
     table.querySelector("tr").classList.add("active");
 }
 
-loader.classList.remove("hidden");
-fetch('/agreements/index')
-.then((response) => {
-    csrfToken = response.headers.get("x-csrf-token");
-    return response.json();
-})
-.then((data) => handleResponse(data));
-
+callApi("GET", "/agreements/api", {}, loader).then((data) => handleResponse(data));
 </script>
