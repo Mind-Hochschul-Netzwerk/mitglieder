@@ -1,6 +1,7 @@
 <?php
 namespace App\Model;
 
+use App\Repository\AgreementRepository;
 use DateTimeImmutable;
 
 /**

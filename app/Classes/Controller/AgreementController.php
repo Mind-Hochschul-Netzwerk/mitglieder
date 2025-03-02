@@ -8,18 +8,17 @@ use App\Repository\AgreementRepository;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Attribute\RequestValue;
 use Hengeb\Router\Exception\InvalidUserDataException;
-use Hengeb\Router\Router;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class AgreementController extends Controller {
     #[Route('GET /agreements', allow: ['role' => 'datenschutz'])]
-    public function view(): Response {
+    public function html(): Response {
         return $this->render('AgreementController/index');
     }
 
-    #[Route('GET /agreements/index', allow: ['role' => 'datenschutz'])]
-    public function index(AgreementRepository $repo, Router $router): JsonResponse {
+    #[Route('GET /agreements/api', allow: ['role' => 'datenschutz'])]
+    public function index(AgreementRepository $repo): JsonResponse {
         return new JsonResponse(array_map(fn($agreement) => [
             'id' => $agreement->id,
             'name' => $agreement->name,
@@ -29,16 +28,16 @@ class AgreementController extends Controller {
         ], $repo->findAll()), 200);
     }
 
-    #[Route('POST /agreements', allow: ['role' => 'datenschutz'])]
-    public function store(AgreementRepository $repo, Router $router,
+    #[Route('POST /agreements/api', allow: ['role' => 'datenschutz'])]
+    public function store(AgreementRepository $repo,
       #[RequestValue()] string $name, #[RequestValue()] string $text): JsonResponse {
         $oldVersions = $repo->findAllByName($name);
         if (count($oldVersions) === 0) {
             throw new InvalidUserDataException('`name` is invalid');
         }
         $version = $oldVersions[0]->version + 1;
-        $agreement = new Agreement(name: $name, version: $version, text: $text);
+        $agreement = new Agreement(name: $name, version: $version, text: trim($text));
         $repo->persist($agreement);
-        return $this->index($repo, $router);
+        return $this->index($repo);
     }
 }
