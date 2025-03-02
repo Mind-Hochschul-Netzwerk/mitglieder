@@ -23,6 +23,7 @@
     <script src="/js/sidebar.js"></script>
     <script src="/js/bootstrap-toggle.min.js"></script>
     <script src="/js/MHN.js"></script>
+    <script src="/js/marked.min.js"></script>
 
     <?=$_contents->raw?>
   </body>

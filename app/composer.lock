@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "hengeb/db",
-            "version": "v0.4.1",
+            "version": "v0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/hengeb/db.git",
-                "reference": "fc5f49df7a82bc8318346ff78c73163ecd589b25"
+                "reference": "5d5b5f4c69be7ae00fc02ff9b3952b00a3d79dfb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hengeb/db/zipball/fc5f49df7a82bc8318346ff78c73163ecd589b25",
-                "reference": "fc5f49df7a82bc8318346ff78c73163ecd589b25",
+                "url": "https://api.github.com/repos/hengeb/db/zipball/5d5b5f4c69be7ae00fc02ff9b3952b00a3d79dfb",
+                "reference": "5d5b5f4c69be7ae00fc02ff9b3952b00a3d79dfb",
                 "shasum": ""
             },
             "require": {
@@ -45,22 +45,22 @@
             "description": "A simple mysql library (PDO wrapper)",
             "support": {
                 "issues": "https://github.com/hengeb/db/issues",
-                "source": "https://github.com/hengeb/db/tree/v0.4.1"
+                "source": "https://github.com/hengeb/db/tree/v0.5"
             },
-            "time": "2024-11-01T21:41:43+00:00"
+            "time": "2025-03-02T00:14:14+00:00"
         },
         {
             "name": "hengeb/router",
-            "version": "v0.1",
+            "version": "v0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/hengeb/router.git",
-                "reference": "70056a9b9da11278cb62cc54c1b25007819d15e2"
+                "reference": "03cfe2751acc295038534671fb29626309e4abdd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hengeb/router/zipball/70056a9b9da11278cb62cc54c1b25007819d15e2",
-                "reference": "70056a9b9da11278cb62cc54c1b25007819d15e2",
+                "url": "https://api.github.com/repos/hengeb/router/zipball/03cfe2751acc295038534671fb29626309e4abdd",
+                "reference": "03cfe2751acc295038534671fb29626309e4abdd",
                 "shasum": ""
             },
             "require": {
@@ -88,9 +88,9 @@
             "description": "a PHP router that makes use of attributes",
             "support": {
                 "issues": "https://github.com/hengeb/router/issues",
-                "source": "https://github.com/hengeb/router/tree/v0.1"
+                "source": "https://github.com/hengeb/router/tree/v0.3"
             },
-            "time": "2024-12-01T23:40:09+00:00"
+            "time": "2025-03-02T00:14:50+00:00"
         },
         {
             "name": "hengeb/simplates",
@@ -276,12 +276,12 @@
             },
             "type": "library",
             "extra": {
+                "thanks": {
+                    "url": "https://github.com/symfony/contracts",
+                    "name": "symfony/contracts"
+                },
                 "branch-alias": {
                     "dev-main": "3.5-dev"
-                },
-                "thanks": {
-                    "name": "symfony/contracts",
-                    "url": "https://github.com/symfony/contracts"
                 }
             },
             "autoload": {
@@ -326,16 +326,16 @@
         },
         {
             "name": "symfony/http-foundation",
-            "version": "v7.2.0",
+            "version": "v7.2.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/http-foundation.git",
-                "reference": "e88a66c3997859532bc2ddd6dd8f35aba2711744"
+                "reference": "ee1b504b8926198be89d05e5b6fc4c3810c090f0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/http-foundation/zipball/e88a66c3997859532bc2ddd6dd8f35aba2711744",
-                "reference": "e88a66c3997859532bc2ddd6dd8f35aba2711744",
+                "url": "https://api.github.com/repos/symfony/http-foundation/zipball/ee1b504b8926198be89d05e5b6fc4c3810c090f0",
+                "reference": "ee1b504b8926198be89d05e5b6fc4c3810c090f0",
                 "shasum": ""
             },
             "require": {
@@ -384,7 +384,7 @@
             "description": "Defines an object-oriented layer for the HTTP specification",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/http-foundation/tree/v7.2.0"
+                "source": "https://github.com/symfony/http-foundation/tree/v7.2.3"
             },
             "funding": [
                 {
@@ -400,7 +400,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-11-13T18:58:46+00:00"
+            "time": "2025-01-17T10:56:55+00:00"
         },
         {
             "name": "symfony/ldap",
@@ -479,16 +479,16 @@
         },
         {
             "name": "symfony/mime",
-            "version": "v7.2.1",
+            "version": "v7.2.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/mime.git",
-                "reference": "7f9617fcf15cb61be30f8b252695ed5e2bfac283"
+                "reference": "87ca22046b78c3feaff04b337f33b38510fd686b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/mime/zipball/7f9617fcf15cb61be30f8b252695ed5e2bfac283",
-                "reference": "7f9617fcf15cb61be30f8b252695ed5e2bfac283",
+                "url": "https://api.github.com/repos/symfony/mime/zipball/87ca22046b78c3feaff04b337f33b38510fd686b",
+                "reference": "87ca22046b78c3feaff04b337f33b38510fd686b",
                 "shasum": ""
             },
             "require": {
@@ -543,7 +543,7 @@
                 "mime-type"
             ],
             "support": {
-                "source": "https://github.com/symfony/mime/tree/v7.2.1"
+                "source": "https://github.com/symfony/mime/tree/v7.2.4"
             },
             "funding": [
                 {
@@ -559,7 +559,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-12-07T08:50:44+00:00"
+            "time": "2025-02-19T08:51:20+00:00"
         },
         {
             "name": "symfony/options-resolver",

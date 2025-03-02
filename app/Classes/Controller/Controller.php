@@ -116,6 +116,7 @@ class Controller {
             return (new self($request))->showError($e->getMessage() ?: 'fehlerhafte Eingabedaten', 400);
         } else {
             error_log($e->getMessage());
+            error_log($e->getTraceAsString());
             return (new self($request))->showError('Ein interner Fehler ist aufgetreten.', 500);
         }
     }

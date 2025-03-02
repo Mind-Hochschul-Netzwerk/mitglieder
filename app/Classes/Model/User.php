@@ -234,9 +234,9 @@ class User extends Model
      * @param null|string|int|DateTimeInterface $dateTime string (für strtotime), int (Timestamp) oder DateTimeInterface
      * @throws \TypeError wenn $dateTime einen nicht unterstützten Datentyp hat
      */
-    private function makeDateTime(null|string|int|DateTimeInterface $dateTime): DateTimeInterface
+    private function makeDateTime(null|string|int|DateTimeInterface $dateTime): ?DateTimeInterface
     {
-        if ($dateTime === null) {
+        if ($dateTime === null || $dateTime === '1970-01-01 00:00:00') {
             return null;
         } elseif (is_int($dateTime)) {
             if ($dateTime === 0) {
