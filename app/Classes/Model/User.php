@@ -18,7 +18,7 @@ use DateTimeInterface;
  */
 class User extends Model
 {
-    protected static $repositoryClass = UserRepository::class;
+    protected static string $repositoryClass = UserRepository::class;
 
     public $data = null;
 
