@@ -95,7 +95,7 @@ function submit(event) {
     event.preventDefault();
     action = event.submitter.value;
     if (action === "revoke") {
-        if (!confirm("Wenn du deine Zustimmung widerrufst können dir Berechtigungen entzogen werden, für die die Einwilligung nötig ist. Möchtest du die Zustimmung widerrufen?")) {
+        if (!confirm("Wenn du deine Zustimmung widerrufst, können dir Berechtigungen entzogen werden, für die die Einwilligung nötig ist. Möchtest du die Zustimmung widerrufen?")) {
             return;
         }
     }
