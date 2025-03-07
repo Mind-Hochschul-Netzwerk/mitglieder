@@ -23,8 +23,6 @@ $this->extends('Layout/layout', [
 dialog {
     border: solid 1px #666;
     border-radius: 5px;
-    _width: calc(100% - 10px);
-    _height: clamp(100px, calc(100% - 10px), 500px);
     z-index: 2;
 }
 dialog::backdrop {
