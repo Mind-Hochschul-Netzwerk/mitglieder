@@ -30,17 +30,17 @@ dialog::backdrop {
 }
 </style>
 
-<?php if ($user->get('kenntnisnahme_datenverarbeitung_aufnahme')): ?>
+<div id="Kenntnisnahme">
     <h3>Kenntnisnahme der Datenverarbeitung</h3>
-    <div class="agreement" resizable><?=$user->get('kenntnisnahme_datenverarbeitung_aufnahme_text')->raw?></div>
-    <div>Du hast am <?=$user->get('kenntnisnahme_datenverarbeitung_aufnahme')->format('d.m.Y')?> erklärt, diesen Text zur Kenntnis genommen zu haben.</div>
-<?php endif; ?>
+    <div class="agreement" resizable></div>
+    <div class="timestamp">Du hast am <span></span> erklärt, diesen Text zur Kenntnis genommen zu haben.</div>
+</div>
 
-<?php if ($user->get('einwilligung_datenverarbeitung_aufnahme')): ?>
+<div id="Einwilligung">
     <h3>Einwilligung zur Datenverarbeitung</h3>
-    <div class="agreement" resizable><?=$user->get('einwilligung_datenverarbeitung_aufnahme_text')->raw?></div>
-    <div>Du hast am <?=$user->get('einwilligung_datenverarbeitung_aufnahme')->format('d.m.Y')?> eingewilligt.</div>
-<?php endif; ?>
+    <div class="agreement" resizable></div>
+    <div class="timestamp">Du hast am <span></span> eingewilligt.</div>
+</div>
 
 <h3>Verpflichtung zum Datenschutz</h3>
 
@@ -52,15 +52,15 @@ dialog::backdrop {
 
     <div class="loader hidden"></div>
 
-    <div id="datenschutzverpflichtung_timestamp">
+    <div id="datenschutzverpflichtung_timestamp" class="hidden">
         Du hast am <span></span> eingewilligt.
-        <div id="datenschutzverpflichtung_update">
+        <div id="datenschutzverpflichtung_update" class="hidden">
             Es liegt ein neuer Text vom <span></span> vor. Bitte aktualisiere deine Einwilligung. Andernfalls können dir Berechtigungen entzogen werden, für die Zustimmung zum aktualisierten Text nötig ist.
             <button class='btn btn-primary' type="button">Anzeigen</button>
         </div>
         <button class='btn btn-danger' type="submit" name="action" value="revoke">Einwilligung widerrufen</button>
     </div>
-    <div id="datenschutzverpflichtung_accept">
+    <div id="datenschutzverpflichtung_accept" class="hidden">
         Du hast noch nicht eingewilligt. Du kannst deine Einwilligung jederzeit widerrufen.
         <button class='btn btn-primary' type="submit" name="action" value="accept">Ja, ich stimme zu.</button>
     </div>
@@ -75,6 +75,10 @@ dialog::backdrop {
 </form></dialog>
 
 <script>
+
+const divKenntnisnahme = document.getElementById("Kenntnisnahme");
+const divEinwilligung = document.getElementById("Einwilligung");
+
 const datenschutzverpflichtung_form = document.getElementById('datenschutzverpflichtung');
 const datenschutzverpflichtung_text = datenschutzverpflichtung_form.querySelector('.agreement');
 const datenschutzverpflichtung_timestamp = document.getElementById('datenschutzverpflichtung_timestamp');
@@ -115,10 +119,13 @@ datenschutzverpflichtung_dialog.querySelector("form").addEventListener("submit",
     submit(e);
 });
 
-function showAgreement(formElement, agreement) {
-    formElement.elements.id.value = agreement.id;
-    formElement.querySelector(".agreement").innerHTML = marked.parse(agreement.text);
-    formElement.querySelector(".agreement").appendChild(Object.assign(
+function showAgreement(element, agreement) {
+    const id = element.querySelector("input[name=id]");
+    if (id) {
+        id.value = agreement.id;
+    }
+    element.querySelector(".agreement").innerHTML = marked.parse(agreement.text);
+    element.querySelector(".agreement").appendChild(Object.assign(
         document.createElement("p"), {
             classList: ["agreement_info"],
             textContent: "Version " + agreement.version + " vom " + formatTime(agreement.textTimestamp, true, false)
@@ -147,11 +154,26 @@ function handleResponse(data) {
         showAgreement(datenschutzverpflichtung_form, data.latest.Datenschutzverpflichtung);
         datenschutzverpflichtung_accept.classList.remove("hidden");
     }
+
+    if (data.state.Kenntnisnahme) {
+        showAgreement(divKenntnisnahme, data.state.Kenntnisnahme);
+        if (Date.parse(data.state.Kenntnisnahme.timestamp)) {
+            divKenntnisnahme.querySelector(".timestamp span").innerText = formatTime(data.state.Kenntnisnahme.timestamp, true, false);
+        } else {
+            divKenntnisnahme.querySelector(".timestamp").classList.add("hidden");
+        }
+    }
+
+    if (data.state.Einwilligung) {
+        showAgreement(divEinwilligung, data.state.Einwilligung);
+        if (Date.parse(data.state.Einwilligung.timestamp)) {
+            divEinwilligung.querySelector(".timestamp span").innerText = formatTime(data.state.Einwilligung.timestamp, true, false);
+        } else {
+            divEinwilligung.querySelector(".timestamp").classList.add("hidden");
+        }
+    }
 }
 
-datenschutzverpflichtung_timestamp.classList.add("hidden");
-datenschutzverpflichtung_accept.classList.add("hidden");
-datenschutzverpflichtung_update.classList.add("hidden");
 callApi("GET", "/user/<?=$user->get('username')?>/agreements/index", {}, loader).then((data) => handleResponse(data));
 
 </script>
