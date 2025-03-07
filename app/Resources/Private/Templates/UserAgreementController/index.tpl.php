@@ -20,6 +20,16 @@ $this->extends('Layout/layout', [
 .agreement_info {
     color: #999;
 }
+dialog {
+    border: solid 1px #666;
+    border-radius: 5px;
+    _width: calc(100% - 10px);
+    _height: clamp(100px, calc(100% - 10px), 500px);
+    z-index: 2;
+}
+dialog::backdrop {
+    backdrop-filter: blur(2px);
+}
 </style>
 
 <?php if ($user->get('kenntnisnahme_datenverarbeitung_aufnahme')): ?>
