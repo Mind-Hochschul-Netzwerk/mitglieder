@@ -44,6 +44,7 @@ class AgreementController extends Controller {
             'version' => $agreement->version,
             'text' => $agreement->text,
             'timestamp' => $agreement->timestamp->format('c'),
+            'count' => $agreement->countUsers(),
         ], $repo->findAll()), 200);
     }
 

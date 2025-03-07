@@ -9,7 +9,6 @@ namespace App;
 
 use App\Controller\Controller;
 use App\Service\CurrentUser;
-use App\Service\TemplateVariable;
 use App\Service\Tpl;
 use Hengeb\Router\Exception\InvalidRouteException;
 use Hengeb\Router\Router;

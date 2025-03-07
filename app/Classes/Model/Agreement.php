@@ -11,6 +11,7 @@ namespace App\Model;
 
 use App\Repository\AgreementRepository;
 use DateTimeImmutable;
+use Hengeb\Db\Db;
 
 class Agreement extends Model
 {
@@ -48,7 +49,32 @@ class Agreement extends Model
      * @param string $timestamp The timestamp in string format.
      * @return static A new Agreement instance.
      */
-    public static function fromDatabase(int $id, string $name = '', int $version = 0, string $text = '', string $timestamp) {
+    public static function fromDatabase(int $id, string $name = '', int $version = 0, string $text = '', string $timestamp): static
+    {
         return new static($id, $name, $version, $text, new DateTimeImmutable($timestamp));
+    }
+
+    public function countUsers(): int
+    {
+        return Db::getInstance()->query('WITH relevant_entries AS (
+          SELECT ua.*
+            FROM user_agreements ua
+            JOIN agreements a ON ua.agreement_id = a.id
+            WHERE a.id = :agreement_id AND ua.action = "accept"
+          ),
+          latest_entries AS (
+            SELECT ua.user_id, MAX(ua.id) AS max_id
+            FROM user_agreements ua
+            JOIN agreements a ON ua.agreement_id = a.id
+            WHERE a.name = (SELECT name FROM agreements WHERE id = :agreement_id)
+            GROUP BY ua.user_id
+          )
+          SELECT COUNT(*)
+          FROM relevant_entries r
+          LEFT JOIN latest_entries l
+          ON r.user_id = l.user_id
+          WHERE r.id = l.max_id;', [
+            'agreement_id' => $this->id,
+          ])->get();
     }
 }

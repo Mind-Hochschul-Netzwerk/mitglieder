@@ -24,7 +24,7 @@
     <script src="/js/bootstrap-toggle.min.js"></script>
     <script src="/js/MHN.js"></script>
     <script src="/js/marked.min.js"></script>
-    <script>let csrfToken = "<?=$_csrfToken()?>";</script>
+    <script>csrfToken = "<?=$_csrfToken()?>";</script>
 
     <?=$_contents->raw?>
   </body>

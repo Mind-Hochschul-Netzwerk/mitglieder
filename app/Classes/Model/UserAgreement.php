@@ -57,7 +57,8 @@ class UserAgreement extends Model
      * @param string|null $admin_info The user info JSON of the admin who recorded the action, if applicable.
      * @return static A new UserAgreement instance.
      */
-    public static function fromDatabase(int $id, int $user_id, int $agreement_id, string $timestamp, string $action, ?string $admin_info) {
+    public static function fromDatabase(int $id, int $user_id, int $agreement_id, string $timestamp, string $action, ?string $admin_info): static
+    {
         return new static($id,
             UserRepository::getInstance()->findOneById($user_id),
             AgreementRepository::getInstance()->findOneById($agreement_id),

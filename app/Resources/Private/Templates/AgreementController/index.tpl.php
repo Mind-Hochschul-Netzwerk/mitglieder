@@ -21,10 +21,8 @@ $this->extends('Layout/layout', [
 </style>
 
 <form id="agreement">
-    <div class="form-group row">
-        <div class="col-sm-2"><label>Bezeichnung:</label></div>
-        <div class="col-sm-10"><select class='form__name form-control'></select></div>
-    </div>
+    <input class="form__name" type="hidden">
+    <h3 id="name"></h3>
     <div class="form-group row"><div class="col-sm-12">
         <textarea class='form__text form-control' rows="10"></textarea>
     </div></div>
@@ -33,23 +31,27 @@ $this->extends('Layout/layout', [
     </div></div>
 </form>
 
-<h3>Versionen</h3>
+<h3>Texte</h3>
 
 <table class="table" id="agreements">
-    <thead><tr><th>Bezeichnung</th><th>Version</th><th>Datum</th></tr></thead>
+    <thead><tr><th>Bezeichnung</th><th>Version</th><th>Datum</th><th>Zustimmungen<sup>1</sup></th></tr></thead>
     <tbody></tbody>
 </table>
 
+
 <div class="loader hidden"></div>
 
+<p><sup>1</sup> Jedes Mitglied wird pro Einwilligungstext nur bei der neusten zugestimmten Version gezählt.</p>
+
 <template id="rowTemplate">
-    <tr><td class="name"></td><td class="version"></td><td class="timestamp"></td></tr>
+    <tr><td class="name"></td><td class="version"></td><td class="timestamp"></td><td class="count"></td></tr>
 </template>
 
 <script>
 const table = document.querySelector('#agreements tbody');
 const form = document.getElementById('agreement');
 const name = form.querySelector(".form__name");
+const nameDisplay = document.getElementById("name");
 const text = form.querySelector(".form__text");
 const button = form.querySelector("button");
 const template = document.getElementById('rowTemplate');
@@ -57,6 +59,7 @@ const loader = document.querySelector(".loader");
 
 form.addEventListener("submit", (e) => {
     e.preventDefault();
+    table.innerHTML = "";
     callApi("POST", "/agreements/api", {
         name: name.value,
         text: text.value
@@ -71,32 +74,26 @@ text.addEventListener("input", (e) => {
     button.disabled = text.dataset.value === text.value;
 });
 
-function loadAgreement(name, value) {
-    name.value = name;
-    text.value = value;
-    text.dataset.value = value;
+function loadAgreement(agreement) {
+    name.value = agreement.name;
+    text.value = agreement.text;
+    text.dataset.value = agreement.text;
+    nameDisplay.innerText = `${agreement.name} (Version ${agreement.version} vom ${formatTime(agreement.timestamp)})`;
     button.disabled = true;
 }
 
 function handleResponse(data) {
-    name.innerHTML = "";
-    table.innerHTML = "";
-
-    const names = [...new Set(data.map(item => item.name))];
-    names.forEach(item => name.appendChild(Object.assign(
-        document.createElement("option"), {textContent: item})
-    ));
-
     if (data.length > 0) {
-        loadAgreement(data[0].name, data[0].text);
+        loadAgreement(data[0]);
     }
     data.forEach(agreement => {
         const clone = template.content.cloneNode(true);
         clone.querySelector('.name').textContent = agreement.name;
         clone.querySelector('.version').textContent = agreement.version;
         clone.querySelector('.timestamp').textContent = formatTime(agreement.timestamp);
+        clone.querySelector('.count').textContent = agreement.count;
         clone.querySelector('tr').addEventListener("click", e => {
-            loadAgreement(agreement.name, agreement.text);
+            loadAgreement(agreement);
             table.querySelector('tr.active').classList.remove('active');
             e.currentTarget.classList.add('active');
         });

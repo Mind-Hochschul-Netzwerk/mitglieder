@@ -110,7 +110,7 @@ class AgreementRepository extends Repository
         if ($agreement->id) {
             throw new \InvalidArgumentException('Agreement texts may never be changed, create a new version');
         }
-        $agreement->id = inval($this->db->query('INSERT INTO agreements SET
+        $agreement->id = intval($this->db->query('INSERT INTO agreements SET
           name=:name, version=:version, text=:text, timestamp=:timestamp', [
             'name' => $agreement->name,
             'version' => $agreement->version,
