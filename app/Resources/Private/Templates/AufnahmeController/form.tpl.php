@@ -37,7 +37,7 @@ foreach ($data as $k=>$v) {
 <p>wir freuen uns, dich als neues Mitglied im Mind-Hochschul-Netzwerk zu begrüßen! Bevor es losgehen kann, musst du deine Zugangsdaten festlegen und entscheiden, welche Daten du im Netzwerk freigeben möchtest.</p>
 
 <form method="post">
-<?=$_csrf_token()->inputHidden()?>
+<?=$_csrfToken()->inputHidden()?>
 
 <h3>Deine Zugangsdaten</h3>
 

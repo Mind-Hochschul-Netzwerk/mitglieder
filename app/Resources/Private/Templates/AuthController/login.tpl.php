@@ -8,7 +8,7 @@ $this->extends('Layout/layout', [
   <div class="modal-dialog" role="document">
     <div class="modal-content">
 <form method="post" action="/login">
-    <?=$_csrf_token()->inputHidden()?>
+    <?=$_csrfToken()->inputHidden()?>
     <?=$redirect->inputHidden()?>
       <div class="modal-header">
         <h4 class="modal-title" id="myModalLabel">Login ins MHN-Mitgliederverzeichnis</h4>

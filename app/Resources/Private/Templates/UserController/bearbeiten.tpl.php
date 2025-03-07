@@ -108,7 +108,7 @@ if ($this->check($errorMessage)) {
 </ul>
 
 <form enctype="multipart/form-data" method="post" id="profile-form">
-<?=$_csrf_token()->inputHidden()?>
+<?=$_csrfToken()->inputHidden()?>
 
 <div class="tab-content">
     <div class="tab-pane <?=$active_pane == 'basisdaten' ? 'active' : ''?>" id="basisdaten">

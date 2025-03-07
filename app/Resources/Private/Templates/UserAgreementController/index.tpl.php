@@ -23,8 +23,6 @@ $this->extends('Layout/layout', [
 dialog {
     border: solid 1px #666;
     border-radius: 5px;
-    _width: calc(100% - 10px);
-    _height: clamp(100px, calc(100% - 10px), 500px);
     z-index: 2;
 }
 dialog::backdrop {
@@ -33,26 +31,18 @@ dialog::backdrop {
 </style>
 
 <?php if ($user->get('kenntnisnahme_datenverarbeitung_aufnahme')): ?>
-    <h4>Kenntnisnahme zur Datenverarbeitung (Aufnahmetool)</h4>
-    <div class="row">
-        <div class="col-sm-12"><?=$user->get('kenntnisnahme_datenverarbeitung_aufnahme_text')->textarea(disabled: true)?></textarea></div>
-    </div>
-    <div class="row">
-        <div class="col-sm-10">zur Kenntnis genommen am <?=$user->get('kenntnisnahme_datenverarbeitung_aufnahme')->format('d.m.Y, H:i:s')?> Uhr</div>
-    </div>
+    <h3>Kenntnisnahme der Datenverarbeitung</h3>
+    <div class="agreement" resizable><?=$user->get('kenntnisnahme_datenverarbeitung_aufnahme_text')->raw?></div>
+    <div>Du hast am <?=$user->get('kenntnisnahme_datenverarbeitung_aufnahme')->format('d.m.Y')?> erklärt, diesen Text zur Kenntnis genommen zu haben.</div>
 <?php endif; ?>
 
 <?php if ($user->get('einwilligung_datenverarbeitung_aufnahme')): ?>
-    <h4>Einwilligung zur Datenverarbeitung (Aufnahmetool)</h4>
-    <div class="row">
-        <div class="col-sm-12"><?=$user->get('einwilligung_datenverarbeitung_aufnahme_text')->textarea(disabled: true)?></textarea></div>
-    </div>
-    <div class="row">
-        <div class="col-sm-10">eingewilligt am <?=$user->get('einwilligung_datenverarbeitung_aufnahme')->format('d.m.Y, H:i:s')?> Uhr</div>
-    </div>
+    <h3>Einwilligung zur Datenverarbeitung</h3>
+    <div class="agreement" resizable><?=$user->get('einwilligung_datenverarbeitung_aufnahme_text')->raw?></div>
+    <div>Du hast am <?=$user->get('einwilligung_datenverarbeitung_aufnahme')->format('d.m.Y')?> eingewilligt.</div>
 <?php endif; ?>
 
-<h4>Verpflichtung zum Datenschutz</h4>
+<h3>Verpflichtung zum Datenschutz</h3>
 
 <form id="datenschutzverpflichtung">
     <input type="hidden" name="name" value="Datenschutzverpflichtung">
@@ -63,7 +53,7 @@ dialog::backdrop {
     <div class="loader hidden"></div>
 
     <div id="datenschutzverpflichtung_timestamp">
-        Du hast am <span></span> zugestimmt.
+        Du hast am <span></span> eingewilligt.
         <div id="datenschutzverpflichtung_update">
             Es liegt ein neuer Text vom <span></span> vor. Bitte aktualisiere deine Einwilligung. Andernfalls können dir Berechtigungen entzogen werden, für die Zustimmung zum aktualisierten Text nötig ist.
             <button class='btn btn-primary' type="button">Anzeigen</button>
@@ -71,7 +61,7 @@ dialog::backdrop {
         <button class='btn btn-danger' type="submit" name="action" value="revoke">Einwilligung widerrufen</button>
     </div>
     <div id="datenschutzverpflichtung_accept">
-        Du hast noch nicht zugestimmt. Du kannst deine Einwilligung jederzeit widerrufen.
+        Du hast noch nicht eingewilligt. Du kannst deine Einwilligung jederzeit widerrufen.
         <button class='btn btn-primary' type="submit" name="action" value="accept">Ja, ich stimme zu.</button>
     </div>
 </form>
@@ -159,6 +149,9 @@ function handleResponse(data) {
     }
 }
 
+datenschutzverpflichtung_timestamp.classList.add("hidden");
+datenschutzverpflichtung_accept.classList.add("hidden");
+datenschutzverpflichtung_update.classList.add("hidden");
 callApi("GET", "/user/<?=$user->get('username')?>/agreements/index", {}, loader).then((data) => handleResponse(data));
 
 </script>
