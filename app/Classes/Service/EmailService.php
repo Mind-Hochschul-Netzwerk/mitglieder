@@ -50,13 +50,16 @@ class EmailService implements \App\Interfaces\Singleton
         $this->mailer->CharSet = 'utf-8';
     }
 
-    public function send(string $address, string $subject, string $body): bool
+    public function send(string|array $addresses, string $subject, string $body): bool
     {
+        if (!is_array($addresses)) {
+            $addresses = [$addresses];
+        }
         if ($this->mailer === null) {
             error_log("
 --------------------------------------------------------------------------------
 SMTP_HOST is not set in .env
-Mail to: $address
+Mail to: ".(implode(', ', $addresses))."
 Subject: $subject
 
 $body
@@ -73,7 +76,9 @@ $body
         $this->mailer->Body = $body;
 
         try {
-            $this->mailer->addAddress($address);
+            foreach ($addresses as $address) {
+                $this->mailer->addAddress($address);
+            }
             return $this->mailer->send();
         } catch (\Exception $e) {
             error_log($e->getMessage());

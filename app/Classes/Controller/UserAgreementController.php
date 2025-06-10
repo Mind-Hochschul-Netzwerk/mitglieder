@@ -15,6 +15,8 @@ use App\Model\UserInfo;
 use App\Repository\AgreementRepository;
 use App\Repository\UserAgreementRepository;
 use App\Service\CurrentUser;
+use App\Service\EmailService;
+use App\Service\Tpl;
 use Hengeb\Router\Attribute\RequestValue;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\InvalidUserDataException;
@@ -82,7 +84,7 @@ class UserAgreementController extends Controller {
         // check if the action is valid
         if ($action === UserAgreementAction::Revoke && $latest === null) {
             throw new InvalidUserDataException("user never accepted the agreement '{$agreement->name}'");
-        } elseif ($latest->agreement->version > $agreement->version) {
+        } elseif ($latest !== null && $latest->agreement->version > $agreement->version) {
             throw new InvalidUserDataException("user already accepted or rejected a newer agreement");
         }
 
@@ -95,6 +97,19 @@ class UserAgreementController extends Controller {
             admin: $isAdmin ? UserInfo::fromUser($currentUser->getWrappedUser()) : null
         );
         $repo->persist($userAgreement);
+
+        // send mail in case somebody revokes the 'Datenschutzverpflichtung' agreement
+        if ($agreement->name === 'Datenschutzverpflichtung' && $userAgreement->action === UserAgreementAction::Revoke) {
+            $text = Tpl::getInstance()->render('UserAgreementController/revoke.mail', [
+                'user' => $user,
+                'recorderName' => $currentUser->get('fullName'),
+                'url' => 'https://mitglieder.' . getenv('DOMAINNAME') . '/user/' . urlencode($user->get('username')),
+            ], $subject);
+            EmailService::getInstance()->send([
+                'datenschutz@mind-hochschul-netzwerk.de',
+                'vorstand@mind-hochschul-netzwerk.de',
+            ], $subject, $text);
+        }
 
         return $this->getLatest($user, $repo, $agreementRepo);
     }

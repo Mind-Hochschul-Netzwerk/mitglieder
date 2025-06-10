@@ -75,4 +75,19 @@ class AgreementController extends Controller {
 
         return $this->index($repo);
     }
+
+    /**
+     * Retrieves the latest agreement text and version for a given agreement name
+     */
+    #[Route('GET /agreements/text/{name}', allow: true)]
+    public function show(string $name, AgreementRepository $repo): JsonResponse {
+        $agreement = $repo->findLatestByName($name);
+        if (!$agreement) {
+            throw new \Hengeb\Router\Exception\NotFoundException();
+        }
+        return new JsonResponse([
+            'text' => $agreement->text,
+            'version' => $agreement->version,
+        ]);
+    }
 }

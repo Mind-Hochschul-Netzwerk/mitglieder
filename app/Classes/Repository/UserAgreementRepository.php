@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Model\Enum\UserAgreementAction;
 use App\Model\User;
 use App\Model\UserAgreement;
 use Hengeb\Db\Db;
@@ -66,14 +67,18 @@ class UserAgreementRepository extends Repository
             unset($row['name']);
         });
 
-        return array_combine(
+        $userAgreements = array_combine(
             keys: $names,
             values: array_map(fn($row) => UserAgreement::fromDatabase(...$row), $rows)
         );
+
+        $userAgreements = array_filter($userAgreements, fn($ua) => $ua->action === UserAgreementAction::Accept);
+
+        return $userAgreements;
     }
 
     /**
-     * Retrieves the latest user agreement for a specific agreement name.
+     * Retrieves the latest accepted user agreement for a specific agreement name.
      *
      * @param User $user The user whose agreement should be retrieved.
      * @param string $name The name of the agreement.
@@ -89,9 +94,14 @@ class UserAgreementRepository extends Repository
             'user_id' => $user->get('id'),
           ])->getRow();
         if (!$row) {
-          return null;
+            return null;
         }
-        return UserAgreement::fromDatabase(...$row);
+        $userAgreement = UserAgreement::fromDatabase(...$row);
+        if ($userAgreement->action === UserAgreementAction::Revoke) {
+            return null;
+        } else {
+            return $userAgreement;
+        }
     }
 
     /**

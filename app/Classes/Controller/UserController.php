@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Model\User;
+use App\Repository\UserAgreementRepository;
 use App\Repository\UserRepository;
 use App\Service\CurrentUser;
 use App\Service\EmailService;
@@ -47,7 +48,7 @@ class UserController extends Controller {
 
     #[Route('GET /user/{\d+:id=>user}', allow: ['loggedIn' => true])]
     #[Route('GET /user/{username=>user}', allow: ['loggedIn' => true])]
-    public function show(User $user): Response {
+    public function show(User $user, UserAgreementRepository $userAgreementRepository): Response {
         $db_modified = $user->get('db_modified');
         $isAdmin = $this->currentUser->hasRole('mvread');
 
@@ -93,6 +94,8 @@ class UserController extends Controller {
             $homepage = '';
         }
         $templateVars['homepage'] = $homepage;
+
+        $templateVars['datenschutzverpflichtung'] = $userAgreementRepository->findLatestByUserAndName($user, 'datenschutzverpflichtung');
 
         return $this->render('UserController/profil', $templateVars);
     }

@@ -50,6 +50,13 @@ function row(string $label, ?TemplateVariable $value, TemplateVariable|bool $sic
                     <div class="col-xs-6"><?=$mensa_nr?></div>
                 </div>
             <?php endif; ?>
+
+            <?php if ($this->check($datenschutzverpflichtung)): ?>
+                <div class="row">
+                    <div class="col-xs-6">Verpflichtungserklärung zum Datenschutz abgegeben:</div>
+                    <div class="col-xs-6">ja (Version <?=$datenschutzverpflichtung->agreement->version?> vom <?=$datenschutzverpflichtung->agreement->timestamp->format('d.m.Y')?>)</div>
+                </div>
+            <?php endif; ?>
         </div>
         <?php if ($this->check($geburtstag)): ?>
             <div class="col-sm-6">

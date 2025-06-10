@@ -286,6 +286,7 @@ if ($this->check($errorMessage)) {
             <div class="row"><div class="col-sm-2">Aufnahmedatum</div><div class="col-sm-10"><?=$aufnahmedatum?->format('d.m.Y') ?? 'unbekannt'?></div></div>
             <div class="row"><div class="col-sm-2">Letzte Bearbeitung</div><div class="col-sm-10"><?=$db_modified?->format('d.m.Y H:i:s') ?? 'unbekannt'?> durch <?=$db_modified_user?->get('profilLink')->raw() ?? 'unbekannt'?></div></div>
             <div class="row"><div class="col-sm-2">Vereinseintritt</div><div class="col-sm-10"><?=$dateOfJoining?->format('d.m.Y') ?? 'kein Mitglied'?></div></div>
+            <div class="row"><div class="col-sm-2">Datenschutzerklärungen</div><div class="col-sm-10"><a href="/user/<?=$username?>/agreements">Einwilligungen anzeigen / ändern</a></div></div>
 
             <div class="row">
                 <div class="col-sm-2"><label for="resignPassword">Austritt erklären</label></div>
@@ -322,23 +323,6 @@ if ($this->check($errorMessage)) {
 
             <?php if ($this->check($isAdmin)): ?>
                 <h4>Mitgliederverwaltung</h4>
-
-                <div class="row">
-                    <div class="col-sm-2">Kenntnisnahme zur Datenverarbeitung (Aufnahmetool)</div>
-                    <div class="col-sm-10"><?= ($kenntnisnahme_datenverarbeitung_aufnahme === null) ? 'nein' : ('zur Kenntnis genommen am ' .  $kenntnisnahme_datenverarbeitung_aufnahme->format('d.m.Y, H:i:s') . ' Uhr.')?></div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-2">Kenntnisnahme zur Datenverarbeitung (Aufnahmetool): Text</div>
-                    <div class="col-sm-10"><?=$kenntnisnahme_datenverarbeitung_aufnahme_text->textarea(disabled: true)?></textarea></div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-2">Einwilligung zur Datenverarbeitung (Aufnahmetool)</div>
-                    <div class="col-sm-10"><?= ($einwilligung_datenverarbeitung_aufnahme === null) ? 'nein' : ('eingewilligt am ' .  $einwilligung_datenverarbeitung_aufnahme->format('d.m.Y, H:i:s') . ' Uhr.')?></div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-2">Einwilligung zur Datenverarbeitung (Aufnahmetool): Text</div>
-                    <div class="col-sm-10"><?=$einwilligung_datenverarbeitung_aufnahme_text->textarea(disabled: true)?></textarea></div>
-                </div>
 
                 <?php if ($this->check($isSuperAdmin)): ?>
                     <?=form_row('Gruppen ändern', [$groups->input(placeholder: 'Trennen durch Komma. Mögliche Werte siehe Menüpunkt „Mitgliederverwaltung”')])?>

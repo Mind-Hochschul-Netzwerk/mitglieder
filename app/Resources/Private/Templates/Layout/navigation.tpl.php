@@ -7,7 +7,7 @@ if ($currentUser->isLoggedIn()->isTrue()) {
         'admin' => $currentUser->hasRole('mvedit')->isTrue() ? ['/admin', 'Mitgliederverwaltung', 'wrench'] : null,
         'logout' => ['/logout', 'Logout', 'log-out'],
         'homepage' => ['https://www.' . getenv('DOMAINNAME'), 'MHN-Webseite', 'home'],
-        'datenschutz' => ['https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=4', 'Datenschutz', 'paragraph'],
+        'datenschutz' => ['/user/_/agreements', 'Datenschutz', 'paragraph'],
         'impressum' => ['https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=5', 'Impressum', 'globe'],
     ];
 } else {
