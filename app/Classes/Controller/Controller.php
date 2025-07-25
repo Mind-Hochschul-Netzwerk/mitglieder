@@ -66,7 +66,7 @@ class Controller {
         $values = [];
         $payload = $this->request->getPayload();
         foreach ($requirements as $key => $rqm) {
-            $rqms = explode('|', $rqm);
+            $rqms = explode(' ', $rqm);
 
             if (!$payload->has($key) && in_array('required', $rqms, true)) {
                 throw new InvalidUserDataException('Eingabedaten unvollständig: ' . $key);
@@ -75,6 +75,9 @@ class Controller {
             $value = null;
             if (in_array('string', $rqms)) {
                 $value = $payload->getString($key);
+                if (!in_array('untrimmed', $rqms)) {
+                    $value = trim($value);
+                }
             } elseif (in_array('set', $rqms)) {
                 $value = $payload->has($key);
             } elseif (in_array('bool', $rqms)) {
