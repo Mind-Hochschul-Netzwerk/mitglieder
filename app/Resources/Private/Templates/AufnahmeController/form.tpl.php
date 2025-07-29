@@ -193,7 +193,7 @@ dass andere Mitglieder sie sehen können, kannst du sie aus deinem Profil lösch
 
 <p>Außerdem sind sichtbar für alle Mitglieder: Dein Name, deine MHN-Mitgliedsnummer, dein Aufnahmedatum (heute), deine Angaben, worüber du Auskunft erteilst und bei welchen Aufgaben du helfen könntest.</p>
 
-<p>Nach du deinen Zugang angelegt hast, kannst du deinem Profil auch ein Foto von dir hinzufügen.</p>
+<p>Nachdem du deinen Zugang angelegt hast, kannst du deinem Profil auch ein Foto von dir hinzufügen.</p>
 
 <div class="form-group row">
     <div class="col-sm-offset-2 col-sm-10">

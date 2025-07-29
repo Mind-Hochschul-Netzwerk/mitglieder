@@ -140,15 +140,11 @@ class AufnahmeController extends Controller
 
     private function requestData(): void
     {
-        $curl = curl_init('http://aufnahme:8080/get-antrag.php?action=data&token=' . $this->token);
+        $curl = curl_init('http://aufnahme:8080/onboarding/?token=' . $this->token);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $response = curl_exec($curl);
 
-        $this->data = json_decode($response, associative: true);
-
-        if ($this->data === null) {
-            throw new InvalidUserDataException('Der Link ist ungültig. Wurde der Zugang schon aktiviert?');
-        }
+        $this->data = json_decode($response, associative: true) ?? throw new InvalidUserDataException('Der Link ist ungültig. Wurde der Zugang schon aktiviert?');
     }
 
     private function isEmailUsed(): bool
@@ -268,7 +264,8 @@ class AufnahmeController extends Controller
         $ldap->addUserToGroup($this->username, 'alleMitglieder');
         $ldap->addUserToGroup($this->username, 'listen');
 
-        $curl = curl_init('http://aufnahme:8080/get-antrag.php?action=finish&token=' . $this->token);
+        $curl = curl_init('http://aufnahme:8080/onboarding/?token=' . $this->token);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_exec($curl);
 
