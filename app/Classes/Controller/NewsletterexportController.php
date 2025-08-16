@@ -26,7 +26,8 @@ class NewsletterexportController extends Controller {
 
         foreach ($list as $user) {
             fputcsv($out, [
-                $user['email'],
+                // let ListMonk handle bounces on its own: remove '.invalid' markers from mail addresses
+                preg_replace('/(\.[A-Z_]+)\.invalid$/', '', $user['email']),
                 $user['firstname'] . ' ' . $user['lastname'],
                 json_encode([
                     'mitgliedsnummer' => (int) $user['id'],
