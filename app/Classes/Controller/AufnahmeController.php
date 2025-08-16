@@ -124,7 +124,7 @@ class AufnahmeController extends Controller
 
         if ($this->readyToSave) {
             $this->save();
-            return $this->redirect('/user/_/edit/?tab=profilbild');
+            return $this->redirect('/user/self/edit/?tab=profilbild');
         }
         return $this->showForm();
     }
@@ -196,7 +196,7 @@ class AufnahmeController extends Controller
             return;
         }
 
-        if (!User::isUsernameFormatValid($this->username)) {
+        if (!User::isUsernameAllowed($this->username)) {
             $this->readyToSave = false;
             $this->setTemplateVariable('usernameInvalid', true);
             return;

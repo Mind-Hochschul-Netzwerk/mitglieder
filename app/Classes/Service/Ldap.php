@@ -61,6 +61,24 @@ class Ldap implements \App\Interfaces\Singleton
         }
     }
 
+    /**
+     * @return string[]
+     */
+    public function getAllValidEmails(): array
+    {
+        $this->bind();
+        try {
+            $result = $this->ldap->query(getenv('LDAP_PEOPLE_DN'), '(&(objectClass=inetOrgPerson)(!(mail=*.invalid)))')->execute();
+        } catch (\Exception $e) {
+            return [];
+        }
+        $list = [];
+        foreach ($result as $user) {
+            $list[] = $user->getAttribute('mail')[0];
+        }
+        return $list;
+    }
+
     public function getInvalidEmailsList(): array
     {
         $this->bind();
@@ -110,9 +128,6 @@ class Ldap implements \App\Interfaces\Singleton
         }
         if (!empty($data['password'])) {
             $entry->setAttribute('userPassword', ['{CRYPT}' .  PasswordService::hash($data['password'])]);
-        }
-        if (!empty($data['hashedPassword'])) {
-            $entry->setAttribute('userPassword', [$data['hashedPassword']]);
         }
     }
 

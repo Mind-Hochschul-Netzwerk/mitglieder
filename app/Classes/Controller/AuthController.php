@@ -7,7 +7,7 @@ use App\Model\User;
 use App\Repository\UserRepository;
 use App\Service\CurrentUser;
 use App\Service\Tpl;
-use Hengeb\Db\Db;
+use Hengeb\Router\Attribute\RequestValue;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\InvalidUserDataException;
 use Hengeb\Token\Token;
@@ -23,57 +23,46 @@ class AuthController extends Controller {
         $redirect = $this->request->getPathInfo();
         return $this->render('AuthController/login', [
             'redirect' => $redirect,
-            'id' => '',
+            'login' => '',
             'password' => '',
         ]);
     }
 
     #[Route('POST /login', allow: true)]
-    public function loginSubmitted(Db $db, CurrentUser $currentUser): Response {
-        $input = $this->validatePayload([
-            'id' => 'required string',
-            'password' => 'required string untrimmed',
-            'passwort_vergessen' => 'set',
-            'redirect' => 'required string',
-        ]);
-
-        if (!$input['id'] && $input['password']) {
+    public function loginSubmitted(CurrentUser $currentUser, #[RequestValue] string $login, #[RequestValue] string $password, #[RequestValue] string $redirect, #[RequestValue] bool $passwort_vergessen = false): Response {
+        if (!$login) {
             $this->setTemplateVariable('error_username_leer', true);
             return $this->render('AuthController/login', [
-                'redirect' => $input['redirect'],
-                'id' => '',
+                'redirect' => $redirect,
+                'login' => '',
                 'password' => '',
             ]);
         }
 
-        $id = $db->query('SELECT id FROM mitglieder WHERE id=:id OR username=:username OR email=:email', [
-            'id' => intval($input['id']),
-            'username' => $input['id'],
-            'email' => $input['id'],
-        ])->get();
+        $user = match(true) {
+            str_contains($login, '@') => UserRepository::getInstance()->findOneByEmail($login),
+            ctype_digit($login) => UserRepository::getInstance()->findOneById(intval($login)),
+            default => UserRepository::getInstance()->findOneByUsername($login),
+        };
 
-        if ($input['passwort_vergessen']) {
-            return $this->lostPassword($id);
+        if ($passwort_vergessen) {
+            return $this->lostPassword($user);
         }
 
-        $user = null;
-        if ($id !== null) {
-            $user = UserRepository::getInstance()->findOneById(intval($id));
-            if ($user && !$user->checkPassword($input['password'])) {
-                $user = null;
-            }
+        if (!$user?->checkPassword($password)) {
+            $user = null;
         }
 
         if (!$user) {
-            $this->setTemplateVariable('error_passwort_falsch', true);
             return $this->render('AuthController/login', [
-                'redirect' => $input['redirect'],
-                'id' => $input['id'],
+                'redirect' => $redirect,
+                'login' => $login,
                 'password' => '',
+                'error_passwort_falsch' => true,
             ]);
         }
 
-        $redirectUrl = preg_replace('/\s/', '', $input['redirect']);
+        $redirectUrl = preg_replace('/\s/', '', $redirect);
 
         $currentUser->logIn($user);
         return $this->redirect($redirectUrl);
@@ -85,10 +74,8 @@ class AuthController extends Controller {
         return $this->render('AuthController/logout');
     }
 
-    private function lostPassword(?int $id): Response {
-        // do not tell the user if $id === null
-        if ($id !== null) {
-            $user = UserRepository::getInstance()->findOneById((int)$id);
+    private function lostPassword(?User $user): Response {
+        if ($user) {
             $token = Token::encode([
                 time(),
                 $user->get('id')
@@ -148,7 +135,7 @@ class AuthController extends Controller {
             return $this->resetPasswordForm($token);
         }
 
-        $user->set('password', $input['password']);
+        $user->setPassword($input['password']);
         UserRepository::getInstance()->save($user);
         $currentUser->logIn($user);
 

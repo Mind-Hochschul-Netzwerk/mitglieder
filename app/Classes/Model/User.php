@@ -20,15 +20,14 @@ class User extends Model
 {
     protected static string $repositoryClass = UserRepository::class;
 
-    public $data = null;
+    public array $data = [];
 
     public $ldapEntry = null;
-    private $passwordChanged = false;
     private $deleted = false;
 
     // Felder und Defaults
     const felder = [
-        'id' => null, 'username' => '', 'vorname' => '', 'nachname' => '', 'password' => '', 'email' => '', 'sichtbarkeit_email' => false, 'titel' => '', 'geburtstag' => null, 'aufnahmedatum' => null, 'sichtbarkeit_geburtstag' => false, 'profilbild' => '', 'profilbild_x' => 0, 'profilbild_y' => 0, 'mensa_nr' => '', 'sichtbarkeit_mensa_nr' => false, 'strasse' => '', 'sichtbarkeit_strasse' => false, 'adresszusatz' => '', 'sichtbarkeit_adresszusatz' => false, 'plz' => '', 'ort' => '', 'sichtbarkeit_plz_ort' => false, 'land' => '', 'sichtbarkeit_land' => false, 'strasse2' => '', 'adresszusatz2' => '', 'plz2' => '', 'ort2' => '', 'land2' => '', 'telefon' => '', 'sichtbarkeit_telefon' => false, 'homepage' => '', 'sprachen' => '', 'hobbys' => '', 'interessen' => '',
+        'id' => null, 'username' => '', 'vorname' => '', 'nachname' => '', 'sichtbarkeit_email' => false, 'titel' => '', 'geburtstag' => null, 'aufnahmedatum' => null, 'sichtbarkeit_geburtstag' => false, 'profilbild' => '', 'profilbild_x' => 0, 'profilbild_y' => 0, 'mensa_nr' => '', 'sichtbarkeit_mensa_nr' => false, 'strasse' => '', 'sichtbarkeit_strasse' => false, 'adresszusatz' => '', 'sichtbarkeit_adresszusatz' => false, 'plz' => '', 'ort' => '', 'sichtbarkeit_plz_ort' => false, 'land' => '', 'sichtbarkeit_land' => false, 'strasse2' => '', 'adresszusatz2' => '', 'plz2' => '', 'ort2' => '', 'land2' => '', 'telefon' => '', 'sichtbarkeit_telefon' => false, 'homepage' => '', 'sprachen' => '', 'hobbys' => '', 'interessen' => '',
         'beschaeftigung' => 'Sonstiges', 'sichtbarkeit_beschaeftigung' => false, 'studienort' => '', 'sichtbarkeit_studienort' => false, 'studienfach' => '', 'sichtbarkeit_studienfach' => false, 'unityp' => '', 'sichtbarkeit_unityp' => false, 'schwerpunkt' => '', 'sichtbarkeit_schwerpunkt' => false, 'nebenfach' => '', 'sichtbarkeit_nebenfach' => false, 'abschluss' => '', 'sichtbarkeit_abschluss' => false, 'zweitstudium' => '', 'sichtbarkeit_zweitstudium' => false, 'hochschulaktivitaeten' => '', 'sichtbarkeit_hochschulaktivitaeten' => false, 'stipendien' => '', 'sichtbarkeit_stipendien' => false, 'auslandsaufenthalte' => '', 'sichtbarkeit_auslandsaufenthalte' => false, 'praktika' => '', 'sichtbarkeit_praktika' => false, 'beruf' => '', 'sichtbarkeit_beruf' => false,
         'auskunft_studiengang' => false, 'auskunft_stipendien' => false, 'auskunft_auslandsaufenthalte' => false, 'auskunft_praktika' => false, 'auskunft_beruf' => false, 'mentoring' => false, 'aufgabe_ma' => false, 'aufgabe_orte' => false, 'aufgabe_vortrag' => false, 'aufgabe_koord' => false, 'aufgabe_graphisch' => false, 'aufgabe_computer' => false, 'aufgabe_texte_schreiben' => false, 'aufgabe_texte_lesen' => false, 'aufgabe_vermittlung' => false, 'aufgabe_ansprechpartner' => false, 'aufgabe_hilfe' => false, 'aufgabe_sonstiges' => false, 'aufgabe_sonstiges_beschreibung' => '',
         'db_modified' => null, 'last_login' => null,
@@ -37,6 +36,8 @@ class User extends Model
     ];
 
     public $hashedPassword = '';
+    private $newPassword = '';
+    private string $email = '';
 
     public function __construct(string $username = '', string $password = '', string $email = '')
     {
@@ -48,7 +49,7 @@ class User extends Model
         $this->data = self::felder;
 
         $this->setUsername($username);
-        $this->set('password', $password);
+        $this->setPassword($password);
         $this->setEmail($email);
 
         // TODO: Aufnahmedatum wird gespeichert mit Uhrzeit 0:00 Uhr UTC.
@@ -81,6 +82,8 @@ class User extends Model
                 $fn = '#' . $this->data['id'];
             }
             return $fn;
+        case 'email':
+            return $this->email;
         case 'hashedPassword':
             return $this->hashedPassword;
         case 'profilUrl':
@@ -186,8 +189,7 @@ class User extends Model
             throw new \LogicException("Verwende setEmail(), um den Wert zu ändern.", 1494002758);
             break;
         case 'password':
-            $this->setData('password', $wert);
-            $this->passwordChanged = true;
+            throw new \LogicException("Verwende setPassword(), um den Wert zu ändern.", 1755302008);
             break;
         default:
             $this->setData($feld,  $wert);
@@ -225,7 +227,22 @@ class User extends Model
             throw new \RuntimeException('Doppelte Verwendung der E-Mail-Adresse ' . $email, 1494003025);
         }
 
-        $this->setData('email', $email);
+        $this->email = $email;
+    }
+
+    public function setPassword(string $newPassword): void
+    {
+        $this->newPassword = $newPassword;
+    }
+
+    public function getPassword(): string
+    {
+        return $this->newPassword;
+    }
+
+    public function hasPasswordChanged(): bool
+    {
+        return $this->newPassword !== null;
     }
 
     /**
@@ -316,11 +333,6 @@ class User extends Model
         return $this->deleted;
     }
 
-    public function hasPasswordChanged(): bool
-    {
-        return $this->passwordChanged;
-    }
-
     /**
      * Sendet eine E-Mail
      * @param string $subject
@@ -348,8 +360,11 @@ class User extends Model
      * the username has to start with a letter and may only contain letters, numbers and the symbols '.' '_' '-'
      * @param $username string to check
      */
-    public static function isUsernameFormatValid(string $username): bool
+    public static function isUsernameAllowed(string $username): bool
     {
-        return preg_match('/^[a-z][a-z0-9\-_.]*$/i', $username);
+        return preg_match('/^[a-z][a-z0-9\-_.]*$/i', $username) && !in_array(strtolower($username), [
+            // reserved usernames ('_' and '_self' are already excluded by the pattern above)
+            'admin', 'self', 'system', 'user', 'username',
+        ]);
     }
 }

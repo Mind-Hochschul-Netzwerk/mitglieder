@@ -43,7 +43,7 @@ class UserController extends Controller {
 
     #[Route('GET /user', allow: ['loggedIn' => true])]
     public function showSelf(): Response {
-        return $this->redirect('/user/_');
+        return $this->redirect('/user/self');
     }
 
     #[Route('GET /user/{\d+:id=>user}', allow: ['loggedIn' => true])]
@@ -95,9 +95,11 @@ class UserController extends Controller {
         }
         $templateVars['homepage'] = $homepage;
 
-        $templateVars['datenschutzverpflichtung'] = $userAgreementRepository->findLatestByUserAndName($user, 'datenschutzverpflichtung');
-
-        return $this->render('UserController/profil', $templateVars);
+        return $this->render('UserController/profil', [
+            ...$templateVars,
+            'email' => $user->get('email'),
+            'datenschutzverpflichtung' => $userAgreementRepository->findLatestByUserAndName($user, 'datenschutzverpflichtung'),
+        ]);
     }
 
     #[Route('GET /user/{username=>user}/edit', allow: ['role' => 'mvedit', 'id' => '$user->get("id")'])]
@@ -128,6 +130,7 @@ class UserController extends Controller {
 
         return $this->render('UserController/bearbeiten', [
             ...$templateVars,
+            'email' => $user->get('email'),
             'bildLoeschen' => false,
             'delete' => false,
             'resign' => (bool)$user->get('resignation'),
@@ -157,9 +160,9 @@ class UserController extends Controller {
         } else {
             // Admins dürfen Passwörter ohne Angabe des eigenen Passworts ändern, außer das eigene
             if ($this->currentUser->hasRole('mvedit') && $this->currentUser->get('id') !==  $user->get('id')) {
-                $user->set('password', $input['new_password']);
+                $user->setPassword($input['new_password']);
             } elseif ($this->currentUser->checkPassword($input['password'])) {
-                $user->set('password', $input['new_password']);
+                $user->setPassword($input['new_password']);
             } else {
                 $this->setTemplateVariable('old_password_error', true);
             }

@@ -29,10 +29,12 @@ class StatisticsController extends Controller {
         foreach ($this->invalidEmailsList as $id) {
             $user = UserRepository::getInstance()->findOneById($id);
             if (!$user) {
+                error_log("$id");
                 continue;
             }
             $users[] = [
                 'id' => $user->get('id'),
+                'username' => $user->get('username'),
                 'fullName' => $user->get('fullName'),
                 'ort' => $user->get('ort'),
                 'email' => substr($user->get('email'), 0, -strlen('.invalid')),

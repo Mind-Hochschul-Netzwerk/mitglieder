@@ -10,6 +10,7 @@ use App\Model\User;
 use App\Service\CurrentUser;
 use App\Service\Ldap;
 use Hengeb\Db\Db;
+use RuntimeException;
 
 /**
  * Repräsentiert ein User
@@ -28,24 +29,22 @@ class UserRepository extends Repository
             return null;
         }
 
-        $user->hashedPassword = $data['password'];
-
         $user->ldapEntry = Ldap::getInstance()->getEntryByUsername($data['username']);
 
-        if ($user->ldapEntry) {
-            $data['vorname'] = $user->ldapEntry->getAttribute('givenName')[0];
-            $data['nachname'] = $user->ldapEntry->getAttribute('sn')[0];
-            $data['email'] = $user->ldapEntry->getAttribute('mail')[0];
-            $ldapPassword = $user->ldapEntry->getAttribute('userPassword')[0];
-            if (substr($ldapPassword, 0, strlen('{CRYPT}!')) !== '{CRYPT}!') { // starts with "{CRYPT}!" => no LDAP login
-                $user->hashedPassword = $ldapPassword;
-            }
+        if (!$user->ldapEntry) {
+            throw new RuntimeException("user with ID $id does not exist in LDAP", 1754852333);
         }
+
+        $data['vorname'] = $user->ldapEntry->getAttribute('givenName')[0];
+        $data['nachname'] = $user->ldapEntry->getAttribute('sn')[0];
 
         // typsicheres Setzen der Daten
         foreach ($data as $key => $value) {
             $user->setData($key, $value, false);
         }
+
+        $user->hashedPassword = $user->ldapEntry->getAttribute('userPassword')[0];
+        $user->setEmail($user->ldapEntry->getAttribute('mail')[0]);
 
         return $user;
     }
@@ -68,7 +67,7 @@ class UserRepository extends Repository
      */
     public function findOneByUsername(string $username): ?User
     {
-        if ($username === '_') {
+        if ($username === '_' || $username === 'self') {
             return CurrentUser::getInstance()->getWrappedUser();
         }
         $entry = Ldap::getInstance()->getEntryByUsername($username);
@@ -81,7 +80,7 @@ class UserRepository extends Repository
 
     public function isUsernameAvailable(string $username): bool
     {
-        if (!User::isUsernameFormatValid($username)) {
+        if (!User::isUsernameAllowed($username)) {
             return false;
         }
         $existingId = $this->getIdByUsername($username);
@@ -161,6 +160,9 @@ class UserRepository extends Repository
             'lastname' => $user->get('nachname'),
             'email' => $user->get('email'),
         ];
+        if ($user->hasPasswordChanged()) {
+            $ldapData['password'] = $user->getPassword();
+        }
 
         // Query bauen
         $values = [];
@@ -170,12 +172,6 @@ class UserRepository extends Repository
             }
 
             $value = $user->data[$feld];
-
-            if ($feld === 'password' && $user->hasPasswordChanged()) {
-                $ldapData['password'] = $value;
-                $value = 'in ldap';
-            }
-
             $values[$feld] = $value;
         }
 

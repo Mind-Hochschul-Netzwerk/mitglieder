@@ -20,7 +20,7 @@ class SearchController extends Controller {
     // Felder, bei denen nur nach Übereinstimmung statt nach Substring gesucht wird (müssen auch in felder aufgeführt sein)
     const felder_eq = ['id', 'mensa_nr', 'plz', 'plz2'];
 
-    #[Route('GET /(search|)?q={query}', allow: ['loggedIn' => true])]
+    #[Route('GET /(search|)?q={.+:query}', allow: ['loggedIn' => true])]
     public function search(string $query, Db $db): Response {
         // TODO filter einbauen über beschaeftigung, auskunft_* und für mvread für aufgabe_*
         $this->setTemplateVariable('query', $query);

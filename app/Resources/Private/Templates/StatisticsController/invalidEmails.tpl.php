@@ -11,6 +11,6 @@ $this->extends('Layout/layout', [
 <table class="table">
     <tr><th>ID</th><th>Profil / Name</th><th>Ort</th><th>E-Mail</th><th>Aufnahmedatum</th><th>letzter Login</th><th>Moodle freigeschaltet</th></tr>
 <?php foreach($invalidEmailsList as $u) {
-    echo "<tr><td>$u[id]</td><td><a href='/user/$u[id]/edit'>$u[fullName]</a></td><td>$u[ort]</td><td>$u[email]</td><td>$u[aufnahmedatum]</td><td>$u[lastLogin]</td><td>$u[moodle]</td>\n";
+    echo "<tr><td>$u[id]</td><td><a href='/user/$u[username]/edit'>$u[fullName]</a></td><td>$u[ort]</td><td>$u[email]</td><td>$u[aufnahmedatum]</td><td>$u[lastLogin]</td><td>$u[moodle]</td>\n";
 }?>
 </table>

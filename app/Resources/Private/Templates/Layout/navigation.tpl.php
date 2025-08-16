@@ -2,12 +2,12 @@
 if ($currentUser->isLoggedIn()->isTrue()) {
     $navItems = [
         'suche' => ['/', 'Mitgliedersuche', 'search'],
-        'bearbeiten' => ['/user/_/edit', 'Meine Daten', 'user'],
+        'bearbeiten' => ['/user/self/edit', 'Meine Daten', 'user'],
         'statistics' => $currentUser->hasRole('mvread')->isTrue() ? ['/statistics', 'Statistik', 'stats'] : null,
         'admin' => $currentUser->hasRole('mvedit')->isTrue() ? ['/admin', 'Mitgliederverwaltung', 'wrench'] : null,
         'logout' => ['/logout', 'Logout', 'log-out'],
         'homepage' => ['https://www.' . getenv('DOMAINNAME'), 'MHN-Webseite', 'home'],
-        'datenschutz' => ['/user/_/agreements', 'Datenschutz', 'paragraph'],
+        'datenschutz' => ['/user/self/agreements', 'Datenschutz', 'paragraph'],
         'impressum' => ['https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=5', 'Impressum', 'globe'],
     ];
 } else {

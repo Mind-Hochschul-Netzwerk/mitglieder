@@ -29,7 +29,7 @@ $this->extends('Layout/layout', [
         <div id="alertBenutzerkennung" class="alert alert-danger <?=(empty($error_username_leer)) ? 'hide' : ''?>">Gib deinen Benutzernamen oder E-Mail-Adresse an.</div>
         <div class="row form-group">
             <div class="col-sm-12">
-                <?=$id->input(placeholder: "Benutzername, Mitgliedsnummer oder E-Mail-Adresse")?>
+                <?=$login->input(placeholder: "Benutzername, Mitgliedsnummer oder E-Mail-Adresse")?>
             </div>
         </div>
         <div class="row form-group">
@@ -39,7 +39,7 @@ $this->extends('Layout/layout', [
         </div>
 
         <button type="submit" onclick="return check_username();" class="hidden-default-button"></button>
-        <p><button class="link btn btn-secondary" onclick="return check_username();" name="passwort_vergessen">Ich habe mein Passwort vergessen.</button></p>
+        <p><button class="link btn btn-secondary" onclick="return check_username();" name="passwort_vergessen" value="1">Ich habe mein Passwort vergessen.</button></p>
       </div>
       <div class="modal-footer">
         <button type="submit" onclick="return check_username();" class="btn btn-primary">Login</button>
