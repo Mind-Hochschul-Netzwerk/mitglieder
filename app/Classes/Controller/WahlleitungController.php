@@ -19,6 +19,7 @@ class WahlleitungController extends Controller {
     #[Route('GET /wahlleitung', allow: ['role' => 'wahlleitung'])]
     public function show(Ldap $ldap): Response {
         $emails = $ldap->getAllValidEmails();
+        sort($emails);
 
         $response = new Response(implode("\r\n", $emails));
         $response->headers->set('Content-Type', 'text/plain; charset=utf-8');
