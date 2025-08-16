@@ -19,6 +19,7 @@ class NewsletterexportController extends Controller {
     public function show(Ldap $ldap): Response {
         $list = $ldap->getAll();
 
+        ob_start();
         $out = fopen('php://output', 'w');
 
         fputcsv($out, ['email', 'name', 'attributes']);
