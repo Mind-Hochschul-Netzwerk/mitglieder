@@ -15,7 +15,7 @@ class NewsletterexportController extends Controller {
     /**
      * Generierung der Exportliste für den Newsletter
      */
-    #[Route('GET /newsletter-export', allow: ['role' => 'newsletterexport'])]
+    #[Route('GET /newsletter-export', allow: ['role' => 'newsletter-export'])]
     public function show(Ldap $ldap): Response {
         $list = $ldap->getAll();
 
@@ -39,7 +39,7 @@ class NewsletterexportController extends Controller {
         ob_end_clean();
 
         $response = new Response($csv);
-        $response->headers->set('Content-Type', 'text/plain; charset=utf-8');
+        $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
 
         return $response;
     }
