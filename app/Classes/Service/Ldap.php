@@ -46,6 +46,26 @@ class Ldap implements \App\Interfaces\Singleton
         return true;
     }
 
+    public function getAll(): array
+    {
+        $this->bind();
+        try {
+            $result = $this->ldap->query(getenv('LDAP_PEOPLE_DN'), '(objectClass=inetOrgPerson)')->execute();
+        } catch (\Exception $e) {
+            return [];
+        }
+        $list = [];
+        foreach ($result as $user) {
+            $list[] = [
+                'id' => $user->getAttribute('employeeNumber')[0],
+                'firstname' => $user->getAttribute('givenName')[0],
+                'lastname' => $user->getAttribute('sn')[0],
+                'email' => $user->getAttribute('mail')[0],
+            ];
+        }
+        return $list;
+    }
+
     public function getEntryByUsername(string $username): ?Entry
     {
         $this->bind();
