@@ -7,55 +7,88 @@ namespace App\Service;
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
+use App\Model\User;
+use App\Repository\UserRepository;
+use LogicException;
 use PHPMailer\PHPMailer\PHPMailer;
 
 /**
  * send emails
  */
-class EmailService implements \App\Interfaces\Singleton
+class EmailService
 {
-    use \App\Traits\Singleton;
+    private UserRepository $userRepository;
+    private Ldap $ldap;
 
-    private $mailer = null;
-
-    private function __construct()
+    public function __construct(
+        private string $host,
+        private string $user,
+        private string $password,
+        private string $secure,
+        private string $port,
+        private string $fromAddress,
+        private string $domain,
+    )
     {
-        if (!getenv('SMTP_HOST') || getenv('SMTP_HOST') === 'log') {
-            return;
+    }
+
+    public function setLdap(Ldap $ldap) {
+        $this->ldap = $ldap;
+    }
+
+    public function setUserRepository(UserRepository $userRepository) {
+        $this->userRepository = $userRepository;
+    }
+
+    private function getMailer(): ?PHPMailer
+    {
+        if (!$this->host || $this->host === 'log') {
+            return null;
         }
 
-        $this->mailer = new PHPMailer(true);
+        $mailer = new PHPMailer(true);
 
-        $this->mailer->isSMTP();
-        $this->mailer->Host = getenv('SMTP_HOST');
-        $this->mailer->SMTPAuth = true;
-        $this->mailer->Username = getenv('SMTP_USER');
-        $this->mailer->Password = getenv('SMTP_PASSWORD');
-        switch (getenv('SMTP_SECURE')) {
+        $mailer->isSMTP();
+        $mailer->Host = $this->host;
+        $mailer->Port = $this->port;
+
+        $mailer->SMTPAuth = true;
+        $mailer->Username = $this->user;
+        $mailer->Password = $this->password;
+
+        switch ($this->secure) {
             case "ssl":
             case "smtps":
-                $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+                $mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
                 break;
             case "tls":
             case "starttls":
-                $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                $mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                 break;
             default:
-                throw new \Exception('unexpected value for SMTP_SECURE');
+                throw new \Exception('unexpected value for parameter $secure');
                 break;
         }
-        $this->mailer->Port = getenv('SMTP_PORT');
-        $this->mailer->setFrom(getenv('FROM_ADDRESS'), 'Mind-Hochschul-Netzwerk');
-        $this->mailer->addReplyTo('IT@' . getenv('DOMAINNAME'), 'IT-Team');
-        $this->mailer->CharSet = 'utf-8';
+
+        $mailer->setFrom($this->fromAddress, 'Mind-Hochschul-Netzwerk');
+        $mailer->addReplyTo('IT@' . $this->domain, 'IT-Team');
+        $mailer->CharSet = 'utf-8';
+
+        return $mailer;
     }
 
+    /**
+     * @throws \RuntimeException wenn eine E-Mail nicht versandt werden konnte.
+     */
     public function send(string|array $addresses, string $subject, string $body): bool
     {
         if (!is_array($addresses)) {
             $addresses = [$addresses];
         }
-        if ($this->mailer === null) {
+
+        $mailer = $this->getMailer();
+
+        if (!$mailer) {
             error_log("
 --------------------------------------------------------------------------------
 SMTP_HOST is not set in .env
@@ -68,21 +101,48 @@ $body
             return true;
         }
 
-        $this->mailer->ClearAddresses();
-        $this->mailer->ClearCCs();
-        $this->mailer->ClearBCCs();
-
-        $this->mailer->Subject = $subject;
-        $this->mailer->Body = $body;
+        $mailer->Subject = $subject;
+        $mailer->Body = $body;
 
         try {
             foreach ($addresses as $address) {
-                $this->mailer->addAddress($address);
+                $mailer->addAddress($address);
             }
-            return $this->mailer->send();
+            return $mailer->send();
         } catch (\Exception $e) {
-            error_log($e->getMessage());
-            return false;
+            throw new RuntimeException($e->getMessage());
+        }
+    }
+
+    /**
+     * @throws \RuntimeException wenn eine E-Mail nicht versandt werden konnte.
+     */
+    public function sendToUser(User $user, string $subject, string $body): void
+    {
+        try {
+            $this->send($user->get('email'), $subject, $body);
+        } catch (\RuntimeException $e) {
+            throw new \RuntimeException('Beim Versand der E-Mail an ' . $user->get('email') . ' (ID ' . $user->get('id') . ') ist ein Fehler aufgetreten.', 1522422201);
+        }
+    }
+
+    /**
+     * @throws \RuntimeException wenn eine E-Mail nicht versandt werden konnte.
+     */
+    public function sendToGroup(string $groupname, string $subject, string $body): void
+    {
+        if (!isset($this->ldap)) {
+            throw new \LogicException('use EmailService::setLdap() before sendToGroup()');
+        }
+        if (!isset($this->ldap)) {
+            throw new \LogicException('use EmailService::setUserRepository() before sendToUser()');
+        }
+        $ids = $this->ldap->getIdsByGroup('mvedit');
+        foreach ($ids as $id) {
+            $user = $this->userRepository->findOneById($id);
+            if ($user !== null) {
+                $this->sendToUser($user, $subject, $body);
+            }
         }
     }
 }

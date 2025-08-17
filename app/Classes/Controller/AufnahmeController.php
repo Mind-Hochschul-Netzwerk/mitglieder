@@ -9,10 +9,12 @@ namespace App\Controller;
 use App\Model\User;
 use App\Repository\UserRepository;
 use App\Service\CurrentUser;
+use App\Service\EmailService;
 use App\Service\Ldap;
 use App\Service\Tpl;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\InvalidUserDataException;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -95,6 +97,17 @@ class AufnahmeController extends Controller
     ];
     private bool $readyToSave = true;
 
+    public function __construct(
+        protected Request $request,
+        protected Tpl $tpl,
+        private CurrentUser $currentUser,
+        private EmailService $emailService,
+        private Ldap $ldap,
+        private UserRepository $userRepository,
+    )
+    {
+    }
+
     #[Route('GET /aufnahme?token={token}', allow: true)]
     public function show(string $token): Response
     {
@@ -149,7 +162,7 @@ class AufnahmeController extends Controller
 
     private function isEmailUsed(): bool
     {
-        return (UserRepository::getInstance()->getIdByEmail($this->data['user_email']) !== null);
+        return ($this->userRepository->getIdByEmail($this->data['user_email']) !== null);
     }
 
     private function checkEmailUsed(): void
@@ -179,7 +192,7 @@ class AufnahmeController extends Controller
         $username0 = substr($username0, 0, 255);
         $username = $username0;
 
-        for ($n = 1; !UserRepository::getInstance()->isUsernameAvailable($username); ++$n) {
+        for ($n = 1; !$this->userRepository->isUsernameAvailable($username); ++$n) {
             $username = $username0 . $n;
         }
 
@@ -202,7 +215,7 @@ class AufnahmeController extends Controller
             return;
         }
 
-        if (!UserRepository::getInstance()->isUsernameAvailable($this->username)) {
+        if (!$this->userRepository->isUsernameAvailable($this->username)) {
             $this->readyToSave = false;
             $this->setTemplateVariable('usernameUsed', true);
             return;
@@ -243,7 +256,13 @@ class AufnahmeController extends Controller
 
     private function save(): void
     {
-        $user = new User($this->username, $this->password, $this->data['user_email']);
+        $user = new User(
+            username: $this->username,
+            password: $this->password,
+            email: $this->data['user_email'],
+            ldap: $this->ldap,
+            userRepository: $this->userRepository,
+        );
 
         foreach (self::MAP as $key_neu => $key_alt) {
             if (!isset($this->data[$key_alt])) {
@@ -258,18 +277,17 @@ class AufnahmeController extends Controller
 
         $this->processAccessFlags($user);
 
-        UserRepository::getInstance()->save($user);
+        $this->userRepository->save($user);
 
-        $ldap = Ldap::getInstance();
-        $ldap->addUserToGroup($this->username, 'alleMitglieder');
-        $ldap->addUserToGroup($this->username, 'listen');
+        $this->ldap->addUserToGroup($this->username, 'alleMitglieder');
+        $this->ldap->addUserToGroup($this->username, 'listen');
 
         $curl = curl_init('http://aufnahme:8080/onboarding/?token=' . $this->token);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_exec($curl);
 
-        CurrentUser::getInstance()->logIn($user); // Status neu laden
+        $this->currentUser->logIn($user); // Status neu laden
 
         $this->sendMailToActivationTeam($user);
     }
@@ -326,19 +344,12 @@ class AufnahmeController extends Controller
      */
     private function sendMailToActivationTeam(User $newUser): void
     {
-        $text = Tpl::getInstance()->render('mails/account-activated', [
+        $text = $this->tpl->render('mails/account-activated', [
             'id' => $newUser->get('id'),
             'fullName' => $newUser->get('fullName'),
             'email' => $newUser->get('email'),
         ], $subject);
 
-        $ids = Ldap::getInstance()->getIdsByGroup('aktivierung');
-        foreach ($ids as $id) {
-            $user = UserRepository::getInstance()->findOneById($id);
-            if ($user === null) {
-                continue;
-            }
-            $user->sendEmail($subject, $text);
-        }
+        $this->emailService->sendToGroup('aktivierung', $subject, $text);
     }
 }

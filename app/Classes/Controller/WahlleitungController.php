@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Service\Ldap;
-use Hengeb\Db\Db;
 use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 

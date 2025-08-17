@@ -36,7 +36,11 @@ class UserController extends Controller {
 
     public function __construct(
         protected Request $request,
-        private CurrentUser $currentUser
+        protected Tpl $tpl,
+        private CurrentUser $currentUser,
+        private EmailService $emailService,
+        private Ldap $ldap,
+        private UserRepository $userRepository,
     )
     {
     }
@@ -122,7 +126,7 @@ class UserController extends Controller {
             'fullName' => $user->get('fullName'),
             'dateOfJoining' => $user->get('dateOfJoining'),
             'groups' => implode(', ', $user->getGroups()),
-            'db_modified_user' => UserRepository::getInstance()->findOneById((int)$user->get('db_modified_user_id')),
+            'db_modified_user' => $this->userRepository->findOneById((int)$user->get('db_modified_user_id')),
             'isAdmin' => $this->currentUser->hasRole('mvedit'),
             'isSuperAdmin' => $this->currentUser->hasRole('rechte'),
             'isSelf' => $this->currentUser->get('id') ===  $user->get('id'),
@@ -186,8 +190,8 @@ class UserController extends Controller {
         } else {
             $this->setTemplateVariable('email_auth_info', true);
             $token = Token::encode([time(), $user->get('id'), $email], $user->get('email'), getenv('TOKEN_KEY'));
-            $text = Tpl::getInstance()->render('mails/email-auth', ['token' => $token], $subject);
-            EmailService::getInstance()->send($email, $subject, $text);
+            $text = $this->tpl->render('mails/email-auth', ['token' => $token], $subject);
+            $this->emailService->send($email, $subject, $text);
         }
     }
 
@@ -278,17 +282,17 @@ class UserController extends Controller {
                 $this->setTemplateVariable('errorMessage', 'Das eingegebene Passwort ist nicht korrekt.');
             } else {
                 $user->set('resignation', 'now');
-                $text = Tpl::getInstance()->render('mails/resignation', [
+                $text = $this->tpl->render('mails/resignation', [
                     'fullName' => $user->get('fullName'),
                     'id' => $user->get('id'),
                 ], $subject);
-                EmailService::getInstance()->send('vorstand@mind-hochschul-netzwerk.de', $subject, $text);
-                EmailService::getInstance()->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', $subject, $text);
-                $text = Tpl::getInstance()->render('mails/resignationConfirmation', [
+                $this->emailService->send('vorstand@mind-hochschul-netzwerk.de', $subject, $text);
+                $this->emailService->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', $subject, $text);
+                $text = $this->tpl->render('mails/resignationConfirmation', [
                     'fullName' => $user->get('fullName'),
                     'id' => $user->get('id'),
                 ], $subject);
-                $user->sendEmail($subject, $text);
+                $this->emailService->sendToUser($user, $subject, $text);
             }
         } elseif ($this->currentUser->hasRole('mvedit')) {
             $resignOld = $user->get('resignation') !== null;
@@ -297,18 +301,18 @@ class UserController extends Controller {
                 $user->set('resignation', null);
             } elseif (!$resignOld && $resignNew) {
                 $user->set('resignation', 'now');
-                $text = Tpl::getInstance()->render('mails/resignation', [
+                $text = $this->tpl->render('mails/resignation', [
                     'adminFullName' => $this->currentUser->get('fullName'),
                     'fullName' => $user->get('fullName'),
                     'id' => $user->get('id'),
                 ], $subject);
-                EmailService::getInstance()->send('vorstand@mind-hochschul-netzwerk.de', $subject, $text);
-                EmailService::getInstance()->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', $subject, $text);
-                $text = Tpl::getInstance()->render('mails/resignationConfirmation', [
+                $this->emailService->send('vorstand@mind-hochschul-netzwerk.de', $subject, $text);
+                $this->emailService->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', $subject, $text);
+                $text = $this->tpl->render('mails/resignationConfirmation', [
                     'fullName' => $user->get('fullName'),
                     'id' => $user->get('id'),
                 ], $subject);
-                $user->sendEmail($subject, $text);
+                $this->emailService->sendToUser($user, $subject, $text);
             }
         }
     }
@@ -318,9 +322,9 @@ class UserController extends Controller {
             throw new AccessDeniedException('Du kannst dich nicht selbst löschen!');
         }
 
-        UserRepository::getInstance()->delete($user);
+        $this->userRepository->delete($user);
 
-        $mailText = Tpl::getInstance()->render('mails/MvEdit-Info-Mitglied-Geloescht', [
+        $mailText = $this->tpl->render('mails/MvEdit-Info-Mitglied-Geloescht', [
             'adminName' => $this->currentUser->get('fullName'),
             'adminId' => $this->currentUser->get('id'),
             'adminUsername' => $this->currentUser->get('username'),
@@ -331,18 +335,7 @@ class UserController extends Controller {
         ], $subject);
 
         // Alle Mitglieder der Mitgliederbetreuung (mvedit) informieren
-        $ids = Ldap::getInstance()->getIdsByGroup('mvedit');
-        foreach ($ids as $id) {
-            $user = UserRepository::getInstance()->findOneById($id);
-            if ($user === null) {
-                continue;
-            }
-            try {
-                $user->sendEmail($subject, $mailText);
-            } catch (\RuntimeException $e) {
-                throw $e;
-            }
-        }
+        $this->emailService->sendToGroup('mvedit', $subject, $mailText);
 
         return $this->showMessage("Bestätigung", "Die Daten wurden aus der Mitgliederdatenbank gelöscht.");
     }
@@ -391,13 +384,13 @@ class UserController extends Controller {
 
         // Speichern
         $user->set('db_modified', 'now');
-        $user->set('db_modified_user_id', CurrentUser::getInstance()->get('id'));
+        $user->set('db_modified_user_id', $this->currentUser->get('id'));
         $this->setTemplateVariable('data_saved_info', true);
-        UserRepository::getInstance()->save($user);
+        $this->userRepository->save($user);
 
         // und neu laden (insb. beim Löschen wichtig, sonst müssten alle Keys einzeln zurückgesetzt werden)
         // TODO: redirect. store messages in session
-        return $this->edit(UserRepository::getInstance()->findOneById($user->get('id')));
+        return $this->edit($this->userRepository->findOneById($user->get('id')));
     }
 
     private function storeEmail(User $user, string $email): void {
@@ -409,13 +402,13 @@ class UserController extends Controller {
             throw new InvalidUserDataException('Diese E-Mail-Adresse ist bereits bei einem anderen Mitglied eingetragen.');
         }
 
-        UserRepository::getInstance()->save($user);
+        $this->userRepository->save($user);
 
-        $text = Tpl::getInstance()->render('mails/email-changed', [
+        $text = $this->tpl->render('mails/email-changed', [
             'fullName' => $user->get('fullName'),
             'email' => $email,
         ], $subject);
-        EmailService::getInstance()->send($oldMail, $subject, $text);
+        $this->emailService->send($oldMail, $subject, $text);
 
         $this->setTemplateVariable('email_changed', true);
     }
@@ -428,7 +421,7 @@ class UserController extends Controller {
                     throw new \Exception('token expired');
                 }
                 $email = $data[2];
-                $user = UserRepository::getInstance()->findOneById($data[1]);
+                $user = $this->userRepository->findOneById($data[1]);
                 return $user->get('email');
             }, getenv('TOKEN_KEY'));
         } catch (\Exception $e) {

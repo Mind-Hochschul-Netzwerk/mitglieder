@@ -13,9 +13,4 @@ namespace App\Service;
 class Tpl extends \Hengeb\Simplates\Engine
 {
     public string $proxyClass = TemplateVariable::class;
-
-    private static ?self $instance = null;
-    public static function getInstance(): self {
-        return self::$instance ??= new self('/var/www/Resources/Private/Templates');
-    }
 }

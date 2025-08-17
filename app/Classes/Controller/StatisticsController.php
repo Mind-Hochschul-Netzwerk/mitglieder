@@ -10,6 +10,7 @@ namespace App\Controller;
 use App\Service\Ldap;
 use Hengeb\Db\Db;
 use App\Repository\UserRepository;
+use App\Service\Tpl;
 use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,9 +18,14 @@ use Symfony\Component\HttpFoundation\Response;
 class StatisticsController extends Controller {
     private array $invalidEmailsList;
 
-    public function __construct(protected Request $request)
+    public function __construct(
+        protected Request $request,
+        protected Tpl $tpl,
+        private Ldap $ldap,
+        private UserRepository $userRepository,
+    )
     {
-        $this->invalidEmailsList = Ldap::getInstance()->getInvalidEmailsList();
+        $this->invalidEmailsList = $this->ldap->getInvalidEmailsList();
     }
 
     #[Route('GET /statistics/invalidEmails', allow: ['role' => 'mvread'])]
@@ -27,7 +33,7 @@ class StatisticsController extends Controller {
     {
         $users = [];
         foreach ($this->invalidEmailsList as $id) {
-            $user = UserRepository::getInstance()->findOneById($id);
+            $user = $this->userRepository->findOneById($id);
             if (!$user) {
                 error_log("$id");
                 continue;

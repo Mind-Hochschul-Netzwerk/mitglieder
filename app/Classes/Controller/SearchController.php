@@ -5,11 +5,21 @@ namespace App\Controller;
 
 use App\Repository\UserRepository;
 use App\Service\PasswordService;
+use App\Service\Tpl;
 use Hengeb\Db\Db;
 use Hengeb\Router\Attribute\Route;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class SearchController extends Controller {
+    public function __construct(
+        protected Request $request,
+        protected Tpl $tpl,
+        private UserRepository $userRepository,
+    )
+    {
+    }
+
     #[Route('GET /(search|)', allow: ['loggedIn' => true])]
     public function form(): Response {
         return $this->render('SearchController/search', ['query' => '']);
@@ -86,7 +96,7 @@ class SearchController extends Controller {
         $ergebnisse = [];
         $ids = array_unique($ids);
         foreach ($ids as $id) {
-            $user = UserRepository::getInstance()->findOneById((int)$id);
+            $user = $this->userRepository->findOneById((int)$id);
 
             $orte = [];
             if ($user->get('ort') && $user->get('sichtbarkeit_plz_ort')) {

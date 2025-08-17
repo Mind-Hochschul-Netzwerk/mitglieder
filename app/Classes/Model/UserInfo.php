@@ -13,17 +13,14 @@ use App\Repository\UserRepository;
 
 class UserInfo
 {
-    public ?User $user = null;
-
     public function __construct(
+        public ?User $user = null,
         public ?int $userId = null,
         public string $userName = '',
         public string $realName = '',
     )
     {
-        if ($userId) {
-            $this->user = UserRepository::getInstance()->findOneById($userId);
-        }
+        // update if user is found in database
         if ($this->user) {
             $this->realName = $this->user->get('fullName');
             $this->userName = $this->user->get('username');
@@ -32,10 +29,15 @@ class UserInfo
 
     public static function fromUser(User $user): static
     {
-        return new static($user->get('id'));
+        return new static(
+            user: $user,
+            userId: $user->get('id'),
+            userName: '',
+            realName: '',
+        );
     }
 
-    public static function fromJson(mixed $data): ?static
+    public static function fromJson(mixed $data, UserRepository $userRepository): ?static
     {
         if ($data === null) {
             return null;
@@ -47,8 +49,10 @@ class UserInfo
         }
 
         $info = json_decode($json);
+        $user = $info->id ? $userRepository->findOneById($info->id) : null;
         try {
             return new static(
+                user: $user,
                 userId: $info->id ?? null,
                 userName: $info->username ?? 'unknown',
                 realName: $info->realName ?? '',

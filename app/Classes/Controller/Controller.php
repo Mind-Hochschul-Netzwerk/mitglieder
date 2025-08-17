@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Repository\UserRepository;
 use App\Service\CurrentUser;
+use App\Service\EmailService;
 use App\Service\Tpl;
 use Hengeb\Router\Exception\AccessDeniedException;
 use Hengeb\Router\Exception\InvalidCsrfTokenException;
@@ -16,12 +18,15 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class Controller {
-    public function __construct(protected Request $request)
+    public function __construct(
+        protected Request $request,
+        protected Tpl $tpl,
+    )
     {
     }
 
     protected function setTemplateVariable(string $key, mixed $value): void {
-        Tpl::getInstance()->set($key, $value);
+        $this->tpl->set($key, $value);
     }
 
     protected function redirect(string $uri): RedirectResponse {
@@ -29,7 +34,7 @@ class Controller {
     }
 
     protected function render(string $templateName, array $data = []): Response {
-        return new Response(Tpl::getInstance()->render($templateName, $data));
+        return new Response($this->tpl->render($templateName, $data));
     }
 
     public function showError(string $message, int $responseCode = 200): Response {
@@ -102,25 +107,25 @@ class Controller {
         return $values;
     }
 
-    public static function handleException(\Exception $e, Request $request, CurrentUser $user): Response {
+    public static function handleException(\Exception $e, Request $request, CurrentUser $user, UserRepository $userRepository, EmailService $emailService, Tpl $tpl): Response {
         $requireLogin = $e instanceof AccessDeniedException || $e instanceof NotFoundException;
 
         if ($e instanceof InvalidRouteException) {
-            return (new self($request))->showError($e->getMessage() ?: 'URL ungültig', 404);
+            return (new self($request, $tpl))->showError($e->getMessage() ?: 'URL ungültig', 404);
         } elseif ($e instanceof NotLoggedInException || $requireLogin && !$user->isLoggedIn()) {
-            return (new AuthController($request))->loginForm();
+            return (new AuthController($request, $tpl, $user, $userRepository, $emailService))->loginForm();
         } elseif ($e instanceof NotFoundException) {
-            return (new self($request))->showError($e->getMessage() ?: 'nicht gefunden', 404);
+            return (new self($request, $tpl))->showError($e->getMessage() ?: 'nicht gefunden', 404);
         } elseif ($e instanceof AccessDeniedException) {
-            return (new self($request))->showError($e->getMessage() ?: 'fehlende Rechte', 403);
+            return (new self($request, $tpl))->showError($e->getMessage() ?: 'fehlende Rechte', 403);
         } elseif ($e instanceof InvalidCsrfTokenException) {
-            return (new self($request))->showError($e->getMessage() ?: 'Die Anfrage kann nicht wiederholt werden.', 400);
+            return (new self($request, $tpl))->showError($e->getMessage() ?: 'Die Anfrage kann nicht wiederholt werden.', 400);
         } elseif ($e instanceof InvalidUserDataException) {
-            return (new self($request))->showError($e->getMessage() ?: 'fehlerhafte Eingabedaten', 400);
+            return (new self($request, $tpl))->showError($e->getMessage() ?: 'fehlerhafte Eingabedaten', 400);
         } else {
             error_log($e->getMessage());
             error_log($e->getTraceAsString());
-            return (new self($request))->showError('Ein interner Fehler ist aufgetreten.', 500);
+            return (new self($request, $tpl))->showError('Ein interner Fehler ist aufgetreten.', 500);
         }
     }
 }

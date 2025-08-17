@@ -2,13 +2,11 @@
 declare(strict_types=1);
 namespace App\Service;
 
-use App\Interfaces\Singleton;
 use App\Model\User;
 use App\Repository\UserRepository;
 use Hengeb\Router\Exception\NotLoggedInException;
 use Hengeb\Router\Interface\CurrentUserInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Session\Session;
 
 /**
  * @author Henrik Gebauer <mensa@henrik-gebauer.de>
@@ -18,23 +16,16 @@ use Symfony\Component\HttpFoundation\Session\Session;
 /**
  * represents the Current User
  */
-class CurrentUser implements Singleton, CurrentUserInterface {
-    use \App\Traits\Singleton;
-
-    private ?Request $request = null;
-
+class CurrentUser implements CurrentUserInterface {
     private ?User $user = null;
 
-    public function setRequest(Request $request): void
+    public function __construct(
+        private Request $request,
+        private UserRepository $userRepository,
+    )
     {
-        $this->request = $request;
-
-        if (!$request->hasSession()) {
-            $request->setSession(new Session());
-        }
-
         $id = $request->getSession()->get('id');
-        $this->user = $id ? UserRepository::getInstance()->findOneById($id) : null;
+        $this->user = $id ? $this->userRepository->findOneById($id) : null;
     }
 
     private function assertLogin(): void
@@ -93,7 +84,7 @@ class CurrentUser implements Singleton, CurrentUserInterface {
         $this->request->getSession()->set('id', $user->get('id'));
         $this->user = $user;
         $this->user->set('last_login', 'now');
-        UserRepository::getInstance()->save($user);
+        $this->userRepository->save($user);
     }
 
     public function logOut(): void

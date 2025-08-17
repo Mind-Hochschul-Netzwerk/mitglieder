@@ -7,7 +7,6 @@ namespace App\Repository;
  */
 
 use App\Model\User;
-use App\Service\CurrentUser;
 use App\Service\Ldap;
 use Hengeb\Db\Db;
 use RuntimeException;
@@ -15,21 +14,28 @@ use RuntimeException;
 /**
  * Repräsentiert ein User
  */
-class UserRepository extends Repository
+class UserRepository
 {
+    public function __construct(
+        private Ldap $ldap,
+        private Db $db,
+    )
+    {
+    }
+
     /**
      * Lädt einen User aus der Datenbank und gibt ein User-Objekt zurück (oder null)
      */
     public function findOneById(int $id): ?User
     {
-        $user = new User();
+        $user = new User(ldap: $this->ldap, userRepository: $this);
 
-        $data = Db::getInstance()->query('SELECT '. implode(',', array_keys(User::felder)) . ' FROM mitglieder WHERE id=:id', ['id' => $id])->getRow();
+        $data = $this->db->query('SELECT '. implode(',', array_keys(User::felder)) . ' FROM mitglieder WHERE id=:id', ['id' => $id])->getRow();
         if (!$data) {
             return null;
         }
 
-        $user->ldapEntry = Ldap::getInstance()->getEntryByUsername($data['username']);
+        $user->ldapEntry = $this->ldap->getEntryByUsername($data['username']);
 
         if (!$user->ldapEntry) {
             throw new RuntimeException("user with ID $id does not exist in LDAP", 1754852333);
@@ -54,7 +60,7 @@ class UserRepository extends Repository
      */
     public function findOneByEmail(string $email): ?User
     {
-        $entry = Ldap::getInstance()->getEntryByEmail($email);
+        $entry = $this->ldap->getEntryByEmail($email);
         if (!$entry) {
             return null;
         }
@@ -67,10 +73,7 @@ class UserRepository extends Repository
      */
     public function findOneByUsername(string $username): ?User
     {
-        if ($username === '_' || $username === 'self') {
-            return CurrentUser::getInstance()->getWrappedUser();
-        }
-        $entry = Ldap::getInstance()->getEntryByUsername($username);
+        $entry = $this->ldap->getEntryByUsername($username);
         if (!$entry) {
             return null;
         }
@@ -87,7 +90,7 @@ class UserRepository extends Repository
         if ($existingId !== null) {
             return false;
         }
-        $id = Db::getInstance()->query('SELECT id FROM deleted_usernames WHERE username = :username', ['username' => $username])->get();
+        $id = $this->db->query('SELECT id FROM deleted_usernames WHERE username = :username', ['username' => $username])->get();
         if ($id) {
             return false;
         }
@@ -100,7 +103,7 @@ class UserRepository extends Repository
      */
     public function getIdByEmail(string $email): ?int
     {
-        $entry = Ldap::getInstance()->getEntryByEmail($email);
+        $entry = $this->ldap->getEntryByEmail($email);
         if (!$entry) {
             return null;
         }
@@ -112,7 +115,7 @@ class UserRepository extends Repository
      */
     public function getIdByUsername(string $username): ?int
     {
-        $id = Db::getInstance()->query('SELECT id FROM mitglieder WHERE username=:username', ['username' => $username])->get();
+        $id = $this->db->query('SELECT id FROM mitglieder WHERE username=:username', ['username' => $username])->get();
         if ($id === null) {
             return null;
         }
@@ -134,9 +137,9 @@ class UserRepository extends Repository
         $user->deleteResources();
 
         // delete LDAP entry (will also delete memberships in groups)
-        Ldap::getInstance()->deleteUser($user->get('username'));
+        $this->ldap->deleteUser($user->get('username'));
 
-        $db = Db::getInstance();
+        $db = $this->db;
         $db->query('INSERT INTO deleted_usernames SET id = :id, username = :username', [
             'id' => $user->get('id'),
             'username' => $user->get('username')
@@ -181,15 +184,15 @@ class UserRepository extends Repository
 
         // neuen Benutzer anlegen
         if ($user->data['id'] === null) {
-            $id = (int) Db::getInstance()->query("INSERT INTO mitglieder SET $setQuery", $values)->getInsertId();
+            $id = (int) $this->db->query("INSERT INTO mitglieder SET $setQuery", $values)->getInsertId();
             $user->setData('id', $id);
 
             $ldapData['id'] = $user->get('id');
-            $user->ldapEntry = Ldap::getInstance()->addUser($user->get('username'), $ldapData);
+            $user->ldapEntry = $this->ldap->addUser($user->get('username'), $ldapData);
         } else {
             $values['id'] = (int)$user->get('id');
-            Db::getInstance()->query("UPDATE mitglieder SET $setQuery WHERE id=:id", $values);
-            Ldap::getInstance()->modifyUser($user->get('username'), $ldapData);
+            $this->db->query("UPDATE mitglieder SET $setQuery WHERE id=:id", $values);
+            $this->ldap->modifyUser($user->get('username'), $ldapData);
         }
     }
 }

@@ -13,15 +13,10 @@ declare(strict_types=1);
 namespace App\Model;
 
 use App\Model\Enum\UserAgreementAction;
-use App\Repository\AgreementRepository;
-use App\Repository\UserAgreementRepository;
-use App\Repository\UserRepository;
 use DateTimeImmutable;
 
-class UserAgreement extends Model
+class UserAgreement
 {
-    protected static string $repositoryClass = UserAgreementRepository::class;
-
     /**
      * Constructs a UserAgreement instance.
      *
@@ -38,33 +33,11 @@ class UserAgreement extends Model
         public ?Agreement $agreement = null,
         public ?DateTimeImmutable $timestamp = null,
         public ?UserAgreementAction $action = null,
-        public ?UserInfo $admin = null
+        public ?UserInfo $admin = null,
     )
     {
         if (!$timestamp) {
             $this->timestamp = new \DateTimeImmutable();
         }
-    }
-
-    /**
-     * Creates a UserAgreement instance from database row data.
-     *
-     * @param int $id The unique identifier of the user agreement.
-     * @param int $user_id The ID of the associated user.
-     * @param int $agreement_id The ID of the associated agreement.
-     * @param string $timestamp The timestamp in string format.
-     * @param string $action The action taken by the user.
-     * @param string|null $admin_info The user info JSON of the admin who recorded the action, if applicable.
-     * @return static A new UserAgreement instance.
-     */
-    public static function fromDatabase(int $id, int $user_id, int $agreement_id, string $timestamp, string $action, ?string $admin_info): static
-    {
-        return new static($id,
-            UserRepository::getInstance()->findOneById($user_id),
-            AgreementRepository::getInstance()->findOneById($agreement_id),
-            new DateTimeImmutable($timestamp),
-            UserAgreementAction::from($action),
-            $admin_info ? UserInfo::fromJson($admin_info) : null
-        );
     }
 }

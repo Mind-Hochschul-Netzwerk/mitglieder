@@ -10,15 +10,26 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Model\Agreement;
+use DateTimeImmutable;
 use Hengeb\Db\Db;
 
-class AgreementRepository extends Repository
+class AgreementRepository
 {
-    private Db $db;
-
-    public function __construct()
+    public function __construct(
+        private Db $db,
+    )
     {
-        $this->db = Db::getInstance();
+    }
+
+    private function createModel($row): Agreement
+    {
+        return new Agreement(
+            id: $row['id'],
+            name: $row['name'],
+            version: $row['version'],
+            text: $row['text'],
+            timestamp: new DateTimeImmutable($row['timestamp']),
+        );
     }
 
     /**
@@ -29,7 +40,7 @@ class AgreementRepository extends Repository
     public function findAll(): array
     {
         $rows = $this->db->query('SELECT id, name, version, text, timestamp FROM agreements ORDER BY name ASC, version DESC')->getAll();
-        return array_map(fn($row) => Agreement::fromDatabase(...$row), $rows);
+        return array_map(fn($row) => $this->createModel($row), $rows);
     }
 
     /**
@@ -54,7 +65,7 @@ class AgreementRepository extends Repository
             WHERE name=:name ORDER BY version DESC', [
                 'name' => $name
             ])->getAll();
-        return array_map(fn($row) => Agreement::fromDatabase(...$row), $rows);
+        return array_map(fn($row) => $this->createModel($row), $rows);
     }
 
     /**
@@ -69,7 +80,7 @@ class AgreementRepository extends Repository
           WHERE name=:name ORDER BY version DESC LIMIT 1', [
             'name' => $name
           ])->getRow();
-        return $row ? Agreement::fromDatabase(...$row) : null;
+        return $row ? $this->createModel($row) : null;
     }
 
     /**
@@ -83,7 +94,7 @@ class AgreementRepository extends Repository
           (SELECT MAX(id) FROM agreements GROUP BY name) ORDER BY name')->getAll();
         return array_combine(
             keys: array_column($rows, 'name'),
-            values: array_map(fn($row) => Agreement::fromDatabase(...$row), $rows)
+            values: array_map(fn($row) => $this->createModel($row), $rows)
         );
     }
 
@@ -96,7 +107,7 @@ class AgreementRepository extends Repository
     public function findOneById(int $id): ?Agreement
     {
         $result = $this->db->query('SELECT id, name, version, text, timestamp FROM agreements WHERE id = :id', ['id' => $id]);
-        return ($result->getRowCount() === 0) ? null : Agreement::fromDatabase(...$result->getRow());
+        return ($result->getRowCount() === 0) ? null : $this->createModel($result->getRow());
     }
 
     /**

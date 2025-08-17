@@ -14,16 +14,20 @@ use Symfony\Component\Ldap\Entry;
 /**
  * ldap connection
  */
-class Ldap implements \App\Interfaces\Singleton
+class Ldap
 {
-    use \App\Traits\Singleton;
-
     private $ldap;
     private $isAdmin = false;
 
-    private function __construct()
+    public function __construct(
+        private string $host,
+        private string $bindDn,
+        private string $bindPassword,
+        private string $peopleDn,
+        private string $groupsDn,
+    )
     {
-        $this->ldap = SymfonyLdap::create('ext_ldap', ['connection_string' => getenv('LDAP_HOST')]);
+        $this->ldap = SymfonyLdap::create('ext_ldap', ['connection_string' => $host]);
     }
 
     private function bind(): void
@@ -31,7 +35,7 @@ class Ldap implements \App\Interfaces\Singleton
         if ($this->isAdmin) {
             return;
         }
-        $this->ldap->bind(getenv('LDAP_BIND_DN'), getenv('LDAP_BIND_PASSWORD'));
+        $this->ldap->bind($this->bindDn, $this->bindPassword);
         $this->isAdmin = true;
     }
 
@@ -50,7 +54,7 @@ class Ldap implements \App\Interfaces\Singleton
     {
         $this->bind();
         try {
-            $result = $this->ldap->query(getenv('LDAP_PEOPLE_DN'), '(objectClass=inetOrgPerson)')->execute();
+            $result = $this->ldap->query($this->peopleDn, '(objectClass=inetOrgPerson)')->execute();
         } catch (\Exception $e) {
             return [];
         }
@@ -70,7 +74,7 @@ class Ldap implements \App\Interfaces\Singleton
     {
         $this->bind();
         try {
-            $result = $this->ldap->query(getenv('LDAP_PEOPLE_DN'), '(&(objectclass=inetOrgPerson)(cn=' . ldap_escape($username) . '))')->execute();
+            $result = $this->ldap->query($this->peopleDn, '(&(objectclass=inetOrgPerson)(cn=' . ldap_escape($username) . '))')->execute();
         } catch (\Exception $e) {
             return null;
         }
@@ -88,7 +92,7 @@ class Ldap implements \App\Interfaces\Singleton
     {
         $this->bind();
         try {
-            $result = $this->ldap->query(getenv('LDAP_PEOPLE_DN'), '(&(objectClass=inetOrgPerson)(!(mail=*.invalid)))')->execute();
+            $result = $this->ldap->query($this->peopleDn, '(&(objectClass=inetOrgPerson)(!(mail=*.invalid)))')->execute();
         } catch (\Exception $e) {
             return [];
         }
@@ -103,7 +107,7 @@ class Ldap implements \App\Interfaces\Singleton
     {
         $this->bind();
         try {
-            $result = $this->ldap->query(getenv('LDAP_PEOPLE_DN'), '(&(objectclass=inetOrgPerson)(mail=*.invalid))')->execute();
+            $result = $this->ldap->query($this->peopleDn, '(&(objectclass=inetOrgPerson)(mail=*.invalid))')->execute();
         } catch (\Exception $e) {
             return [];
         }
@@ -118,7 +122,7 @@ class Ldap implements \App\Interfaces\Singleton
     {
         $this->bind();
         try {
-            $result = $this->ldap->query(getenv('LDAP_PEOPLE_DN'), '(&(objectclass=inetOrgPerson)(mail=' . ldap_escape($email) . '))')->execute();
+            $result = $this->ldap->query($this->peopleDn, '(&(objectclass=inetOrgPerson)(mail=' . ldap_escape($email) . '))')->execute();
         } catch (\Exception $e) {
             return null;
         }
@@ -192,14 +196,14 @@ class Ldap implements \App\Interfaces\Singleton
 
     private function getDnByUsername($username)
     {
-        return 'cn=' . ldap_escape($username) . ',' . getenv('LDAP_PEOPLE_DN');
+        return 'cn=' . ldap_escape($username) . ',' . $this->peopleDn;
     }
 
     public function isUserMemberOfGroup(string $username, string $group): bool
     {
         $this->bind();
         $query = '(&(objectclass=groupOfNames)(cn=' . ldap_escape($group) . ')(member=' . $this->getDnByUsername($username) . '))';
-        $entry = $this->ldap->query(getenv('LDAP_GROUPS_DN'), $query)->execute()[0];
+        $entry = $this->ldap->query($this->groupsDn, $query)->execute()[0];
         return !empty($entry);
     }
 
@@ -216,7 +220,7 @@ class Ldap implements \App\Interfaces\Singleton
         if (!$userEntry) {
             throw new \InvalidArgumentException('no such user: ' . $username, 1612375712);
         }
-        $entry = $this->ldap->query(getenv('LDAP_GROUPS_DN'), '(&(objectclass=groupOfNames)(cn=' . ldap_escape($group) . '))')->execute()[0];
+        $entry = $this->ldap->query($this->groupsDn, '(&(objectclass=groupOfNames)(cn=' . ldap_escape($group) . '))')->execute()[0];
         if (!$entry) {
             throw new \OutOfRangeException('invalid group name: ' . $group, 1612375711);
         }
@@ -230,7 +234,7 @@ class Ldap implements \App\Interfaces\Singleton
     {
         $this->bind();
         $query = '(&(objectclass=groupOfNames)(cn=' . ldap_escape($group) . ')(member=' . $this->getDnByUsername($username) . '))';
-        $entry = $this->ldap->query(getenv('LDAP_GROUPS_DN'), $query)->execute()[0];
+        $entry = $this->ldap->query($this->groupsDn, $query)->execute()[0];
         if (!$entry) {
             return;
         }
@@ -252,7 +256,7 @@ class Ldap implements \App\Interfaces\Singleton
     {
         $this->bind();
         $query = '(&(objectclass=groupOfNames)(member=' . $this->getDnByUsername($username) . '))';
-        $result = $this->ldap->query(getenv('LDAP_GROUPS_DN'), $query)->execute();
+        $result = $this->ldap->query($this->groupsDn, $query)->execute();
         $groups = [];
         foreach ($result as $group) {
             $groups[] = $group->getAttribute('cn')[0];
@@ -264,7 +268,7 @@ class Ldap implements \App\Interfaces\Singleton
     {
         $this->bind();
 
-        $result = $this->ldap->query(getenv('LDAP_GROUPS_DN'), '(cn=' . ldap_escape($groupName) . ')')->execute();
+        $result = $this->ldap->query($this->groupsDn, '(cn=' . ldap_escape($groupName) . ')')->execute();
 
         if (!$result) {
             throw new \OutOfRangeException('invalid group name: ' . $groupName, 1614374821);
@@ -276,10 +280,10 @@ class Ldap implements \App\Interfaces\Singleton
             if (substr($dn, 0, strlen('cn=')) !== 'cn=') {
                 return null;
             }
-            if (substr($dn, -strlen(getenv('LDAP_PEOPLE_DN'))) !== getenv('LDAP_PEOPLE_DN')) {
+            if (substr($dn, -strlen($this->peopleDn)) !== $this->peopleDn) {
                 return null;
             }
-            $username = substr(substr($dn, strlen('cn=')), 0, -1-strlen(getenv('LDAP_PEOPLE_DN')));
+            $username = substr(substr($dn, strlen('cn=')), 0, -1-strlen($this->peopleDn));
             $user = $this->getEntryByUsername($username);
             return intval($user->getAttribute('employeeNumber')[0]);
         }, $members);
@@ -302,7 +306,7 @@ class Ldap implements \App\Interfaces\Singleton
     {
         $this->bind();
         $query = '(&(objectclass=groupOfNames))';
-        $result = $this->ldap->query(getenv('LDAP_GROUPS_DN'), $query)->execute();
+        $result = $this->ldap->query($this->groupsDn, $query)->execute();
         $groups = [];
         foreach ($result as $group) {
             $groupName = $group->getAttribute('cn')[0];
@@ -313,10 +317,10 @@ class Ldap implements \App\Interfaces\Singleton
                     if (substr($dn, 0, strlen('cn=')) !== 'cn=') {
                         return null;
                     }
-                    if (substr($dn, -strlen(getenv('LDAP_PEOPLE_DN'))) !== getenv('LDAP_PEOPLE_DN')) {
+                    if (substr($dn, -strlen($this->peopleDn)) !== $this->peopleDn) {
                         return null;
                     }
-                    $username = substr(substr($dn, strlen('cn=')), 0, -1-strlen(getenv('LDAP_PEOPLE_DN')));
+                    $username = substr(substr($dn, strlen('cn=')), 0, -1-strlen($this->peopleDn));
                     $user = $this->getEntryByUsername($username);
                     return [
                         'id' => $user->getAttribute('employeeNumber')[0],

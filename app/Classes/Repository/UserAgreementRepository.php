@@ -9,18 +9,54 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Model\Agreement;
 use App\Model\Enum\UserAgreementAction;
 use App\Model\User;
 use App\Model\UserAgreement;
+use App\Model\UserInfo;
 use Hengeb\Db\Db;
 
-class UserAgreementRepository extends Repository
+class UserAgreementRepository
 {
-    private Db $db;
-
-    public function __construct()
+    public function __construct(
+        private Db $db,
+        private UserRepository $userRepository,
+        private AgreementRepository $agreementRepository,
+    )
     {
-        $this->db = Db::getInstance();
+    }
+
+    private function createModel($row): ?UserAgreement
+    {
+        return new UserAgreement(
+            id: $row['id'],
+            user: $this->userRepository->findOneById($row['user_id']),
+            agreement: $this->agreementRepository->findOneById($row['agreement_id']),
+            timestamp: new \DateTimeImmutable($row['timestamp']),
+            action: UserAgreementAction::from($row['action']),
+            admin: UserInfo::fromJson($row['admin_info'], $this->userRepository),
+        );
+    }
+
+    /**
+     * Persists a new user agreement in the database.
+     *
+     * @param UserAgreement $item The user agreement to persist.
+     * @throws \InvalidArgumentException If attempting to update an existing user agreement.
+     */
+    public function persist(UserAgreement $item): void
+    {
+        if ($item->id) {
+            throw new \InvalidArgumentException('UserAgreements may never be changed, create a new one');
+        }
+        $item->id = intval($this->db->query('INSERT INTO user_agreements SET
+          user_id=:user_id, agreement_id=:agreement_id, timestamp=:timestamp, action=:action, admin_info=:admin_info', [
+            'user_id' => $item->user->get('id'),
+            'agreement_id' => $item->agreement->id,
+            'timestamp' => $item->timestamp,
+            'action' => $item->action,
+            'admin_info' => $item->admin?->json(),
+        ])->getInsertId());
     }
 
     /**
@@ -37,7 +73,7 @@ class UserAgreementRepository extends Repository
           WHERE ua.user_id=:user_id ORDER BY ua.id DESC', [
             'user_id' => $user->get('id'),
           ])->getAll();
-        return array_map(fn($row) => UserAgreement::fromDatabase(...$row), $rows);
+        return array_map(fn($row) => $this->createModel($row), $rows);
     }
 
     /**
@@ -62,14 +98,9 @@ class UserAgreementRepository extends Repository
         // the names will be the keys of the returned array
         $names = array_column($rows, 'name');
 
-        // remove the key 'name' so we can use UserAgreement::fromDatabase(...$row) with the remaining keys
-        array_walk($rows, function(&$row) {
-            unset($row['name']);
-        });
-
         $userAgreements = array_combine(
             keys: $names,
-            values: array_map(fn($row) => UserAgreement::fromDatabase(...$row), $rows)
+            values: array_map(fn($row) => $this->createModel($row), $rows)
         );
 
         $userAgreements = array_filter($userAgreements, fn($ua) => $ua->action === UserAgreementAction::Accept);
@@ -96,7 +127,7 @@ class UserAgreementRepository extends Repository
         if (!$row) {
             return null;
         }
-        $userAgreement = UserAgreement::fromDatabase(...$row);
+        $userAgreement = $this->createModel($row);
         if ($userAgreement->action === UserAgreementAction::Revoke) {
             return null;
         } else {
@@ -104,24 +135,27 @@ class UserAgreementRepository extends Repository
         }
     }
 
-    /**
-     * Persists a new user agreement in the database.
-     *
-     * @param UserAgreement $item The user agreement to persist.
-     * @throws \InvalidArgumentException If attempting to update an existing user agreement.
-     */
-    public function persist(UserAgreement $item): void
+    public function countUsersByAgreement(Agreement $agreement): int
     {
-        if ($item->id) {
-            throw new \InvalidArgumentException('UserAgreements may never be changed, create a new one');
-        }
-        $item->id = intval($this->db->query('INSERT INTO user_agreements SET
-          user_id=:user_id, agreement_id=:agreement_id, timestamp=:timestamp, action=:action, admin_info=:admin_info', [
-            'user_id' => $item->user->get('id'),
-            'agreement_id' => $item->agreement->id,
-            'timestamp' => $item->timestamp,
-            'action' => $item->action,
-            'admin_info' => $item->admin?->json(),
-        ])->getInsertId());
+        return $this->db->query('WITH relevant_entries AS (
+          SELECT ua.*
+            FROM user_agreements ua
+            JOIN agreements a ON ua.agreement_id = a.id
+            WHERE a.id = :agreement_id AND ua.action = "accept"
+          ),
+          latest_entries AS (
+            SELECT ua.user_id, MAX(ua.id) AS max_id
+            FROM user_agreements ua
+            JOIN agreements a ON ua.agreement_id = a.id
+            WHERE a.name = (SELECT name FROM agreements WHERE id = :agreement_id)
+            GROUP BY ua.user_id
+          )
+          SELECT COUNT(*)
+          FROM relevant_entries r
+          LEFT JOIN latest_entries l
+          ON r.user_id = l.user_id
+          WHERE r.id = l.max_id;', [
+            'agreement_id' => $agreement->id,
+          ])->get();
     }
 }

@@ -6,6 +6,7 @@ namespace App\Controller;
 use App\Model\User;
 use App\Repository\UserRepository;
 use App\Service\CurrentUser;
+use App\Service\EmailService;
 use App\Service\Tpl;
 use Hengeb\Router\Attribute\RequestValue;
 use Hengeb\Router\Attribute\Route;
@@ -15,9 +16,19 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller {
+    public function __construct(
+        protected Request $request,
+        protected Tpl $tpl,
+        private CurrentUser $currentUser,
+        private UserRepository $userRepository,
+        private EmailService $emailService,
+    )
+    {
+    }
+
     #[Route('GET /login', allow: true)]
     public function loginForm(): Response {
-        if (CurrentUser::getInstance()->isLoggedIn()) {
+        if ($this->currentUser->isLoggedIn()) {
             return $this->redirect('/');
         }
         $redirect = $this->request->getPathInfo();
@@ -29,7 +40,7 @@ class AuthController extends Controller {
     }
 
     #[Route('POST /login', allow: true)]
-    public function loginSubmitted(CurrentUser $currentUser, #[RequestValue] string $login, #[RequestValue] string $password, #[RequestValue] string $redirect, #[RequestValue] bool $passwort_vergessen = false): Response {
+    public function loginSubmitted(#[RequestValue] string $login, #[RequestValue] string $password, #[RequestValue] string $redirect, #[RequestValue] bool $passwort_vergessen = false): Response {
         if (!$login) {
             $this->setTemplateVariable('error_username_leer', true);
             return $this->render('AuthController/login', [
@@ -40,9 +51,9 @@ class AuthController extends Controller {
         }
 
         $user = match(true) {
-            str_contains($login, '@') => UserRepository::getInstance()->findOneByEmail($login),
-            ctype_digit($login) => UserRepository::getInstance()->findOneById(intval($login)),
-            default => UserRepository::getInstance()->findOneByUsername($login),
+            str_contains($login, '@') => $this->userRepository->findOneByEmail($login),
+            ctype_digit($login) => $this->userRepository->findOneById((int) $login),
+            default => $this->userRepository->findOneByUsername($login),
         };
 
         if ($passwort_vergessen) {
@@ -64,13 +75,13 @@ class AuthController extends Controller {
 
         $redirectUrl = preg_replace('/\s/', '', $redirect);
 
-        $currentUser->logIn($user);
+        $this->currentUser->logIn($user);
         return $this->redirect($redirectUrl);
     }
 
     #[Route('GET /logout', allow: true)]
-    public function logout(CurrentUser $user): Response {
-        $user->logOut();
+    public function logout(): Response {
+        $this->currentUser->logOut();
         return $this->render('AuthController/logout');
     }
 
@@ -81,13 +92,13 @@ class AuthController extends Controller {
                 $user->get('id')
             ], $user->get('hashedPassword'), getenv('TOKEN_KEY'));
 
-            $text = Tpl::getInstance()->render('mails/lost-password', [
+            $text = $this->tpl->render('mails/lost-password', [
                 'fullName' => $user->get('fullName'),
                 'url' => 'https://mitglieder.' . getenv('DOMAINNAME') . '/lost-password?token=' . $token,
             ], $subject);
 
             try {
-                $user->sendEmail($subject, $text);
+                $this->emailService->sendToUser($user, $subject, $text);
             } catch (\RuntimeException $e) {
                 return new Response("Fehler beim Versenden der E-Mail.");
             }
@@ -103,7 +114,7 @@ class AuthController extends Controller {
                 if (time() - $data[0] > 24*60*60) {
                     throw new \Exception('token expired');
                 }
-                $user = UserRepository::getInstance()->findOneById($data[1], true);
+                $user = $this->userRepository->findOneById($data[1], true);
                 return $user->get('hashedPassword');
             }, getenv('TOKEN_KEY'));
         } catch (\Exception $e) {
@@ -122,7 +133,7 @@ class AuthController extends Controller {
     }
 
     #[Route('POST /lost-password?token={token}', allow: true)]
-    public function resetPassword(string $token, CurrentUser $currentUser): Response {
+    public function resetPassword(string $token): Response {
         $user = $this->validatePasswordToken($token);
 
         $input = $this->validatePayload([
@@ -136,13 +147,13 @@ class AuthController extends Controller {
         }
 
         $user->setPassword($input['password']);
-        UserRepository::getInstance()->save($user);
-        $currentUser->logIn($user);
+        $this->userRepository->save($user);
+        $this->currentUser->logIn($user);
 
         return $this->redirect('/');
     }
 
-    public static function handleNotLoggedInException(\Exception $e, Request $request): Response {
-        return (new self($request))->loginForm();
+    public static function handleNotLoggedInException(\Exception $e, Request $request, Tpl $tpl, CurrentUser $currentUser, UserRepository $userRepository, EmailService $emailService): Response {
+        return (new self($request, $tpl, $currentUser, $userRepository, $emailService))->loginForm();
     }
 }

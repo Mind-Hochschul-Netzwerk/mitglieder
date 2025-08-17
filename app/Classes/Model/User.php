@@ -7,7 +7,6 @@ namespace App\Model;
  */
 
 use App\Repository\UserRepository;
-use App\Service\EmailService;
 use App\Service\Ldap;
 use App\Service\Tpl;
 use DateTimeImmutable;
@@ -16,10 +15,8 @@ use DateTimeInterface;
 /**
  * Repräsentiert ein User
  */
-class User extends Model
+class User
 {
-    protected static string $repositoryClass = UserRepository::class;
-
     public array $data = [];
 
     public $ldapEntry = null;
@@ -39,7 +36,13 @@ class User extends Model
     private $newPassword = '';
     private string $email = '';
 
-    public function __construct(string $username = '', string $password = '', string $email = '')
+    public function __construct(
+        private Ldap $ldap,
+        private UserRepository $userRepository,
+        string $username = '',
+        string $password = '',
+        string $email = '',
+    )
     {
         if (!$username && !$password && !$email) {
             // data will be filled in by UserRepository
@@ -69,7 +72,7 @@ class User extends Model
     {
         switch ($feld) {
         case 'id':
-            return (int)$this->data['id'];
+            return (int) $this->data['id'];
         case 'fullName':
             $vorname = $this->data['vorname'];
             $nachname = $this->data['nachname'];
@@ -206,7 +209,7 @@ class User extends Model
         if ($this->get('username') === 'username') {
             return;
         }
-        if (!UserRepository::getInstance()->isUsernameAvailable($username)) {
+        if (!$this->userRepository->isUsernameAvailable($username)) {
             throw new \UnexpectedValueException('username already used', 1614368197);
         }
         $this->setData('username', $username);
@@ -221,7 +224,7 @@ class User extends Model
      */
     public function setEmail(string $email): void
     {
-        $id = UserRepository::getInstance()->getIdByEmail($email);
+        $id = $this->userRepository->getIdByEmail($email);
 
         if ($id !== null && $id !== $this->get('id')) {
             throw new \RuntimeException('Doppelte Verwendung der E-Mail-Adresse ' . $email, 1494003025);
@@ -274,7 +277,7 @@ class User extends Model
 
     public function isMemberOfGroup(string $groupName): bool
     {
-        return Ldap::getInstance()->isUserMemberOfGroup($this->get('username'), $groupName);
+        return $this->ldap->isUserMemberOfGroup($this->get('username'), $groupName);
     }
 
     public function hasRole(string $roleName): bool
@@ -292,7 +295,7 @@ class User extends Model
 
     public function getGroups(): array
     {
-        return Ldap::getInstance()->getGroupsByUsername($this->get('username'));
+        return $this->ldap->getGroupsByUsername($this->get('username'));
     }
 
     /**
@@ -300,19 +303,17 @@ class User extends Model
      */
     public function setGroups(array $groupNames): void
     {
-        // shortcuts
-        $ldap = Ldap::getInstance();
         $username = $this->get('username');
 
         $groupNames = array_map('strtolower', $groupNames);
         $oldGroupNames = array_map('strtolower', $this->getGroups());
 
         foreach(array_diff($oldGroupNames, $groupNames) as $groupName) {
-            $ldap->removeUserFromGroup($username, $groupName);
+            $this->ldap->removeUserFromGroup($username, $groupName);
         }
 
         foreach(array_diff($groupNames, $oldGroupNames) as $groupName) {
-            $ldap->addUserToGroup($username, $groupName);
+            $this->ldap->addUserToGroup($username, $groupName);
         }
     }
 
@@ -333,26 +334,13 @@ class User extends Model
         return $this->deleted;
     }
 
-    /**
-     * Sendet eine E-Mail
-     * @param string $subject
-     * @param string $body
-     * @throws \RuntimeException wenn eine E-Mail nicht versandt werden konnte.
-     */
-    public function sendEmail($subject, $body)
-    {
-        if (!(EmailService::getInstance()->send($this->get('email'), $subject, $body))) {
-            throw new \RuntimeException('Beim Versand der E-Mail an ' . $this->get('email') . ' (ID ' . $this->data['id'] . ') ist ein Fehler aufgetreten.', 1522422201);
-        }
-    }
-
     public function checkPassword(string $password): bool
     {
         if (!$password) {
             return false;
         }
 
-        return Ldap::getInstance()->checkPassword($this->get('username'), $password);
+        return $this->ldap->checkPassword($this->get('username'), $password);
     }
 
     /**
