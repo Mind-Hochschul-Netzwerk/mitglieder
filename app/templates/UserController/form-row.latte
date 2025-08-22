@@ -1,3 +1,4 @@
-<div class='form-group row'><label class='col-sm-2 col-form-label'>{$label}</label>
+{default $elementId = 'input-' . $name}
+<div class='form-group row'><label class='col-sm-2 col-form-label' for={$elementId}>{$label}</label>
     <div class='col-sm-10'>{include '../partials/input.latte', label: null, placeholder: $placeholder ?: $label}</div>
 </div>
