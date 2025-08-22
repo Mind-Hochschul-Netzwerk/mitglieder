@@ -19,6 +19,7 @@ RUN set -x \
        php83-ldap \
        php83-zip \
        php83-pdo_mysql \
+       php83-iconv \
   && chown nobody:nobody /var/www
 
 USER nobody
