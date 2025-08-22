@@ -10,7 +10,6 @@ use App\Service\CurrentUser;
 use App\Service\EmailService;
 use App\Service\ImageResizer;
 use App\Service\Ldap;
-use App\Service\Tpl;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\AccessDeniedException;
 use Hengeb\Router\Exception\InvalidUserDataException;
@@ -36,7 +35,7 @@ class UserController extends Controller {
 
     public function __construct(
         protected Request $request,
-        protected Tpl $tpl,
+        protected \Latte\Engine $latte,
         private CurrentUser $currentUser,
         private EmailService $emailService,
         private Ldap $ldap,
@@ -57,16 +56,10 @@ class UserController extends Controller {
         $isAdmin = $this->currentUser->hasRole('mvread');
 
         $templateVars = [
-            'htmlTitle' => $user->get('fullName'),
             'fullName' => $user->get('fullName'),
-            'title' => $user->get('fullName'),
+            'bearbeitenUrl' => $user->get('bearbeitenUrl'),
+            'mayEdit' => $this->currentUser->get('id') === $user->get('id') || $this->currentUser->hasRole('mvedit'),
         ];
-        if ($db_modified) {
-            $templateVars['title'] .= ' <small>Stand: '. $user->get('db_modified')->format('d.m.Y') . '</small>';
-        }
-        if ($this->currentUser->get('id') === $user->get('id') || $this->currentUser->hasRole('mvedit')) {
-            $templateVars['title'] .= ' <small><a href="' . $user->get('bearbeitenUrl') . '"><span class="glyphicon glyphicon-pencil"></span> Daten bearbeiten</a></small>';
-        }
 
         // generell: alle Daten kopieren
         foreach (array_keys(User::felder) as $feld) {
@@ -190,8 +183,11 @@ class UserController extends Controller {
         } else {
             $this->setTemplateVariable('email_auth_info', true);
             $token = Token::encode([time(), $user->get('id'), $email], $user->get('email'), getenv('TOKEN_KEY'));
-            $text = $this->tpl->render('mails/email-auth', ['token' => $token], $subject);
-            $this->emailService->send($email, $subject, $text);
+            $text = $this->renderToString('mails/email-auth', [
+                'token' => $token,
+                'return' => $return = new \stdclass(),
+            ]);
+            $this->emailService->send($email, $return->subject, $text);
         }
     }
 
@@ -282,17 +278,19 @@ class UserController extends Controller {
                 $this->setTemplateVariable('errorMessage', 'Das eingegebene Passwort ist nicht korrekt.');
             } else {
                 $user->set('resignation', 'now');
-                $text = $this->tpl->render('mails/resignation', [
+                $text = $this->renderToString('mails/resignation', [
                     'fullName' => $user->get('fullName'),
                     'id' => $user->get('id'),
-                ], $subject);
-                $this->emailService->send('vorstand@mind-hochschul-netzwerk.de', $subject, $text);
-                $this->emailService->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', $subject, $text);
-                $text = $this->tpl->render('mails/resignationConfirmation', [
+                    'return' => $return = new \stdclass(),
+                ]);
+                $this->emailService->send('vorstand@mind-hochschul-netzwerk.de', $return->subject, $text);
+                $this->emailService->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', $return->subject, $text);
+                $text = $this->renderToString('mails/resignationConfirmation', [
                     'fullName' => $user->get('fullName'),
                     'id' => $user->get('id'),
-                ], $subject);
-                $this->emailService->sendToUser($user, $subject, $text);
+                    'return' => $return = new \stdclass(),
+                ]);
+                $this->emailService->sendToUser($user, $return->subject, $text);
             }
         } elseif ($this->currentUser->hasRole('mvedit')) {
             $resignOld = $user->get('resignation') !== null;
@@ -301,18 +299,20 @@ class UserController extends Controller {
                 $user->set('resignation', null);
             } elseif (!$resignOld && $resignNew) {
                 $user->set('resignation', 'now');
-                $text = $this->tpl->render('mails/resignation', [
+                $text = $this->renderToString('mails/resignation', [
                     'adminFullName' => $this->currentUser->get('fullName'),
                     'fullName' => $user->get('fullName'),
                     'id' => $user->get('id'),
-                ], $subject);
-                $this->emailService->send('vorstand@mind-hochschul-netzwerk.de', $subject, $text);
-                $this->emailService->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', $subject, $text);
-                $text = $this->tpl->render('mails/resignationConfirmation', [
+                    'return' => $return = new \stdclass(),
+                ]);
+                $this->emailService->send('vorstand@mind-hochschul-netzwerk.de', $return->subject, $text);
+                $this->emailService->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', $return->subject, $text);
+                $text = $this->renderToString('mails/resignationConfirmation', [
                     'fullName' => $user->get('fullName'),
                     'id' => $user->get('id'),
-                ], $subject);
-                $this->emailService->sendToUser($user, $subject, $text);
+                    'return' => $return = new \stdclass(),
+                ]);
+                $this->emailService->sendToUser($user, $return->subject, $text);
             }
         }
     }
@@ -322,9 +322,9 @@ class UserController extends Controller {
             throw new AccessDeniedException('Du kannst dich nicht selbst löschen!');
         }
 
-        $this->userRepository->delete($user);
+        // $this->userRepository->delete($user);
 
-        $mailText = $this->tpl->render('mails/MvEdit-Info-Mitglied-Geloescht', [
+        $mailText = $this->renderToString('mails/MvEdit-Info-Mitglied-Geloescht', [
             'adminName' => $this->currentUser->get('fullName'),
             'adminId' => $this->currentUser->get('id'),
             'adminUsername' => $this->currentUser->get('username'),
@@ -332,12 +332,13 @@ class UserController extends Controller {
             'deletedId' => $user->get('id'),
             'deletedUsername' => $user->get('username'),
             'deletedEmail' => $user->get('email'),
-        ], $subject);
+            'return' => $return = new \stdclass(),
+        ]);
 
         // Alle Mitglieder der Mitgliederbetreuung (mvedit) informieren
-        $this->emailService->sendToGroup('mvedit', $subject, $mailText);
+        $this->emailService->sendToGroup('mvedit', $return->subject, $mailText);
 
-        return $this->showMessage("Bestätigung", "Die Daten wurden aus der Mitgliederdatenbank gelöscht.");
+        return $this->render("UserController/delete-success");
     }
 
     #[Route('POST /user/{username=>user}/edit', allow: ['role' => 'mvedit', 'id' => '$user->get("id")'])]
@@ -404,11 +405,12 @@ class UserController extends Controller {
 
         $this->userRepository->save($user);
 
-        $text = $this->tpl->render('mails/email-changed', [
+        $text = $this->renderToString('mails/email-changed', [
             'fullName' => $user->get('fullName'),
             'email' => $email,
-        ], $subject);
-        $this->emailService->send($oldMail, $subject, $text);
+            'return' => $return = new \stdclass(),
+        ]);
+        $this->emailService->send($oldMail, $return->subject, $text);
 
         $this->setTemplateVariable('email_changed', true);
     }

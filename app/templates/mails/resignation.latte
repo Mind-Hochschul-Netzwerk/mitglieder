@@ -1,0 +1,17 @@
+{layout none}{contentType text}
+{var $return->subject = $adminFullName ? 'Austrittserklärung eingetragen' : 'Austrittserklärung'}
+Liebes Mitglied des Vorstands / der Mitgliederbetreuung,
+
+das Mitglied {$fullName} (MHN-Mitgliedsnummer {$id}) hat den Austritt aus dem Verein erklärt.
+
+{if $adminFullName}Der Austritt wurde von {$adminFullName} eingetragen.{/if}
+
+Gemäß der Satzung ist ein Austritt zum Ende des Kalenderjahres möglich.
+
+Das Profil muss daher von der Mitgliederbetreuung zum Ende des Kalenderjahres gelöscht werden.
+
+https://mitglieder.{=getenv('DOMAINNAME')}/user/{="$id\n"}
+
+Eine Auflistung aller noch nicht gelöschten Profile von Mitgliedern, die ihren Austritt erklärt haben, findest du hier:
+
+https://mitglieder.{=getenv('DOMAINNAME')}/search/resigned

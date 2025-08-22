@@ -1,0 +1,6 @@
+{default $type = checkbox}
+{default $elementId = $name}
+{default $label = $name}
+{default $state = get_defined_vars()[$name]}
+{var $checked = $type === checkbox ? (bool) $state : ($state === $value)}
+<label n:tag-if=$label><input n:attr="type: $type, checked: $checked, value: $value, id: $elementId, name: $name, class: $class, onclick: $onclick ?: null, disabled: (bool) $disabled, required: (bool) $required"> {$label}</label>

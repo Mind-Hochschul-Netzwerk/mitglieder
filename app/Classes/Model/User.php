@@ -8,7 +8,6 @@ namespace App\Model;
 
 use App\Repository\UserRepository;
 use App\Service\Ldap;
-use App\Service\Tpl;
 use DateTimeImmutable;
 use DateTimeInterface;
 
@@ -93,8 +92,6 @@ class User
             return '/user/' . $this->data['username'];
         case 'bearbeitenUrl':
             return '/user/' . $this->data['username'] . '/edit';
-        case 'profilLink':
-            return '<a href="' . $this->get('profilUrl') . '">' . Tpl::htmlEscape($this->get('fullName')) . '</a>';
         case 'dateOfJoining';
             if ($this->get('membership_confirmation')) {
                 return $this->get('membership_confirmation');

@@ -1,0 +1,18 @@
+{var $navId = statistics}
+
+{block content}
+<h1 n:block=title>Personen mit nicht-erreichbaren E-Mail-Adressen</h1>
+
+<p>Die folgenden Personen sind nicht mehr per E-Mail erreichbar. Sie wurden manuell markiert, nachdem E-Mails nicht zugestellt werden konnten (z.B. Server unbekannt, User unbekannt, Postfach voll).
+
+<table class="table">
+    <tr><th>ID</th><th>Profil / Name</th><th>Ort</th><th>E-Mail</th><th>Aufnahmedatum</th><th>letzter Login</th><th>Moodle freigeschaltet</th></tr>
+    <tr n:inner-foreach="$invalidEmailsList as $u">
+        <td>{$u[id]}</td>
+        <td><a href='/user/{$u['username']}/edit'>{$u['fullName']}</a></td>
+        <td>{$u['ort']}</td><td>{$u['email']}</td>
+        <td>{$u['aufnahmedatum']}</td>
+        <td>{$u['lastLogin']}</td>
+        <td>{$u[moodle]}</td>
+    </tr>
+</table>

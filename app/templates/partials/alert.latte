@@ -1,0 +1,8 @@
+<div
+    n:attr="id: $alertId ?: null"
+    n:class="alert, 'alert-' . $type, alert-dismissible, fade, 'in', $hide ? hide" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <strong n:if="$type === danger">Fehler: </strong> {$text}
+</div>

@@ -18,7 +18,6 @@ use App\Repository\UserRepository;
 use App\Service\CurrentUser;
 use App\Service\EmailService;
 use App\Service\Ldap;
-use App\Service\Tpl;
 use Hengeb\Router\Attribute\RequestValue;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\InvalidUserDataException;
@@ -29,7 +28,7 @@ use Symfony\Component\HttpFoundation\Response;
 class UserAgreementController extends Controller {
     public function __construct(
         protected Request $request,
-        protected Tpl $tpl,
+        protected \Latte\Engine $latte,
         private CurrentUser $currentUser,
         private EmailService $emailService,
         private Ldap $ldap,
@@ -114,15 +113,16 @@ class UserAgreementController extends Controller {
 
         // send mail in case somebody revokes the 'Datenschutzverpflichtung' agreement
         if ($agreement->name === 'Datenschutzverpflichtung' && $userAgreement->action === UserAgreementAction::Revoke) {
-            $text = $this->tpl->render('UserAgreementController/revoke.mail', [
+            $text = $this->renderToString('UserAgreementController/revoke.mail', [
                 'user' => $user,
                 'recorderName' => $this->currentUser->get('fullName'),
                 'url' => 'https://mitglieder.' . getenv('DOMAINNAME') . '/user/' . urlencode($user->get('username')),
-            ], $subject);
+                'return' => $return = new \stdclass,
+            ]);
             $this->emailService->send([
                 'datenschutz@mind-hochschul-netzwerk.de',
                 'vorstand@mind-hochschul-netzwerk.de',
-            ], $subject, $text);
+            ], $return->subject, $text);
         }
 
         return $this->getLatest($user);

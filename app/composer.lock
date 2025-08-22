@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a35e76d952eb21504d44a58f13cc02cd",
+    "content-hash": "7f368f5bca3bf6eb2b45b302d3a4ef35",
     "packages": [
         {
             "name": "hengeb/db",
@@ -91,48 +91,6 @@
                 "source": "https://github.com/hengeb/router/tree/v0.4.1"
             },
             "time": "2025-03-07T15:55:43+00:00"
-        },
-        {
-            "name": "hengeb/simplates",
-            "version": "v0.0.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/hengeb/simplates.git",
-                "reference": "106d1c3354eff9602f361028382c99bb3e4477a6"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/hengeb/simplates/zipball/106d1c3354eff9602f361028382c99bb3e4477a6",
-                "reference": "106d1c3354eff9602f361028382c99bb3e4477a6",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.0.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Hengeb\\Simplates\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Henrik Gebauer",
-                    "email": "code@henrik-gebauer.de",
-                    "homepage": "https://www.henrik-gebauer.de",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Template Engine for lightweight templates with automatic escaping",
-            "support": {
-                "issues": "https://github.com/hengeb/simplates/issues",
-                "source": "https://github.com/hengeb/simplates/tree/v0.0.3"
-            },
-            "time": "2025-07-26T20:43:38+00:00"
         },
         {
             "name": "hengeb/token",

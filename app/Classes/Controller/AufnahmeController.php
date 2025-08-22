@@ -11,7 +11,6 @@ use App\Repository\UserRepository;
 use App\Service\CurrentUser;
 use App\Service\EmailService;
 use App\Service\Ldap;
-use App\Service\Tpl;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\InvalidUserDataException;
 use Symfony\Component\HttpFoundation\Request;
@@ -99,7 +98,7 @@ class AufnahmeController extends Controller
 
     public function __construct(
         protected Request $request,
-        protected Tpl $tpl,
+        protected \Latte\Engine $latte,
         private CurrentUser $currentUser,
         private EmailService $emailService,
         private Ldap $ldap,
@@ -250,7 +249,7 @@ class AufnahmeController extends Controller
             'username' => $this->username ? $this->username : $this->suggestUsername(),
             'password' => '',
             'password2' => '',
-            'data' => $this->data,
+            ...$this->data,
         ]);
     }
 
@@ -344,12 +343,13 @@ class AufnahmeController extends Controller
      */
     private function sendMailToActivationTeam(User $newUser): void
     {
-        $text = $this->tpl->render('mails/account-activated', [
+        $text = $this->renderToString('mails/account-activated', [
             'id' => $newUser->get('id'),
             'fullName' => $newUser->get('fullName'),
             'email' => $newUser->get('email'),
-        ], $subject);
+            'return' => $return = new \stdclass,
+        ]);
 
-        $this->emailService->sendToGroup('aktivierung', $subject, $text);
+        $this->emailService->sendToGroup('aktivierung', $return->subject, $text);
     }
 }

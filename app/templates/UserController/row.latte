@@ -1,0 +1,5 @@
+{var $sichtbarkeit = get_defined_vars()["sichtbarkeit_" . $name]}
+{default $value = get_defined_vars()[$name]}
+<div n:class="row, $sichtbarkeit === false ? 'unsichtbar'" n:if=$value>
+    <div class="col-xs-6">{$label}</div><div class="col-xs-6">{$value}</div>
+</div>

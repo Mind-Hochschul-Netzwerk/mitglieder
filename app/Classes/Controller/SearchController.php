@@ -5,7 +5,6 @@ namespace App\Controller;
 
 use App\Repository\UserRepository;
 use App\Service\PasswordService;
-use App\Service\Tpl;
 use Hengeb\Db\Db;
 use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 class SearchController extends Controller {
     public function __construct(
         protected Request $request,
-        protected Tpl $tpl,
+        protected \Latte\Engine $latte,
         private UserRepository $userRepository,
     )
     {
@@ -106,7 +105,7 @@ class SearchController extends Controller {
                 $orte[] = $user->get('ort2');
             }
 
-            // auszugebende Daten speichern und an Tpl übergeben
+            // auszugebende Daten speichern und an Template übergeben
             $e = [
                 'id' => $user->get('id'),
                 'last_login' => $user->get('last_login'),

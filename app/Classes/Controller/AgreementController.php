@@ -10,7 +10,6 @@ namespace App\Controller;
 use App\Model\Agreement;
 use App\Repository\AgreementRepository;
 use App\Repository\UserAgreementRepository;
-use App\Service\Tpl;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Attribute\RequestValue;
 use Hengeb\Router\Exception\InvalidUserDataException;
@@ -24,7 +23,7 @@ use Symfony\Component\HttpFoundation\Response;
 class AgreementController extends Controller {
     public function __construct(
         protected Request $request,
-        protected Tpl $tpl,
+        protected \Latte\Engine $latte,
         private AgreementRepository $agreementRepository,
         private UserAgreementRepository $userAgreementRepository
     )

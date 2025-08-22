@@ -1,0 +1,34 @@
+{var $navId = admin}
+{block content}
+<h1 n:block=title>Mitgliederverwaltung</h1>
+
+<h2>Mitgliederdaten bearbeiten</h2>
+<p>Suche das zu bearbeitende Mitglied mit der <a href="/search">Mitgliedersuche</a> und klicke im Profil auf "Daten bearbeiten".</p>
+
+<h2>Austrittsersuche bearbeiten</h2>
+<p>Zeige die <a href="/search/resigned">Liste der ausgetretenen Mitglieder</a> und klicke im Profil auf "Daten bearbeiten".</p>
+
+{if $groups}
+    <h2>Gruppenzuordnungen verwalten</h2>
+    <p>Suche das zu bearbeitende Mitglied mit der <a href="/search">Mitgliedersuche</a> und klicke im Profil auf "Daten bearbeiten".</p>
+    <ul n:inner-foreach="$groups as $group">
+        <li><code>{$group['name']}</code>: {$group['description']}r</li>
+    </ul>
+    <h3>Übersicht über die Gruppen</h3>
+    <div id="panels" class="row">
+        <div n:foreach="$groups as $n => $group" class="col-sm-2">
+            <div class='panel panel-default'>
+                <div class='panel-heading'>{$group[name]}</div>
+                <div id='panel-$n' class='panel-body'>
+                {if $group[name] in [alleMitglieder, listen]}
+                    <div>alle Mitglieder</div>
+                {else}
+                    <div n:foreach="$group[users] as $user">
+
+                        <a href='/user/{$user[username]}/edit'>{$user[firstname]} {$user[lastname]}</a>
+                    </div>
+                {/if}
+            </div>
+        </div>
+    </div>
+{/if}

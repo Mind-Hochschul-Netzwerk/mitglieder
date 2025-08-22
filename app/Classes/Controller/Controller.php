@@ -6,7 +6,6 @@ namespace App\Controller;
 use App\Repository\UserRepository;
 use App\Service\CurrentUser;
 use App\Service\EmailService;
-use App\Service\Tpl;
 use Hengeb\Router\Exception\AccessDeniedException;
 use Hengeb\Router\Exception\InvalidCsrfTokenException;
 use Hengeb\Router\Exception\InvalidRouteException;
@@ -18,36 +17,54 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class Controller {
+    protected array $templateVariables = [];
+
     public function __construct(
         protected Request $request,
-        protected Tpl $tpl,
+        protected \Latte\Engine $latte,
     )
     {
     }
 
     protected function setTemplateVariable(string $key, mixed $value): void {
-        $this->tpl->set($key, $value);
+        $this->templateVariables[$key] = $value;
     }
 
     protected function redirect(string $uri): RedirectResponse {
         return new RedirectResponse($uri);
     }
 
+    protected function renderToString(string $templateName, array $data = []): string {
+        $er = error_reporting();
+        // surpress 'undefined variable' warnings
+        error_reporting($er & ~E_WARNING);
+        $res = $this->latte->renderToString($templateName . '.latte', [
+            ...$this->templateVariables,
+            ...$data
+        ]);
+        error_reporting($er);
+
+        $error = error_get_last();
+        if ($error &&
+            // errors to ignore:
+            !str_starts_with($error['message'], 'Undefined variable') &&
+            !str_starts_with($error['message'], 'Undefined array key') &&
+            !str_starts_with($error['message'], 'Undefined property') &&
+            !str_starts_with($error['message'], 'Attempt to read property') &&
+            !str_starts_with($error['message'], 'Trying to access array offset on null')
+        ) {
+            throw new \RuntimeException("Error in template $templateName (file: {$error['file']}, line {$error['line']}): {$error['message']}");
+        }
+        return $res;
+    }
+
     protected function render(string $templateName, array $data = []): Response {
-        return new Response($this->tpl->render($templateName, $data));
+        return new Response($this->renderToString($templateName, $data));
     }
 
     public function showError(string $message, int $responseCode = 200): Response {
-        $response = $this->render('Layout/errorpage', ['text' => $message]);
+        $response = $this->render('errorpage', ['text' => $message]);
         $response->setStatusCode($responseCode);
-        return $response;
-    }
-
-    public function showMessage(string $title, string $message): Response {
-        $response = $this->render('Layout/message', [
-            'title' => $title,
-            'text' => $message,
-        ]);
         return $response;
     }
 
@@ -107,25 +124,25 @@ class Controller {
         return $values;
     }
 
-    public static function handleException(\Exception $e, Request $request, CurrentUser $user, UserRepository $userRepository, EmailService $emailService, Tpl $tpl): Response {
+    public static function handleException(\Exception $e, Request $request, CurrentUser $user, UserRepository $userRepository, EmailService $emailService, \Latte\Engine $latte): Response {
         $requireLogin = $e instanceof AccessDeniedException || $e instanceof NotFoundException;
 
         if ($e instanceof InvalidRouteException) {
-            return (new self($request, $tpl))->showError($e->getMessage() ?: 'URL ungültig', 404);
+            return (new self($request, $latte))->showError($e->getMessage() ?: 'URL ungültig', 404);
         } elseif ($e instanceof NotLoggedInException || $requireLogin && !$user->isLoggedIn()) {
-            return (new AuthController($request, $tpl, $user, $userRepository, $emailService))->loginForm();
+            return (new AuthController($request, $latte, $user, $userRepository, $emailService))->loginForm();
         } elseif ($e instanceof NotFoundException) {
-            return (new self($request, $tpl))->showError($e->getMessage() ?: 'nicht gefunden', 404);
+            return (new self($request, $latte))->showError($e->getMessage() ?: 'nicht gefunden', 404);
         } elseif ($e instanceof AccessDeniedException) {
-            return (new self($request, $tpl))->showError($e->getMessage() ?: 'fehlende Rechte', 403);
+            return (new self($request, $latte))->showError($e->getMessage() ?: 'fehlende Rechte', 403);
         } elseif ($e instanceof InvalidCsrfTokenException) {
-            return (new self($request, $tpl))->showError($e->getMessage() ?: 'Die Anfrage kann nicht wiederholt werden.', 400);
+            return (new self($request, $latte))->showError($e->getMessage() ?: 'Die Anfrage kann nicht wiederholt werden.', 400);
         } elseif ($e instanceof InvalidUserDataException) {
-            return (new self($request, $tpl))->showError($e->getMessage() ?: 'fehlerhafte Eingabedaten', 400);
+            return (new self($request, $latte))->showError($e->getMessage() ?: 'fehlerhafte Eingabedaten', 400);
         } else {
             error_log($e->getMessage());
             error_log($e->getTraceAsString());
-            return (new self($request, $tpl))->showError('Ein interner Fehler ist aufgetreten.', 500);
+            return (new self($request, $latte))->showError('Ein interner Fehler ist aufgetreten.', 500);
         }
     }
 }

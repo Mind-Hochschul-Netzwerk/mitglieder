@@ -7,7 +7,6 @@ use App\Model\User;
 use App\Repository\UserRepository;
 use App\Service\CurrentUser;
 use App\Service\EmailService;
-use App\Service\Tpl;
 use Hengeb\Router\Attribute\RequestValue;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\InvalidUserDataException;
@@ -18,7 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 class AuthController extends Controller {
     public function __construct(
         protected Request $request,
-        protected Tpl $tpl,
+        protected \Latte\Engine $latte,
         private CurrentUser $currentUser,
         private UserRepository $userRepository,
         private EmailService $emailService,
@@ -92,13 +91,14 @@ class AuthController extends Controller {
                 $user->get('id')
             ], $user->get('hashedPassword'), getenv('TOKEN_KEY'));
 
-            $text = $this->tpl->render('mails/lost-password', [
+            $text = $this->renderToString('mails/lost-password', [
                 'fullName' => $user->get('fullName'),
                 'url' => 'https://mitglieder.' . getenv('DOMAINNAME') . '/lost-password?token=' . $token,
-            ], $subject);
+                'return' => $return = new \stdclass,
+            ]);
 
             try {
-                $this->emailService->sendToUser($user, $subject, $text);
+                $this->emailService->sendToUser($user, $return->subject, $text);
             } catch (\RuntimeException $e) {
                 return new Response("Fehler beim Versenden der E-Mail.");
             }
@@ -153,7 +153,7 @@ class AuthController extends Controller {
         return $this->redirect('/');
     }
 
-    public static function handleNotLoggedInException(\Exception $e, Request $request, Tpl $tpl, CurrentUser $currentUser, UserRepository $userRepository, EmailService $emailService): Response {
-        return (new self($request, $tpl, $currentUser, $userRepository, $emailService))->loginForm();
+    public static function handleNotLoggedInException(\Exception $e, Request $request, \Latte\Engine $latte, CurrentUser $currentUser, UserRepository $userRepository, EmailService $emailService): Response {
+        return (new self($request, $latte, $currentUser, $userRepository, $emailService))->loginForm();
     }
 }

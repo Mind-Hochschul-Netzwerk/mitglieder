@@ -10,7 +10,6 @@ namespace App\Controller;
 use App\Service\Ldap;
 use Hengeb\Db\Db;
 use App\Repository\UserRepository;
-use App\Service\Tpl;
 use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,7 +19,7 @@ class StatisticsController extends Controller {
 
     public function __construct(
         protected Request $request,
-        protected Tpl $tpl,
+        protected \Latte\Engine $latte,
         private Ldap $ldap,
         private UserRepository $userRepository,
     )

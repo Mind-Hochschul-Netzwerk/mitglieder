@@ -134,10 +134,10 @@ $body
         if (!isset($this->ldap)) {
             throw new \LogicException('use EmailService::setLdap() before sendToGroup()');
         }
-        if (!isset($this->ldap)) {
+        if (!isset($this->userRepository)) {
             throw new \LogicException('use EmailService::setUserRepository() before sendToUser()');
         }
-        $ids = $this->ldap->getIdsByGroup('mvedit');
+        $ids = $this->ldap->getIdsByGroup($groupname);
         foreach ($ids as $id) {
             $user = $this->userRepository->findOneById($id);
             if ($user !== null) {
