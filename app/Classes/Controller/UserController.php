@@ -322,7 +322,7 @@ class UserController extends Controller {
             throw new AccessDeniedException('Du kannst dich nicht selbst löschen!');
         }
 
-        // $this->userRepository->delete($user);
+        $this->userRepository->delete($user);
 
         $mailText = $this->renderToString('mails/MvEdit-Info-Mitglied-Geloescht', [
             'adminName' => $this->currentUser->get('fullName'),
