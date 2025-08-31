@@ -11,7 +11,8 @@
         "symfony/http-foundation": ">=7.0",
         "symfony/mime": ">=7.1",
         "hengeb/router": ">=0.1",
-        "latte/latte": "^3.0"
+        "latte/latte": "^3.0",
+        "tracy/tracy": "^2.10"
     },
     "autoload": {
         "psr-4": {

@@ -4,6 +4,7 @@ namespace App\Service;
 
 use Hengeb\Router\Interface\CurrentUserInterface;
 use Hengeb\Router\Router;
+use Tracy\Debugger;
 
 /**
  * @author Henrik Gebauer <mensa@henrik-gebauer.de>
@@ -130,6 +131,7 @@ class LatteExtension extends \Latte\Extension {
             'csrfToken' => fn() => $this->router->createCsrfToken(),
             'csrfTokenTag' => fn() => new \Latte\Runtime\Html('<input type="hidden" name="_csrfToken" value="' . $this->router->createCsrfToken() . '">'),
             'currentUser' => fn() => $this->currentUser,
+            'debugger' => fn() => Debugger::renderLoader(),
         ];
 	}
 

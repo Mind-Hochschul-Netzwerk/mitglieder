@@ -23,6 +23,7 @@ use Hengeb\Router\Router;
 use \Latte\Engine as Latte;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Tracy\Debugger;
 
 /**
  * Service container
@@ -31,6 +32,8 @@ class Bootstrap {
     private array $instances = [];
 
     public function run() {
+        $this->startDebugger();
+
         $router = $this->getRouter();
 
         $router->addService(Db::class, fn() => $this->getDb());
@@ -40,12 +43,12 @@ class Bootstrap {
         $router->addService(AgreementRepository::class, fn() => $this->getAgreementRepository());
         $router->addService(Ldap::class, fn() => $this->getLdap());
 
-        $request = $this->getRequest();
-        $currentUser = $this->getCurrentUser();
+        $router->dispatch($this->getRequest(), $this->getCurrentUser())->send();
+    }
 
-        $latte = $this->getLatte();
-
-        $router->dispatch($request, $currentUser)->send();
+    private function startDebugger(): void
+    {
+        Debugger::enable(str_ends_with(getenv('DOMAINNAME'), 'localhost') ? Debugger::Development : Debugger::Production);
     }
 
     private function createService(string $classname, ?callable $setup = null): object
@@ -61,19 +64,19 @@ class Bootstrap {
 
     public function getAgreementRepository(): AgreementRepository
     {
-        return $this->createService('AgreementRepository', fn() => new AgreementRepository(
+        return $this->createService(AgreementRepository::class, fn() => new AgreementRepository(
             $this->getDb(),
         ));
     }
 
     public function getCurrentUser(): CurrentUser
     {
-        return $this->createService('CurrentUser', fn() => new CurrentUser($this->getRequest(), $this->getUserRepository()));
+        return $this->createService(CurrentUser::class, fn() => new CurrentUser($this->getRequest(), $this->getUserRepository()));
     }
 
     public function getDb(): Db
     {
-        return $this->createService('Db', fn() => new Db([
+        return $this->createService(Db::class, fn() => new Db([
             'host' => getenv('MYSQL_HOST') ?: 'localhost',
             'port' => getenv('MYSQL_PORT') ?: 3306,
             'user' => getenv('MYSQL_USER'),
@@ -84,7 +87,7 @@ class Bootstrap {
 
     public function getEmailService(): EmailService
     {
-        return $this->createService('EmailService', function () {
+        return $this->createService(EmailService::class, function () {
             $emailService = new EmailService(
                 host: getenv('SMTP_HOST'),
                 user: getenv('SMTP_USER'),
@@ -102,7 +105,7 @@ class Bootstrap {
 
     public function getLatte(): Latte
     {
-        return $this->createService('Latte', function () {
+        return $this->createService(Latte::class, function () {
             $latte = new Latte;
             $latte->setTempDirectory('/tmp/latte');
             $latte->setLoader(new \Latte\Loaders\FileLoader('/var/www/templates'));
@@ -113,7 +116,7 @@ class Bootstrap {
 
     public function getLdap(): Ldap
     {
-        return $this->createService('Ldap', fn() => new Ldap(
+        return $this->createService(Ldap::class, fn() => new Ldap(
             host: getenv('LDAP_HOST'),
             bindDn: getenv('LDAP_BIND_DN'),
             bindPassword: getenv('LDAP_BIND_PASSWORD'),
@@ -124,7 +127,7 @@ class Bootstrap {
 
     public function getRequest(): Request
     {
-        return $this->createService('Request', function () {
+        return $this->createService(Request::class, function () {
             $request = Request::createFromGlobals();
             $request->setSession(new Session());
             return $request;
@@ -133,7 +136,7 @@ class Bootstrap {
 
     public function getRouter(): Router
     {
-        return $this->createService('Router', function () {
+        return $this->createService(Router::class, function () {
             $router = new Router(__DIR__ . '/Controller');
 
             $router->addExceptionHandler(InvalidRouteException::class, [Controller::class, 'handleException']);
@@ -156,7 +159,7 @@ class Bootstrap {
 
     public function getUserAgreementRepository(): UserAgreementRepository
     {
-        return $this->createService('UserAgreementRepository', fn() => new UserAgreementRepository(
+        return $this->createService(UserAgreementRepository::class, fn() => new UserAgreementRepository(
             $this->getDb(),
             $this->getUserRepository(),
             $this->getAgreementRepository()
@@ -165,6 +168,6 @@ class Bootstrap {
 
     public function getUserRepository(): UserRepository
     {
-        return $this->createService('UserRepository', fn() => new UserRepository($this->getLdap(), $this->getDb()));
+        return $this->createService(UserRepository::class, fn() => new UserRepository($this->getLdap(), $this->getDb()));
     }
 }
