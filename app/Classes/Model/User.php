@@ -253,7 +253,7 @@ class User
      */
     private function makeDateTime(null|string|int|DateTimeInterface $dateTime): ?DateTimeInterface
     {
-        if ($dateTime === null || $dateTime === '1970-01-01 00:00:00') {
+        if ($dateTime === null || $dateTime === '1970-01-01 00:00:00' || $dateTime === '0000-00-00' || $dateTime === '0000-00-00 00:00:00') {
             return null;
         } elseif (is_int($dateTime)) {
             if ($dateTime === 0) {

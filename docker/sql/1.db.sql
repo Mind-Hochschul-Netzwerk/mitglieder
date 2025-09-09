@@ -33,7 +33,7 @@ CREATE TABLE `mitglieder` (
   `vorname` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL DEFAULT '',
   `nachname` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL DEFAULT '',
   `geburtstag` date DEFAULT NULL,
-  `aufnahmedatum` date NOT NULL,
+  `aufnahmedatum` date DEFAULT NULL,
   `sichtbarkeit_geburtstag` tinyint(1) NOT NULL DEFAULT 1,
   `profilbild` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL DEFAULT '',
   `profilbild_x` int(5) unsigned NOT NULL DEFAULT 0,
