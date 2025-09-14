@@ -14,6 +14,7 @@ use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\AccessDeniedException;
 use Hengeb\Router\Exception\InvalidUserDataException;
 use Hengeb\Token\Token;
+use Latte\Engine as Latte;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -35,7 +36,7 @@ class UserController extends Controller {
 
     public function __construct(
         protected Request $request,
-        protected \Latte\Engine $latte,
+        protected Latte $latte,
         private CurrentUser $currentUser,
         private EmailService $emailService,
         private Ldap $ldap,

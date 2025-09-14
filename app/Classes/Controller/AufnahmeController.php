@@ -13,6 +13,7 @@ use App\Service\EmailService;
 use App\Service\Ldap;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\InvalidUserDataException;
+use Latte\Engine as Latte;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -98,14 +99,12 @@ class AufnahmeController extends Controller
 
     public function __construct(
         protected Request $request,
-        protected \Latte\Engine $latte,
+        protected Latte $latte,
         private CurrentUser $currentUser,
         private EmailService $emailService,
         private Ldap $ldap,
         private UserRepository $userRepository,
-    )
-    {
-    }
+    ) {}
 
     #[Route('GET /aufnahme?token={token}', allow: true)]
     public function show(string $token): Response

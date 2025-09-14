@@ -20,7 +20,7 @@ use App\Service\Ldap;
 use Hengeb\Db\Db;
 use Hengeb\Router\Exception\InvalidRouteException;
 use Hengeb\Router\Router;
-use \Latte\Engine as Latte;
+use Latte\Engine as Latte;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Tracy\Debugger;

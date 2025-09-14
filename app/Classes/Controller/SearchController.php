@@ -7,13 +7,14 @@ use App\Repository\UserRepository;
 use App\Service\PasswordService;
 use Hengeb\Db\Db;
 use Hengeb\Router\Attribute\Route;
+use Latte\Engine as Latte;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class SearchController extends Controller {
     public function __construct(
         protected Request $request,
-        protected \Latte\Engine $latte,
+        protected Latte $latte,
         private UserRepository $userRepository,
     )
     {

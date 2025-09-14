@@ -21,6 +21,7 @@ use App\Service\Ldap;
 use Hengeb\Router\Attribute\RequestValue;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\InvalidUserDataException;
+use Latte\Engine as Latte;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,7 +29,7 @@ use Symfony\Component\HttpFoundation\Response;
 class UserAgreementController extends Controller {
     public function __construct(
         protected Request $request,
-        protected \Latte\Engine $latte,
+        protected Latte $latte,
         private CurrentUser $currentUser,
         private EmailService $emailService,
         private Ldap $ldap,

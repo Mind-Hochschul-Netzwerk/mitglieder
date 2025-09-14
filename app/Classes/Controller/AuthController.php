@@ -11,13 +11,14 @@ use Hengeb\Router\Attribute\RequestValue;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\InvalidUserDataException;
 use Hengeb\Token\Token;
+use Latte\Engine as Latte;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller {
     public function __construct(
         protected Request $request,
-        protected \Latte\Engine $latte,
+        protected Latte $latte,
         private CurrentUser $currentUser,
         private UserRepository $userRepository,
         private EmailService $emailService,
@@ -153,7 +154,7 @@ class AuthController extends Controller {
         return $this->redirect('/');
     }
 
-    public static function handleNotLoggedInException(\Exception $e, Request $request, \Latte\Engine $latte, CurrentUser $currentUser, UserRepository $userRepository, EmailService $emailService): Response {
+    public static function handleNotLoggedInException(\Exception $e, Request $request, Latte $latte, CurrentUser $currentUser, UserRepository $userRepository, EmailService $emailService): Response {
         return (new self($request, $latte, $currentUser, $userRepository, $emailService))->loginForm();
     }
 }

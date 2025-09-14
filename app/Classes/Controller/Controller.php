@@ -12,6 +12,7 @@ use Hengeb\Router\Exception\InvalidRouteException;
 use Hengeb\Router\Exception\InvalidUserDataException;
 use Hengeb\Router\Exception\NotFoundException;
 use Hengeb\Router\Exception\NotLoggedInException;
+use Latte\Engine as Latte;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -21,10 +22,8 @@ class Controller {
 
     public function __construct(
         protected Request $request,
-        protected \Latte\Engine $latte,
-    )
-    {
-    }
+        protected Latte $latte,
+    ) {}
 
     protected function setTemplateVariable(string $key, mixed $value): void {
         $this->templateVariables[$key] = $value;
@@ -124,7 +123,7 @@ class Controller {
         return $values;
     }
 
-    public static function handleException(\Exception $e, Request $request, CurrentUser $user, UserRepository $userRepository, EmailService $emailService, \Latte\Engine $latte): Response {
+    public static function handleException(\Exception $e, Request $request, CurrentUser $user, UserRepository $userRepository, EmailService $emailService, Latte $latte): Response {
         $requireLogin = $e instanceof AccessDeniedException || $e instanceof NotFoundException;
 
         if ($e instanceof InvalidRouteException) {
