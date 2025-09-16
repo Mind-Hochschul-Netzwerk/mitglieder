@@ -8,13 +8,11 @@ namespace App\Controller;
 
 use App\Model\User;
 use App\Repository\UserRepository;
-use App\Service\CurrentUser;
 use App\Service\EmailService;
 use App\Service\Ldap;
+use Hengeb\Router\Attribute\PublicAccess;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\InvalidUserDataException;
-use Latte\Engine as Latte;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -98,22 +96,19 @@ class AufnahmeController extends Controller
     private bool $readyToSave = true;
 
     public function __construct(
-        protected Request $request,
-        protected Latte $latte,
-        private CurrentUser $currentUser,
         private EmailService $emailService,
         private Ldap $ldap,
         private UserRepository $userRepository,
     ) {}
 
-    #[Route('GET /aufnahme?token={token}', allow: true)]
+    #[Route('GET /aufnahme?token={token}'), PublicAccess]
     public function show(string $token): Response
     {
         $this->prepare($token);
         return $this->showForm();
     }
 
-    #[Route('POST /aufnahme?token={token}', allow: true)]
+    #[Route('POST /aufnahme?token={token}'), PublicAccess]
     public function submit(string $token): Response {
         $this->prepare($token);
         $this->checkEnteredUsername();

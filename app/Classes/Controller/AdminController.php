@@ -9,11 +9,12 @@ namespace App\Controller;
 
 use App\Service\CurrentUser;
 use App\Service\Ldap;
+use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 class AdminController extends Controller {
-    #[Route('GET /admin', allow: ['role' => 'mvedit'])]
+    #[Route('GET /admin'), AllowIf(role: 'mvedit')]
     public function show(Ldap $ldap, CurrentUser $user): Response {
         $groups = [];
         if ($user->hasRole('rechte')) {

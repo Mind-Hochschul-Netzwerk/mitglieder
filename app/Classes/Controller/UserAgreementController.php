@@ -18,27 +18,21 @@ use App\Repository\UserRepository;
 use App\Service\CurrentUser;
 use App\Service\EmailService;
 use App\Service\Ldap;
+use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\RequestValue;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\InvalidUserDataException;
-use Latte\Engine as Latte;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserAgreementController extends Controller {
     public function __construct(
-        protected Request $request,
-        protected Latte $latte,
-        private CurrentUser $currentUser,
         private EmailService $emailService,
         private Ldap $ldap,
         private AgreementRepository $agreementRepository,
         private UserAgreementRepository $userAgreementRepository,
         private UserRepository $userRepository,
-    )
-    {
-    }
+    ) {}
 
     /**
      * Renders the HTML view for the user's agreements.
@@ -46,7 +40,11 @@ class UserAgreementController extends Controller {
      * @param User $user The user whose agreements should be displayed.
      * @return Response The rendered HTML response.
      */
-    #[Route('GET /user/{username=>user}/agreements', allow: ['role' => 'datenschutz', 'id' => '$user->get("id")'])]
+    #[
+        Route('GET /user/{username=>user}/agreements'),
+        AllowIf(role: 'datenschutz'),
+        AllowIf(id: '$user->get("id")')
+    ]
     public function html(User $user): Response {
         return $this->render('UserAgreementController/index', [
             'user' => $user
@@ -59,7 +57,11 @@ class UserAgreementController extends Controller {
      * @param User $user The user whose agreements should be retrieved.
      * @return JsonResponse A JSON response containing the latest agreements and user agreement states.
      */
-    #[Route('GET /user/{username=>user}/agreements/index', allow: ['role' => 'datenschutz', 'id' => '$user->get("id")'])]
+    #[
+        Route('GET /user/{username=>user}/agreements/index'),
+        AllowIf(role: 'datenschutz'),
+        AllowIf(id: '$user->get("id")'),
+    ]
     public function getLatest(User $user): JsonResponse {
         return new JsonResponse([
             'latest' => array_map(fn($agreement) => [
@@ -91,7 +93,11 @@ class UserAgreementController extends Controller {
      * @return JsonResponse A JSON response with the updated agreement state.
      * @throws InvalidUserDataException If the action is invalid based on previous agreements.
      */
-    #[Route('POST /user/{username=>user}/agreements/{id=>agreement}', allow: ['role' => 'datenschutz', 'id' => '$user->get("id")'])]
+    #[
+        Route('POST /user/{username=>user}/agreements/{id=>agreement}'),
+        AllowIf(role: 'datenschutz'),
+        AllowIf(id: '$user->get("id")'),
+    ]
     public function action(User $user, Agreement $agreement, #[RequestValue()] UserAgreementAction $action): JsonResponse {
         $latest = $this->userAgreementRepository->findLatestByUserAndName($user, $agreement->name);
 

@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Service\Ldap;
+use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -15,7 +16,7 @@ class NewsletterexportController extends Controller {
     /**
      * Generierung der Exportliste für den Newsletter
      */
-    #[Route('GET /newsletter-export', allow: ['role' => 'newsletter-export'])]
+    #[Route('GET /newsletter-export'), AllowIf(role: 'newsletter-export')]
     public function show(Ldap $ldap): Response {
         $list = $ldap->getAll();
 

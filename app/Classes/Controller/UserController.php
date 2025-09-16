@@ -6,16 +6,16 @@ namespace App\Controller;
 use App\Model\User;
 use App\Repository\UserAgreementRepository;
 use App\Repository\UserRepository;
-use App\Service\CurrentUser;
 use App\Service\EmailService;
 use App\Service\ImageResizer;
 use App\Service\Ldap;
+use Hengeb\Router\Attribute\AllowIf;
+use Hengeb\Router\Attribute\PublicAccess;
+use Hengeb\Router\Attribute\RequireLogin;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\AccessDeniedException;
 use Hengeb\Router\Exception\InvalidUserDataException;
 use Hengeb\Token\Token;
-use Latte\Engine as Latte;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller {
@@ -35,23 +35,21 @@ class UserController extends Controller {
     const bearbeiten_strings_admin = ['vorname', 'nachname'];
 
     public function __construct(
-        protected Request $request,
-        protected Latte $latte,
-        private CurrentUser $currentUser,
         private EmailService $emailService,
         private Ldap $ldap,
         private UserRepository $userRepository,
-    )
-    {
-    }
+    ) {}
 
-    #[Route('GET /user', allow: ['loggedIn' => true])]
+    #[Route('GET /user'), RequireLogin]
     public function showSelf(): Response {
         return $this->redirect('/user/self');
     }
 
-    #[Route('GET /user/{\d+:id=>user}', allow: ['loggedIn' => true])]
-    #[Route('GET /user/{username=>user}', allow: ['loggedIn' => true])]
+    #[
+        Route('GET /user/{\d+:id=>user}'),
+        Route('GET /user/{username=>user}'),
+        RequireLogin,
+    ]
     public function show(User $user, UserAgreementRepository $userAgreementRepository): Response {
         $db_modified = $user->get('db_modified');
         $isAdmin = $this->currentUser->hasRole('mvread');
@@ -100,7 +98,11 @@ class UserController extends Controller {
         ]);
     }
 
-    #[Route('GET /user/{username=>user}/edit', allow: ['role' => 'mvedit', 'id' => '$user->get("id")'])]
+    #[
+        Route('GET /user/{username=>user}/edit'),
+        AllowIf(role: 'mvedit'),
+        AllowIf(id: '$user->get("id")')
+    ]
     public function edit(User $user): Response {
         $templateVars = [];
 
@@ -342,7 +344,11 @@ class UserController extends Controller {
         return $this->render("UserController/delete-success");
     }
 
-    #[Route('POST /user/{username=>user}/edit', allow: ['role' => 'mvedit', 'id' => '$user->get("id")'])]
+    #[
+        Route('POST /user/{username=>user}/edit'),
+        AllowIf(role: 'mvedit'),
+        AllowIf(id: '$user->get("id")'),
+    ]
     public function update(User $user): Response {
         $input = $this->validatePayload(array_fill_keys(self::bearbeiten_strings_ungeprueft, 'string'));
         foreach ($input as $key=>$value) {
@@ -416,7 +422,7 @@ class UserController extends Controller {
         $this->setTemplateVariable('email_changed', true);
     }
 
-    #[Route('GET /email_auth?token={token}', allow: true)]
+    #[Route('GET /email_auth?token={token}'), PublicAccess]
     public function emailAuth(string $token): Response {
         try {
             Token::decode($token, function ($data) use (&$user, &$email) {

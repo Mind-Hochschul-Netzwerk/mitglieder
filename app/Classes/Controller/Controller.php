@@ -6,6 +6,7 @@ namespace App\Controller;
 use App\Repository\UserRepository;
 use App\Service\CurrentUser;
 use App\Service\EmailService;
+use Hengeb\Router\Attribute\Inject;
 use Hengeb\Router\Exception\AccessDeniedException;
 use Hengeb\Router\Exception\InvalidCsrfTokenException;
 use Hengeb\Router\Exception\InvalidRouteException;
@@ -20,10 +21,14 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 class Controller {
     protected array $templateVariables = [];
 
-    public function __construct(
-        protected Request $request,
-        protected Latte $latte,
-    ) {}
+    #[Inject]
+    public Request $request;
+
+    #[Inject]
+    public Latte $latte;
+
+    #[Inject]
+    public CurrentUser $currentUser;
 
     protected function setTemplateVariable(string $key, mixed $value): void {
         $this->templateVariables[$key] = $value;
@@ -129,7 +134,11 @@ class Controller {
         if ($e instanceof InvalidRouteException) {
             return (new self($request, $latte))->showError($e->getMessage() ?: 'URL ungültig', 404);
         } elseif ($e instanceof NotLoggedInException || $requireLogin && !$user->isLoggedIn()) {
-            return (new AuthController($request, $latte, $user, $userRepository, $emailService))->loginForm();
+            $controller = new AuthController($userRepository, $emailService);
+            $controller->request = $request;
+            $controller->latte = $latte;
+            $controller->currentUser = $user;
+            return $controller->loginForm();
         } elseif ($e instanceof NotFoundException) {
             return (new self($request, $latte))->showError($e->getMessage() ?: 'nicht gefunden', 404);
         } elseif ($e instanceof AccessDeniedException) {

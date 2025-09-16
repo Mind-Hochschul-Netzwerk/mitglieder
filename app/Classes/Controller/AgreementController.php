@@ -10,12 +10,12 @@ namespace App\Controller;
 use App\Model\Agreement;
 use App\Repository\AgreementRepository;
 use App\Repository\UserAgreementRepository;
+use Hengeb\Router\Attribute\PublicAccess;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Attribute\RequestValue;
+use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Exception\InvalidUserDataException;
-use Latte\Engine as Latte;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -23,20 +23,16 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class AgreementController extends Controller {
     public function __construct(
-        protected Request $request,
-        protected Latte $latte,
         private AgreementRepository $agreementRepository,
         private UserAgreementRepository $userAgreementRepository
-    )
-    {
-    }
+    ) {}
 
     /**
      * Renders the agreement index page.
      *
      * @return Response The rendered HTML response.
      */
-    #[Route('GET /agreements', allow: ['role' => 'datenschutz'])]
+    #[Route('GET /agreements'), AllowIf(role: 'datenschutz')]
     public function html(): Response {
         return $this->render('AgreementController/index');
     }
@@ -48,7 +44,7 @@ class AgreementController extends Controller {
      *
      * @return JsonResponse A JSON response containing all agreements.
      */
-    #[Route('GET /agreements/api', allow: ['role' => 'datenschutz'])]
+    #[Route('GET /agreements/api'), AllowIf(role: 'datenschutz')]
     public function index(): JsonResponse {
         return new JsonResponse(array_map(fn($agreement) => [
             'id' => $agreement->id,
@@ -71,7 +67,7 @@ class AgreementController extends Controller {
      *
      * @throws InvalidUserDataException If the agreement name is invalid.
      */
-    #[Route('POST /agreements/api', allow: ['role' => 'datenschutz'])]
+    #[Route('POST /agreements/api'), AllowIf(role: 'datenschutz')]
     public function store(#[RequestValue()] string $name, #[RequestValue()] string $text): JsonResponse {
         $oldVersions = $this->agreementRepository->findAllByName($name);
         if (count($oldVersions) === 0) {
@@ -91,7 +87,7 @@ class AgreementController extends Controller {
     /**
      * Retrieves the latest agreement text and version for a given agreement name
      */
-    #[Route('GET /agreements/text/{name}', allow: true)]
+    #[Route('GET /agreements/text/{name}'), PublicAccess]
     public function show(string $name): JsonResponse {
         $agreement = $this->agreementRepository->findLatestByName($name);
         if (!$agreement) {

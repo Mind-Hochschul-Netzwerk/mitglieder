@@ -10,25 +10,21 @@ namespace App\Controller;
 use App\Service\Ldap;
 use Hengeb\Db\Db;
 use App\Repository\UserRepository;
+use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\Route;
-use Latte\Engine as Latte;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class StatisticsController extends Controller {
     private array $invalidEmailsList;
 
     public function __construct(
-        protected Request $request,
-        protected Latte $latte,
         private Ldap $ldap,
         private UserRepository $userRepository,
-    )
-    {
+    ) {
         $this->invalidEmailsList = $this->ldap->getInvalidEmailsList();
     }
 
-    #[Route('GET /statistics/invalidEmails', allow: ['role' => 'mvread'])]
+    #[Route('GET /statistics/invalidEmails'), AllowIf(role: 'mvread')]
     public function showInvalidEmails(): Response
     {
         $users = [];
@@ -55,7 +51,7 @@ class StatisticsController extends Controller {
         ]);
     }
 
-    #[Route('GET /statistics', allow: ['role' => 'mvread'])]
+    #[Route('GET /statistics'), AllowIf(role: 'mvread')]
     public function show(Db $db): Response
     {
         return $this->render('StatisticsController/main', [

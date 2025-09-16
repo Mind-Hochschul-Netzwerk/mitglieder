@@ -7,6 +7,7 @@ use App\Model\User;
 use App\Repository\UserRepository;
 use App\Service\CurrentUser;
 use App\Service\EmailService;
+use Hengeb\Router\Attribute\PublicAccess;
 use Hengeb\Router\Attribute\RequestValue;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\InvalidUserDataException;
@@ -17,16 +18,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller {
     public function __construct(
-        protected Request $request,
-        protected Latte $latte,
-        private CurrentUser $currentUser,
         private UserRepository $userRepository,
         private EmailService $emailService,
-    )
-    {
-    }
+    ) {}
 
-    #[Route('GET /login', allow: true)]
+    #[Route('GET /login'), PublicAccess]
     public function loginForm(): Response {
         if ($this->currentUser->isLoggedIn()) {
             return $this->redirect('/');
@@ -39,7 +35,7 @@ class AuthController extends Controller {
         ]);
     }
 
-    #[Route('POST /login', allow: true)]
+    #[Route('POST /login'), PublicAccess]
     public function loginSubmitted(#[RequestValue] string $login, #[RequestValue] string $password, #[RequestValue] string $redirect, #[RequestValue] bool $passwort_vergessen = false): Response {
         if (!$login) {
             $this->setTemplateVariable('error_username_leer', true);
@@ -79,7 +75,7 @@ class AuthController extends Controller {
         return $this->redirect($redirectUrl);
     }
 
-    #[Route('GET /logout', allow: true)]
+    #[Route('GET /logout'), PublicAccess]
     public function logout(): Response {
         $this->currentUser->logOut();
         return $this->render('AuthController/logout');
@@ -124,7 +120,7 @@ class AuthController extends Controller {
         return $user;
     }
 
-    #[Route('GET /lost-password?token={token}', allow: true)]
+    #[Route('GET /lost-password?token={token}'), PublicAccess]
     public function resetPasswordForm(string $token): Response {
         $user = $this->validatePasswordToken($token);
         return $this->render('AuthController/lost-password', [
@@ -133,7 +129,7 @@ class AuthController extends Controller {
         ]);
     }
 
-    #[Route('POST /lost-password?token={token}', allow: true)]
+    #[Route('POST /lost-password?token={token}'), PublicAccess]
     public function resetPassword(string $token): Response {
         $user = $this->validatePasswordToken($token);
 
@@ -155,6 +151,10 @@ class AuthController extends Controller {
     }
 
     public static function handleNotLoggedInException(\Exception $e, Request $request, Latte $latte, CurrentUser $currentUser, UserRepository $userRepository, EmailService $emailService): Response {
-        return (new self($request, $latte, $currentUser, $userRepository, $emailService))->loginForm();
+        $controller = new self($userRepository, $emailService);
+        $controller->request = $request;
+        $controller->latte = $latte;
+        $controller->currentUser = $currentUser;
+        return $controller->loginForm();
     }
 }

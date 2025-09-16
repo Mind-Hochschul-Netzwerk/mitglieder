@@ -6,21 +6,17 @@ namespace App\Controller;
 use App\Repository\UserRepository;
 use App\Service\PasswordService;
 use Hengeb\Db\Db;
+use Hengeb\Router\Attribute\AllowIf;
+use Hengeb\Router\Attribute\RequireLogin;
 use Hengeb\Router\Attribute\Route;
-use Latte\Engine as Latte;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class SearchController extends Controller {
     public function __construct(
-        protected Request $request,
-        protected Latte $latte,
         private UserRepository $userRepository,
-    )
-    {
-    }
+    ) {}
 
-    #[Route('GET /(search|)', allow: ['loggedIn' => true])]
+    #[Route('GET /(search|)'), RequireLogin]
     public function form(): Response {
         return $this->render('SearchController/search', ['query' => '']);
     }
@@ -30,7 +26,7 @@ class SearchController extends Controller {
     // Felder, bei denen nur nach Übereinstimmung statt nach Substring gesucht wird (müssen auch in felder aufgeführt sein)
     const felder_eq = ['id', 'mensa_nr', 'plz', 'plz2'];
 
-    #[Route('GET /(search|)?q={.+:query}', allow: ['loggedIn' => true])]
+    #[Route('GET /(search|)?q={.+:query}'), RequireLogin]
     public function search(string $query, Db $db): Response {
         // TODO filter einbauen über beschaeftigung, auskunft_* und für mvread für aufgabe_*
         $this->setTemplateVariable('query', $query);
@@ -84,7 +80,7 @@ class SearchController extends Controller {
         return $this->showResults($ids);
     }
 
-    #[Route('GET /search/resigned', allow: ['role' => 'mvread'])]
+    #[Route('GET /search/resigned'), AllowIf(role: 'mvread')]
     public function showResigned(Db $db): Response {
         $this->setTemplateVariable('query', ' '); // show the "search results" title even if the list is empty
         $ids = $db->query('SELECT id FROM mitglieder WHERE resignation IS NOT NULL')->getColumn();
