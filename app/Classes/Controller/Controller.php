@@ -3,9 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Repository\UserRepository;
 use App\Service\CurrentUser;
-use App\Service\EmailService;
 use Hengeb\Router\Attribute\Inject;
 use Hengeb\Router\Exception\AccessDeniedException;
 use Hengeb\Router\Exception\InvalidCsrfTokenException;
@@ -13,6 +11,8 @@ use Hengeb\Router\Exception\InvalidRouteException;
 use Hengeb\Router\Exception\InvalidUserDataException;
 use Hengeb\Router\Exception\NotFoundException;
 use Hengeb\Router\Exception\NotLoggedInException;
+use Hengeb\Router\Interface\CurrentUserInterface;
+use Hengeb\Router\Router;
 use Latte\Engine as Latte;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -128,29 +128,30 @@ class Controller {
         return $values;
     }
 
-    public static function handleException(\Exception $e, Request $request, CurrentUser $user, UserRepository $userRepository, EmailService $emailService, Latte $latte): Response {
+    public static function handleException(\Exception $e, CurrentUserInterface $user, Router $router): Response {
         $requireLogin = $e instanceof AccessDeniedException || $e instanceof NotFoundException;
 
-        if ($e instanceof InvalidRouteException) {
-            return (new self($request, $latte))->showError($e->getMessage() ?: 'URL ungültig', 404);
-        } elseif ($e instanceof NotLoggedInException || $requireLogin && !$user->isLoggedIn()) {
-            $controller = new AuthController($userRepository, $emailService);
-            $controller->request = $request;
-            $controller->latte = $latte;
-            $controller->currentUser = $user;
-            return $controller->loginForm();
-        } elseif ($e instanceof NotFoundException) {
-            return (new self($request, $latte))->showError($e->getMessage() ?: 'nicht gefunden', 404);
-        } elseif ($e instanceof AccessDeniedException) {
-            return (new self($request, $latte))->showError($e->getMessage() ?: 'fehlende Rechte', 403);
-        } elseif ($e instanceof InvalidCsrfTokenException) {
-            return (new self($request, $latte))->showError($e->getMessage() ?: 'Die Anfrage kann nicht wiederholt werden.', 400);
-        } elseif ($e instanceof InvalidUserDataException) {
-            return (new self($request, $latte))->showError($e->getMessage() ?: 'fehlerhafte Eingabedaten', 400);
-        } else {
-            error_log($e->getMessage());
-            error_log($e->getTraceAsString());
-            return (new self($request, $latte))->showError('Ein interner Fehler ist aufgetreten.', 500);
+        if ($e instanceof NotLoggedInException || $requireLogin && !$user->isLoggedIn()) {
+            return $router->call(AuthController::class, 'loginForm');
         }
+
+        [$message, $responseCode] = match (true) {
+            $e instanceof InvalidRouteException => ['URL ungültig', 404],
+            $e instanceof NotFoundException => ['nicht gefunden', 404],
+            $e instanceof AccessDeniedException => ['fehlende Rechte', 403],
+            $e instanceof InvalidCsrfTokenException => ['Die Anfrage kann nicht wiederholt werden.', 400],
+            $e instanceof InvalidUserDataException => ['fehlerhafte Eingabedaten', 400],
+            default => (function () use ($e): array {
+                error_log($e->getMessage());
+                error_log($e->getTraceAsString());
+                return ['Ein interner Fehler ist aufgetreten.', 500];
+            })(),
+        };
+
+        if ($e->getMessage()) {
+            $message = $e->getMessage();
+        }
+
+        return $router->call(self::class, 'showError', ['message' => $message, 'responseCode' => $responseCode]);
     }
 }

@@ -5,15 +5,12 @@ namespace App\Controller;
 
 use App\Model\User;
 use App\Repository\UserRepository;
-use App\Service\CurrentUser;
 use App\Service\EmailService;
 use Hengeb\Router\Attribute\PublicAccess;
 use Hengeb\Router\Attribute\RequestValue;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\InvalidUserDataException;
 use Hengeb\Token\Token;
-use Latte\Engine as Latte;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller {
@@ -148,13 +145,5 @@ class AuthController extends Controller {
         $this->currentUser->logIn($user);
 
         return $this->redirect('/');
-    }
-
-    public static function handleNotLoggedInException(\Exception $e, Request $request, Latte $latte, CurrentUser $currentUser, UserRepository $userRepository, EmailService $emailService): Response {
-        $controller = new self($userRepository, $emailService);
-        $controller->request = $request;
-        $controller->latte = $latte;
-        $controller->currentUser = $currentUser;
-        return $controller->loginForm();
     }
 }

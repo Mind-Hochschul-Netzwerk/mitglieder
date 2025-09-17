@@ -78,9 +78,6 @@ class CurrentUser implements CurrentUserInterface {
 
     public function logIn(User $user)
     {
-        if (!$this->request) {
-            throw new \LogicException('request is not set', 1729975906);
-        }
         $this->request->getSession()->set('id', $user->get('id'));
         $this->user = $user;
         $this->user->set('last_login', 'now');
@@ -89,9 +86,6 @@ class CurrentUser implements CurrentUserInterface {
 
     public function logOut(): void
     {
-        if (!$this->request) {
-            throw new \LogicException('request is not set', 1729975906);
-        }
         $this->request->getSession()->remove('id');
         $this->user = null;
     }

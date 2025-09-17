@@ -34,16 +34,15 @@ class Bootstrap {
     public function run() {
         $this->startDebugger();
 
-        $router = $this->getRouter();
-
-        $router->addService(Db::class, fn() => $this->getDb());
-        $router->addService(EmailService::class, fn() => $this->getEmailService());
-        $router->addService(UserRepository::class, fn() => $this->getUserRepository());
-        $router->addService(UserAgreementRepository::class, fn() => $this->getUserAgreementRepository());
-        $router->addService(AgreementRepository::class, fn() => $this->getAgreementRepository());
-        $router->addService(Ldap::class, fn() => $this->getLdap());
-
-        $router->dispatch($this->getRequest(), $this->getCurrentUser())->send();
+        $this->getRouter()
+            ->addService(Latte::class, $this->getLatte(...))
+            ->addService(Db::class, $this->getDb(...))
+            ->addService(EmailService::class, $this->getEmailService(...))
+            ->addService(UserRepository::class, $this->getUserRepository(...))
+            ->addService(UserAgreementRepository::class, $this->getUserAgreementRepository(...))
+            ->addService(AgreementRepository::class, $this->getAgreementRepository(...))
+            ->addService(Ldap::class, $this->getLdap(...))
+            ->dispatch($this->getRequest(), $this->getCurrentUser())->send();
     }
 
     private function startDebugger(): void
@@ -139,19 +138,15 @@ class Bootstrap {
         return $this->createService(Router::class, function () {
             $router = new Router(__DIR__ . '/Controller');
 
-            $router->addExceptionHandler(InvalidRouteException::class, [Controller::class, 'handleException']);
+            $router
+                ->addExceptionHandler(InvalidRouteException::class, [Controller::class, 'handleException'])
 
-            $router->addService(self::class, $this);
-            $router->addService(CurrentUser::class, fn() => $this->getCurrentUser());
-            $router->addService(Request::class, fn() => $this->getRequest());
-            $router->addService(Latte::class, fn() => $this->getLatte());
-
-            $router->addType(User::class, fn($name) => match($name) {
-                '_', 'self' => $this->getCurrentUser()->getWrappedUser(),
-                default => $this->getUserRepository()->findOneByUsername($name)
-            }, 'username');
-            $router->addType(User::class, fn($id) => $this->getUserRepository()->findOneById((int) $id), 'id');
-            $router->addType(Agreement::class, fn($id) => $this->getAgreementRepository()->findOneById((int) $id));
+                ->addType(User::class, fn($name) => match($name) {
+                    '_', 'self' => $this->getCurrentUser()->getWrappedUser(),
+                    default => $this->getUserRepository()->findOneByUsername($name)
+                }, 'username')
+                ->addType(User::class, fn($id) => $this->getUserRepository()->findOneById((int) $id), 'id')
+                ->addType(Agreement::class, fn($id) => $this->getAgreementRepository()->findOneById((int) $id));
 
             return $router;
         });
