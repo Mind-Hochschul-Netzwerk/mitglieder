@@ -5,6 +5,7 @@ namespace App\Controller;
 
 use App\Service\CurrentUser;
 use Hengeb\Router\Attribute\Inject;
+use Hengeb\Router\Enum\ResponseType;
 use Hengeb\Router\Exception\AccessDeniedException;
 use Hengeb\Router\Exception\InvalidCsrfTokenException;
 use Hengeb\Router\Exception\InvalidRouteException;
@@ -14,6 +15,7 @@ use Hengeb\Router\Exception\NotLoggedInException;
 use Hengeb\Router\Interface\CurrentUserInterface;
 use Hengeb\Router\Router;
 use Latte\Engine as Latte;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -128,7 +130,7 @@ class Controller {
         return $values;
     }
 
-    public static function handleException(\Exception $e, CurrentUserInterface $user, Router $router): Response {
+    public static function handleException(\Exception $e, ResponseType $responseType, CurrentUserInterface $user, Router $router): Response {
         $requireLogin = $e instanceof AccessDeniedException || $e instanceof NotFoundException;
 
         if ($e instanceof NotLoggedInException || $requireLogin && !$user->isLoggedIn()) {
@@ -150,8 +152,15 @@ class Controller {
 
         if ($e->getMessage()) {
             $message = $e->getMessage();
+            if ($e->getCode()) {
+                $message .= ' (code: ' . $e->getCode() . ')';
+            }
         }
 
-        return $router->call(self::class, 'showError', ['message' => $message, 'responseCode' => $responseCode]);
+        if ($responseType === ResponseType::Html) {
+            return $router->call(self::class, 'showError', ['message' => $message, 'responseCode' => $responseCode]);
+        } else {
+            return new JsonResponse(['error' => $message], $responseCode);
+        }
     }
 }
