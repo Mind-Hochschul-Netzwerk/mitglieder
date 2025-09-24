@@ -26,6 +26,7 @@ class DevController extends Controller {
             throw new AccessDeniedException('DevController is not available in production mode');
         }
     }
+
     /**
      * add a new user for testing purposes
      */
