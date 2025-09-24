@@ -62,6 +62,7 @@ class Ldap
         foreach ($result as $user) {
             $list[] = [
                 'id' => $user->getAttribute('employeeNumber')[0],
+                'username' => $user->getAttribute('cn')[0],
                 'firstname' => $user->getAttribute('givenName')[0],
                 'lastname' => $user->getAttribute('sn')[0],
                 'email' => $user->getAttribute('mail')[0],

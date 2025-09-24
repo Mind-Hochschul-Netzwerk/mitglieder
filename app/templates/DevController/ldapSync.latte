@@ -1,0 +1,10 @@
+{var $navId = datenschutz}
+
+{block content}
+<h1 n:block="title">Mitglieder-Import</h1>
+
+<p n:if=$importedUsers>Fehlende Datenbankeinträge zu LDAP-Einträgen wurden angelegt:</p>
+<ol n:ifcontent n:inner-foreach="$importedUsers as $user">
+    <li><a href="/user/{$user[username]}/edit">{$user[firstname]} {$user[lastname]}</a>, {$user[email]}, ID: {$user[id]}</li>
+</ol>
+<p n:else>Es wurden keine Mitglieder im LDAP-Verzeichnis gefunden, die noch keinen Eintrag in der Datenbank haben.</p>

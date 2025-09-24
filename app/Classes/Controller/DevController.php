@@ -10,6 +10,7 @@ namespace App\Controller;
 use App\Model\User;
 use App\Repository\UserRepository;
 use App\Service\Ldap;
+use Hengeb\Db\Db;
 use Hengeb\Router\Attribute\CheckCsrfToken;
 use Hengeb\Router\Attribute\PublicAccess;
 use Hengeb\Router\Attribute\RequestValue;
@@ -17,6 +18,7 @@ use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\AccessDeniedException;
 use Hengeb\Router\Exception\InvalidUserDataException;
 use Symfony\Component\HttpFoundation\ParameterBag;
+use Symfony\Component\HttpFoundation\Response;
 use Tracy\Debugger;
 
 class DevController extends Controller {
@@ -56,7 +58,6 @@ class DevController extends Controller {
             ldap: $ldap,
             userRepository: $repo,
         );
-
         foreach (User::felder as $key => $default) {
             if (in_array($key, ['username', 'email', 'password', 'id'])) {
                 continue;
@@ -72,5 +73,48 @@ class DevController extends Controller {
         $ldap->addUserToGroup($username, 'listen');
 
         return ['id' => $user->get('id')];
+    }
+
+    /**
+     * import users from LDAP
+     */
+    #[Route('GET /users/ldap-sync'), PublicAccess]
+    public function ldapSync(
+        Ldap $ldap,
+        UserRepository $repo,
+        Db $db,
+    ): Response {
+        $ldapUsers = $ldap->getAll();
+
+        $importedUsers = [];
+
+        foreach ($ldapUsers as $userinfo) {
+            $username = $userinfo['username'];
+            $user = $repo->findOneByUsername($username);
+            if (!$user) {
+                $id = (int) $db->query('INSERT INTO mitglieder SET
+                    username=:username,
+                    vorname=:vorname,
+                    nachname=:nachname,
+                    kenntnisnahme_datenverarbeitung_aufnahme_text="",
+                    einwilligung_datenverarbeitung_aufnahme_text=""
+                ', [
+                    'username' => $username,
+                    'vorname' => $userinfo['firstname'],
+                    'nachname' => $userinfo['lastname'],
+                ])->getInsertId();
+
+                $ldap->modifyUser($username, ['id' => $id]);
+                $ldap->addUserToGroup($username, 'alleMitglieder');
+                $ldap->addUserToGroup($username, 'listen');
+
+                $importedUsers[] = [
+                    ... $userinfo,
+                    'id' => $id,
+                ];
+            }
+        }
+
+        return $this->render('DevController/ldapSync', ['importedUsers' => $importedUsers]);
     }
 }
