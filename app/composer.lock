@@ -51,16 +51,16 @@
         },
         {
             "name": "hengeb/router",
-            "version": "v0.5.3",
+            "version": "v0.5.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/hengeb/router.git",
-                "reference": "63f3c5ae17d9e20156b4d6aff3cec2b5077c49db"
+                "reference": "6488638d48036b60a54898c9a37de1546ddaa01f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hengeb/router/zipball/63f3c5ae17d9e20156b4d6aff3cec2b5077c49db",
-                "reference": "63f3c5ae17d9e20156b4d6aff3cec2b5077c49db",
+                "url": "https://api.github.com/repos/hengeb/router/zipball/6488638d48036b60a54898c9a37de1546ddaa01f",
+                "reference": "6488638d48036b60a54898c9a37de1546ddaa01f",
                 "shasum": ""
             },
             "require": {
@@ -88,9 +88,9 @@
             "description": "a PHP router that makes use of attributes",
             "support": {
                 "issues": "https://github.com/hengeb/router/issues",
-                "source": "https://github.com/hengeb/router/tree/v0.5.3"
+                "source": "https://github.com/hengeb/router/tree/v0.5.4"
             },
-            "time": "2025-09-24T20:37:57+00:00"
+            "time": "2025-09-24T20:45:46+00:00"
         },
         {
             "name": "hengeb/token",
