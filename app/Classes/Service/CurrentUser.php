@@ -7,6 +7,7 @@ use App\Repository\UserRepository;
 use Hengeb\Router\Exception\NotLoggedInException;
 use Hengeb\Router\Interface\CurrentUserInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Tracy\Debugger;
 
 /**
  * @author Henrik Gebauer <mensa@henrik-gebauer.de>
@@ -22,8 +23,7 @@ class CurrentUser implements CurrentUserInterface {
     public function __construct(
         private Request $request,
         private UserRepository $userRepository,
-    )
-    {
+    ) {
         $id = $request->getSession()->get('id');
         $this->user = $id ? $this->userRepository->findOneById($id) : null;
     }
@@ -58,6 +58,11 @@ class CurrentUser implements CurrentUserInterface {
     public function isLoggedIn(): bool
     {
         return boolval($this->user);
+    }
+
+    public function isProductionMode(): bool
+    {
+        return Debugger::$productionMode;
     }
 
     public function hasRole(string $roleName): bool

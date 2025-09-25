@@ -11,32 +11,24 @@ use App\Model\User;
 use App\Repository\UserRepository;
 use App\Service\Ldap;
 use Hengeb\Db\Db;
+use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\CheckCsrfToken;
 use Hengeb\Router\Attribute\PublicAccess;
 use Hengeb\Router\Attribute\RequestValue;
 use Hengeb\Router\Attribute\Route;
-use Hengeb\Router\Exception\AccessDeniedException;
 use Hengeb\Router\Exception\InvalidUserDataException;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Response;
-use Tracy\Debugger;
 
 class DevController extends Controller {
-    public function __construct()
-    {
-        if (Debugger::$productionMode) {
-            throw new AccessDeniedException('DevController is not available in production mode');
-        }
-    }
-
     /**
      * add a new user for testing purposes
      */
-    #[Route('PUT /users'), PublicAccess, CheckCsrfToken(false)]
+    #[Route('PUT /user/{username}'), AllowIf(productionMode: false), CheckCsrfToken(false)]
     public function addUser(
         Ldap $ldap,
         UserRepository $repo,
-        #[RequestValue] string $username,
+        string $username,
         #[RequestValue] string $password,
         #[RequestValue] string $email,
         ParameterBag $values,
@@ -78,7 +70,7 @@ class DevController extends Controller {
     /**
      * import users from LDAP
      */
-    #[Route('GET /users/ldap-sync'), PublicAccess]
+    #[Route('GET /users/ldap-sync'), AllowIf(productionMode: false)]
     public function ldapSync(
         Ldap $ldap,
         UserRepository $repo,
