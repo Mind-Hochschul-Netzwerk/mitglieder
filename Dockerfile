@@ -1,6 +1,6 @@
-FROM trafex/php-nginx:3.5.0
+FROM trafex/php-nginx:3.9.0
 
-LABEL Maintainer="Henrik Gebauer <code@henrik-gebauer.de>" \
+LABEL Maintainer="Henrik Gebauer <henrik@mind-hochschul-netzwerk.de>" \
       Description="mind-hochschul-netzwerk.de"
 
 HEALTHCHECK --interval=10s CMD curl --silent --fail http://127.0.0.1:8080/fpm-ping
@@ -16,16 +16,16 @@ RUN set -x \
 # install packages
 RUN set -x \
   && apk add --no-cache \
-       php83-ldap \
-       php83-zip \
-       php83-pdo_mysql \
-       php83-iconv \
+       php84-ldap \
+       php84-zip \
+       php84-pdo_mysql \
+       php84-iconv \
   && chown nobody:nobody /var/www
 
 USER nobody
 
 COPY config/nginx/ /etc/nginx
-COPY config/php-custom.ini /etc/php83/conf.d/custom.ini
+COPY config/php-custom.ini /etc/php84/conf.d/custom.ini
 COPY --chown=nobody app/ /var/www
 
 RUN composer install -d "/var/www/" --optimize-autoloader --no-dev --no-interaction --no-progress --no-cache
