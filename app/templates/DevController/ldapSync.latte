@@ -1,10 +1,20 @@
 {var $navId = admin}
 
 {block content}
-<h1 n:block="title">Mitglieder-Import</h1>
+<h1 n:block="title">LDAP-Abgleich</h1>
+
+<h2>Fehlende Mitglieder aus LDAP importieren</h2>
 
 <p n:if=$importedUsers>Fehlende Datenbankeinträge zu LDAP-Einträgen wurden angelegt:</p>
 <ol n:ifcontent n:inner-foreach="$importedUsers as $user">
     <li><a href="/user/{$user[username]}/edit">{$user[firstname]} {$user[lastname]}</a>, {$user[email]}, ID: {$user[id]}</li>
 </ol>
 <p n:else>Es wurden keine Mitglieder im LDAP-Verzeichnis gefunden, die noch keinen Eintrag in der Datenbank haben.</p>
+
+<h2>Überzählige Mitglieder aus der Datenbank löschen</h2>
+
+<p n:if=$deletedUsers>Datenbankeinträge ohne LDAP-Eintrag wurden gelöscht:</p>
+<ol n:ifcontent n:inner-foreach="$deletedUsers as $info">
+    <li>{$info->realName} ({$info->userName}, ID: {$info->userId})</li>
+</ol>
+<p n:else>Es wurden keine Mitglieder in der Datenbank gefunden, zu denen es keinen LDAP-Eintrag gibt.</p>

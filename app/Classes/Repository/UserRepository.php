@@ -7,6 +7,7 @@ namespace App\Repository;
  */
 
 use App\Model\User;
+use App\Model\UserInfo;
 use App\Service\Ldap;
 use Hengeb\Db\Db;
 use RuntimeException;
@@ -19,8 +20,17 @@ class UserRepository
     public function __construct(
         private Ldap $ldap,
         private Db $db,
-    )
+    ) {}
+
+    /**
+     * @return UserInfo[]
+     */
+    public function getAllUserinfos(): array
     {
+        return array_map(
+            fn($row) => new UserInfo(null, $row['id'], $row['username'], $row['vorname'] . ' ' . $row['nachname']),
+            $this->db->query('SELECT username, vorname, nachname, id FROM mitglieder')->getAll()
+        );
     }
 
     /**
@@ -49,7 +59,7 @@ class UserRepository
             $user->setData($key, $value, false);
         }
 
-        $user->hashedPassword = $user->ldapEntry->getAttribute('userPassword')[0];
+        $user->hashedPassword = $user->ldapEntry->getAttribute('userPassword')[0] ?? '';
         $user->setEmail($user->ldapEntry->getAttribute('mail')[0]);
 
         return $user;
@@ -145,6 +155,11 @@ class UserRepository
             'username' => $user->get('username')
         ]);
         $db->query('DELETE FROM mitglieder WHERE id = :id', ['id' => $user->get('id')]);
+    }
+
+    public function deleteDatabaseEntryByUsername(string $username): void
+    {
+        $this->db->query('DELETE FROM mitglieder WHERE username = :username', ['username' => $username]);
     }
 
     /**

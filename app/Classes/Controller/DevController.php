@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Model\User;
+use App\Model\UserInfo;
 use App\Repository\UserRepository;
 use App\Service\Ldap;
 use Hengeb\Db\Db;
@@ -68,7 +69,7 @@ class DevController extends Controller {
     }
 
     /**
-     * import users from LDAP
+     * sync users with LDAP (LDAP is master)
      */
     #[Route('GET /users/ldap-sync'), AllowIf(productionMode: false)]
     public function ldapSync(
@@ -79,7 +80,6 @@ class DevController extends Controller {
         $ldapUsers = $ldap->getAll();
 
         $importedUsers = [];
-
         foreach ($ldapUsers as $userinfo) {
             $username = $userinfo['username'];
             $user = $repo->findOneByUsername($username);
@@ -107,6 +107,21 @@ class DevController extends Controller {
             }
         }
 
-        return $this->render('DevController/ldapSync', ['importedUsers' => $importedUsers]);
+        $ldapUsernames = array_column($ldapUsers, 'username');
+        $dbUserinfos = $repo->getAllUserinfos();
+        $dbUsernames = array_map(fn(UserInfo $info) => $info->userName, $dbUserinfos);
+        $usernamesNotInLdap = array_diff($dbUsernames, $ldapUsernames);
+        $deletedUsers = [];
+        foreach ($dbUserinfos as $info) {
+            if (in_array($info->userName, $usernamesNotInLdap, true)) {
+                $repo->deleteDatabaseEntryByUsername($info->userName);
+                $deletedUsers[] = $info;
+            }
+        }
+
+        return $this->render('DevController/ldapSync', [
+            'importedUsers' => $importedUsers,
+            'deletedUsers' => $deletedUsers,
+        ]);
     }
 }
