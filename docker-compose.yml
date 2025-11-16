@@ -22,6 +22,10 @@ services:
       - "${VOLUMES_DIR}/profilbilder:/var/www/html/profilbilder"
     environment:
       - DOMAINNAME
+      - MONKSYNCAPIKEY=pfleger:dX7sq22OqeVK2KqtUKLDJvzG6KU5hR71
+      - MONKSYNCTRACE=0
+      - MONKSYNCMONKBASE=http://10.1.0.5:9000/
+      - MONKSYNCLISTS=Mitglieder,Newsletter
       - MYSQL_HOST=db
       - MYSQL_USER=user
       - MYSQL_PASSWORD
