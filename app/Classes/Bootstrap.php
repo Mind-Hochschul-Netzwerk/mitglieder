@@ -19,46 +19,32 @@ use App\Service\LatteExtension;
 use App\Service\Ldap;
 use Hengeb\Db\Db;
 use Hengeb\Router\Exception\InvalidRouteException;
-use Hengeb\Router\Router;
+use Hengeb\Router\ServiceContainer;
 use Latte\Engine as Latte;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Tracy\Debugger;
 
 /**
  * Service container
  */
-class Bootstrap {
-    private array $instances = [];
-
-    public function run() {
+class Bootstrap extends ServiceContainer {
+    public function run()
+    {
         $this->startDebugger();
 
         $this->getRouter()
-            ->addService(Latte::class, $this->getLatte(...))
-            ->addService(Db::class, $this->getDb(...))
-            ->addService(EmailService::class, $this->getEmailService(...))
-            ->addService(UserRepository::class, $this->getUserRepository(...))
-            ->addService(UserAgreementRepository::class, $this->getUserAgreementRepository(...))
-            ->addService(AgreementRepository::class, $this->getAgreementRepository(...))
-            ->addService(Ldap::class, $this->getLdap(...))
+            ->addExceptionHandler(InvalidRouteException::class, [Controller::class, 'handleException'])
+            ->addType(User::class, fn($name) => match($name) {
+                '_', 'self' => $this->getCurrentUser()->getWrappedUser(),
+                default => $this->getUserRepository()->findOneByUsername($name)
+            }, 'username')
+            ->addType(User::class, fn($id) => $this->getUserRepository()->findOneById((int) $id), 'id')
+            ->addType(Agreement::class, fn($id) => $this->getAgreementRepository()->findOneById((int) $id))
             ->dispatch($this->getRequest(), $this->getCurrentUser())->send();
     }
 
     private function startDebugger(): void
     {
         Debugger::enable(str_ends_with(getenv('DOMAINNAME'), 'localhost') ? Debugger::Development : Debugger::Production);
-    }
-
-    private function createService(string $classname, ?callable $setup = null): object
-    {
-        return $this->instances[$classname] ??= ($setup ? $setup() : new $classname);
-    }
-
-    public function getService(string $class): object
-    {
-        $class = basename(str_replace('\\', '/', $class)); // C
-        return $this->{'get' . $class}();
     }
 
     public function getAgreementRepository(): AgreementRepository
@@ -102,9 +88,9 @@ class Bootstrap {
         });
     }
 
-    public function getLatte(): Latte
+    public function getEngine(): Latte
     {
-        return $this->createService(Latte::class, function () {
+        return $this->createService(Latte\Engine::class, function () {
             $latte = new Latte;
             $latte->setTempDirectory('/tmp/latte');
             $latte->setLoader(new \Latte\Loaders\FileLoader('/var/www/templates'));
@@ -122,34 +108,6 @@ class Bootstrap {
             peopleDn: getenv('LDAP_PEOPLE_DN'),
             groupsDn: getenv('LDAP_GROUPS_DN'),
         ));
-    }
-
-    public function getRequest(): Request
-    {
-        return $this->createService(Request::class, function () {
-            $request = Request::createFromGlobals();
-            $request->setSession(new Session());
-            return $request;
-        });
-    }
-
-    public function getRouter(): Router
-    {
-        return $this->createService(Router::class, function () {
-            $router = new Router(__DIR__ . '/Controller');
-
-            $router
-                ->addExceptionHandler(InvalidRouteException::class, [Controller::class, 'handleException'])
-
-                ->addType(User::class, fn($name) => match($name) {
-                    '_', 'self' => $this->getCurrentUser()->getWrappedUser(),
-                    default => $this->getUserRepository()->findOneByUsername($name)
-                }, 'username')
-                ->addType(User::class, fn($id) => $this->getUserRepository()->findOneById((int) $id), 'id')
-                ->addType(Agreement::class, fn($id) => $this->getAgreementRepository()->findOneById((int) $id));
-
-            return $router;
-        });
     }
 
     public function getUserAgreementRepository(): UserAgreementRepository
