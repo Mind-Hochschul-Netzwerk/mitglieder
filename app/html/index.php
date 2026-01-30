@@ -9,4 +9,4 @@ namespace App;
 
 require_once '../vendor/autoload.php';
 
-(new Bootstrap)->run();
+(new Bootstrap)->dispatchRequest();

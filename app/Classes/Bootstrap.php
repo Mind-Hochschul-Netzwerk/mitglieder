@@ -15,22 +15,22 @@ use App\Repository\UserAgreementRepository;
 use App\Repository\UserRepository;
 use App\Service\CurrentUser;
 use App\Service\EmailService;
-use App\Service\LatteExtension;
 use App\Service\Ldap;
-use Hengeb\Db\Db;
 use Hengeb\Router\Exception\InvalidRouteException;
+use Hengeb\Router\Interface\CurrentUserInterface;
+use Hengeb\Router\LatteExtension;
 use Hengeb\Router\ServiceContainer;
-use Latte\Engine as Latte;
-use Tracy\Debugger;
 
 /**
  * Service container
  */
 class Bootstrap extends ServiceContainer {
-    public function run()
+    public function __construct()
     {
+        parent::__construct();
         $this->startDebugger();
-
+        $this->registerService(CurrentUserInterface::class, fn() => $this->getCurrentUser());
+        $this->getService(LatteExtension::class)->timezone = 'Europe/Berlin';
         $this->getRouter()
             ->addExceptionHandler(InvalidRouteException::class, [Controller::class, 'handleException'])
             ->addType(User::class, fn($name) => match($name) {
@@ -38,20 +38,7 @@ class Bootstrap extends ServiceContainer {
                 default => $this->getUserRepository()->findOneByUsername($name)
             }, 'username')
             ->addType(User::class, fn($id) => $this->getUserRepository()->findOneById((int) $id), 'id')
-            ->addType(Agreement::class, fn($id) => $this->getAgreementRepository()->findOneById((int) $id))
-            ->dispatch($this->getRequest(), $this->getCurrentUser())->send();
-    }
-
-    private function startDebugger(): void
-    {
-        Debugger::enable(str_ends_with(getenv('DOMAINNAME'), 'localhost') ? Debugger::Development : Debugger::Production);
-    }
-
-    public function getAgreementRepository(): AgreementRepository
-    {
-        return $this->createService(AgreementRepository::class, fn() => new AgreementRepository(
-            $this->getDb(),
-        ));
+            ->addType(Agreement::class, fn($id) => $this->getAgreementRepository()->findOneById((int) $id));
     }
 
     public function getCurrentUser(): CurrentUser
@@ -59,15 +46,11 @@ class Bootstrap extends ServiceContainer {
         return $this->createService(CurrentUser::class, fn() => new CurrentUser($this->getRequest(), $this->getUserRepository()));
     }
 
-    public function getDb(): Db
+    public function getAgreementRepository(): AgreementRepository
     {
-        return $this->createService(Db::class, fn() => new Db([
-            'host' => getenv('MYSQL_HOST') ?: 'localhost',
-            'port' => getenv('MYSQL_PORT') ?: 3306,
-            'user' => getenv('MYSQL_USER'),
-            'password' => getenv('MYSQL_PASSWORD'),
-            'database' => getenv('MYSQL_DATABASE') ?: 'database',
-        ]));
+        return $this->createService(AgreementRepository::class, fn() => new AgreementRepository(
+            $this->getService(Hengeb\Db\Db::class),
+        ));
     }
 
     public function getEmailService(): EmailService
@@ -88,17 +71,6 @@ class Bootstrap extends ServiceContainer {
         });
     }
 
-    public function getEngine(): Latte
-    {
-        return $this->createService(Latte\Engine::class, function () {
-            $latte = new Latte;
-            $latte->setTempDirectory('/tmp/latte');
-            $latte->setLoader(new \Latte\Loaders\FileLoader('/var/www/templates'));
-            $latte->addExtension(new LatteExtension($this->getRouter(), $this->getCurrentUser()));
-            return $latte;
-        });
-    }
-
     public function getLdap(): Ldap
     {
         return $this->createService(Ldap::class, fn() => new Ldap(
@@ -113,7 +85,7 @@ class Bootstrap extends ServiceContainer {
     public function getUserAgreementRepository(): UserAgreementRepository
     {
         return $this->createService(UserAgreementRepository::class, fn() => new UserAgreementRepository(
-            $this->getDb(),
+            $this->getService(\Hengeb\Db\Db::class),
             $this->getUserRepository(),
             $this->getAgreementRepository()
         ));
@@ -121,6 +93,9 @@ class Bootstrap extends ServiceContainer {
 
     public function getUserRepository(): UserRepository
     {
-        return $this->createService(UserRepository::class, fn() => new UserRepository($this->getLdap(), $this->getDb()));
+        return $this->createService(UserRepository::class, fn() => new UserRepository(
+            $this->getLdap(),
+            $this->getService(\Hengeb\Db\Db::class)
+        ));
     }
 }
