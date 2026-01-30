@@ -49,7 +49,7 @@ class Bootstrap extends ServiceContainer {
     public function getAgreementRepository(): AgreementRepository
     {
         return $this->createService(AgreementRepository::class, fn() => new AgreementRepository(
-            $this->getService(Hengeb\Db\Db::class),
+            $this->getService(\Hengeb\Db\Db::class),
         ));
     }
 
