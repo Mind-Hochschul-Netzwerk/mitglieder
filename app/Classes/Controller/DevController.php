@@ -87,9 +87,7 @@ class DevController extends Controller {
                 $id = (int) $db->query('INSERT INTO mitglieder SET
                     username=:username,
                     vorname=:vorname,
-                    nachname=:nachname,
-                    kenntnisnahme_datenverarbeitung_aufnahme_text="",
-                    einwilligung_datenverarbeitung_aufnahme_text=""
+                    nachname=:nachname
                 ', [
                     'username' => $username,
                     'vorname' => $userinfo['firstname'],
