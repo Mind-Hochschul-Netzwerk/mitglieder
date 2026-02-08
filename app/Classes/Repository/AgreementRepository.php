@@ -110,6 +110,20 @@ class AgreementRepository
         return ($result->getRowCount() === 0) ? null : $this->createModel($result->getRow());
     }
 
+
+    /**
+     * Finds an agreement by name and version.
+     *
+     * @param string $name
+     * @param int $version
+     * @return Agreement|null The agreement or null if not found.
+     */
+    public function findOneByNameAndVersion(string $name, int $version): ?Agreement
+    {
+        $result = $this->db->query('SELECT id, name, version, text, timestamp FROM agreements WHERE name = :name AND version = :version', ['name' => $name, 'version' => $version]);
+        return ($result->getRowCount() === 0) ? null : $this->createModel($result->getRow());
+    }
+
     /**
      * Persists a new agreement in the database.
      *

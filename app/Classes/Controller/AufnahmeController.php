@@ -6,7 +6,11 @@ namespace App\Controller;
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
+use App\Model\Enum\UserAgreementAction;
 use App\Model\User;
+use App\Model\UserAgreement;
+use App\Repository\AgreementRepository;
+use App\Repository\UserAgreementRepository;
 use App\Repository\UserRepository;
 use App\Service\EmailService;
 use App\Service\Ldap;
@@ -46,10 +50,6 @@ class AufnahmeController extends Controller
         'auslandsaufenthalte' => 'mhn_ausland',
         'praktika' => 'mhn_praktika',
         'beruf' => 'mhn_beruf',
-        'kenntnisnahme_datenverarbeitung_aufnahme' => 'kenntnisnahme_datenverarbeitung',
-        'kenntnisnahme_datenverarbeitung_aufnahme_text' => 'kenntnisnahme_datenverarbeitung_text',
-        'einwilligung_datenverarbeitung_aufnahme' => 'einwilligung_datenverarbeitung',
-        'einwilligung_datenverarbeitung_aufnahme_text' => 'einwilligung_datenverarbeitung_text',
         'auskunft_studiengang' => 'mhn_auskunft_studiengang',
         'auskunft_stipendien' => 'mhn_auskunft_stipendien',
         'auskunft_auslandsaufenthalte' => 'mhn_auskunft_ausland',
@@ -99,6 +99,8 @@ class AufnahmeController extends Controller
         private EmailService $emailService,
         private Ldap $ldap,
         private UserRepository $userRepository,
+        private AgreementRepository $agreementRepository,
+        private UserAgreementRepository $userAgreementRepository,
     ) {}
 
     #[Route('GET /aufnahme?token={token}'), PublicAccess]
@@ -272,6 +274,9 @@ class AufnahmeController extends Controller
 
         $this->userRepository->save($user);
 
+        $this->saveUserAgreement($user, 'Kenntnisnahme', (int) $this->data['kenntnisnahme_datenverarbeitung_text'], new \DateTimeImmutable($this->data['kenntnisnahme_datenverarbeitung']));
+        $this->saveUserAgreement($user, 'Einwilligung', (int) $this->data['einwilligung_datenverarbeitung_text'], new \DateTimeImmutable($this->data['einwilligung_datenverarbeitung']));
+
         $this->ldap->addUserToGroup($this->username, 'alleMitglieder');
         $this->ldap->addUserToGroup($this->username, 'listen');
 
@@ -330,6 +335,18 @@ class AufnahmeController extends Controller
             $user->set('interessen', '');
             $user->set('hochschulaktivitaeten', '');
         }
+    }
+
+    private function saveUserAgreement(User $user, string $name, int $version, \DateTimeInterface $timestamp): void
+    {
+        $agreement = $this->agreementRepository->findOneByNameAndVersion($name, $version) ?? throw \OutOfBoundsException("could not find agreement with name '$name' and version $version.");
+        $userAgreement = new UserAgreement(
+            user: $user,
+            agreement: $agreement,
+            action: UserAgreementAction::Accept,
+            timestamp: $timestamp,
+        );
+        $this->userAgreementRepository->persist($userAgreement);
     }
 
     /**
