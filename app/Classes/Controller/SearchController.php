@@ -41,7 +41,7 @@ class SearchController extends Controller {
         $filters = [];
         for ($i = 0; $i < 5;$i++) {
             $key = $this->request->query->getString("key$i");
-            if ($key === 'none') {
+            if ($key === 'none' || !$key) {
                 continue;
             }
             if (in_array($key, ['rolle', 'resigned', 'emailInvalid'], true) && !$this->currentUser->hasRole('mvread')) {
