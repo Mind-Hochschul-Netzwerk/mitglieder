@@ -6,7 +6,6 @@ namespace App\Controller;
 use App\Repository\UserRepository;
 use App\Service\Ldap;
 use Hengeb\Db\Db;
-use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\RequireLogin;
 use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
@@ -80,7 +79,7 @@ class SearchController extends Controller {
         foreach ($filters as $k=>[$field, $op, $value]) {
             $this->generateFilterSql($k, $field, $op, $value, $conditions, $values);
         }
-        $where = '(' . implode(') AND (', $conditions) . ')';
+        $where = implode(' AND ', $conditions);
         // remove unused keys from $values
         foreach ($values as $name=>$value) {
             if (!preg_match("/:$name\W/", $where)) {
@@ -118,7 +117,7 @@ class SearchController extends Controller {
         switch ($field) {
             case 'fullName':
                 $conditionParts = [];
-                foreach (explode(' ', $value) as $i=>$part) {
+                foreach (preg_split('/[, ]/', $value) as $i=>$part) {
                     if ($part === '') {
                         continue;
                     }
@@ -149,8 +148,18 @@ class SearchController extends Controller {
                 break;
             case 'any':
                 $fields = ['telefon', 'mensa_nr', 'titel', 'sprachen', 'hobbys', 'interessen', 'stipendien', 'auslandsaufenthalte', 'praktika', 'beruf', 'id', 'studienfach', 'nebenfach'];
-                $conditionParts = array_map(fn($f) => $this->generateSingleFilterExpression($f, $op, $valueName), $fields);
-                $condition = implode(' OR ', $conditionParts);
+                $conditionParts = [];
+                foreach (preg_split('/[, ]/', $value) as $i=>$part) {
+                    if ($part === '') {
+                        continue;
+                    }
+                    $valuePartName = $valueName . '_' . $i;
+                    $values[$valuePartName] = $part;
+
+                    $parts = array_map(fn($f) => $this->generateSingleFilterExpression($f, $op, $valuePartName), $fields);
+                    $conditionParts[] = '(' . implode(' OR ', $parts) . ')';
+                }
+                $condition = implode(' AND ', $conditionParts);
                 break;
             case 'studienfach':
                 $condition = $this->generateSingleFilterExpression($field, $op, $valueName)
@@ -180,7 +189,7 @@ class SearchController extends Controller {
         }
 
         if ($condition) {
-            $conditions[] = $condition;
+            $conditions[] = '(' . $condition . ')';
         }
     }
 
