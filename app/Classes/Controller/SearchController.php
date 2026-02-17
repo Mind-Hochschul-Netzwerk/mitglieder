@@ -193,7 +193,7 @@ class SearchController extends Controller {
             FilterOp::GreaterOrEqual => ">= :$valueName",
             FilterOp::LessOrEqual => "<= :$valueName",
             FilterOp::isTrue => "IS NOT NULL AND $field != ''",
-            FilterOp::isFalse => "IS NULL OR $field r= ''",
+            FilterOp::isFalse => "IS NULL OR $field = ''",
         } . ')';
         if (!$this->currentUser->hasRole('mvread')) {
             if (in_array("$field|s", self::felder, true)) {
