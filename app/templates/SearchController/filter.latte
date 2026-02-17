@@ -1,0 +1,45 @@
+<div class="form-group row" data-number="$number">
+        <div class="col-sm-4">
+            {include '../partials/input.latte', name: "key$number", type: select, options: [
+                none => "",
+                /* email => "E-Mail-Adresse", */
+                /* telefon => "Telefon", */
+                /* beschaeftigung => "Beschäftigung", */
+                mensa_nr => "Mensa-Mitgliedsnr.",
+                titel => "Titel",
+                sprachen => "Sprachen",
+                hobbys => "Hobbys",
+                interessen => "Interessen",
+                studienfach => "Studienfach oder Ausbildung",
+                stipendien => "Stipendien",
+                auslandsaufenthalte => "Auslandsaufenthalte",
+                praktika => "Praktika, Fort- und Weiterbildungen",
+                beruf => "Beruf",
+                /* aufgaben => "Bereitschaft zur Mitwirkung bei MHN", */
+                /* funktion => "Team / Funktion", */
+                id => "Mitgliedsnummer",
+                aufnahmedatum => "Aufnahmedatum",
+                /* datenschutzverpflichtung => "Datenschutzverpflichtung abgegeben", */
+                ... (currentUser()->hasRole('mvread')) ? [
+                    '---' => '---',
+                    /* rolle => "Gruppe / Rolle", */
+                    resignation => "hat Austritt erklärt",
+                    /* emailInvalid => "E-Mail-Adresse nicht erreichbar", */
+                ] : []
+            ]}
+        </div>
+        <div class="col-sm-2">
+            {include '../partials/input.latte', name: "op$number", type: select, options: [
+                contains => "enthält",
+                notContains => "enthält nicht",
+                eq => "ist gleich",
+                ge => "ist mindestens",
+                le => "ist höchstens",
+                "true" => "trifft zu / ist nicht leer",
+                "false" => "trifft nicht zu / ist leer",
+            ]}
+        </div>
+        <div class="col-sm-4">
+            {include '../partials/input.latte', name: "value$number", placeholder: Wert}
+        </div>
+    </div>

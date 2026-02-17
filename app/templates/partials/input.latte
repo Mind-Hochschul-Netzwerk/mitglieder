@@ -10,14 +10,34 @@
 <div class="input-group" n:tag-if=$show_toggle>
     {if $type === select}
         <select n:attr="id: $elementId, name: $name, class: $class">
-            <option n:foreach="$options as $option=>$optionlabel" n:attr="selected: $value === $option, value: $option">{$optionlabel}</option>
+            {foreach $options as $option=>$optionlabel}
+                {if $option === '---' || $optionlabel == '---'}
+                    <hr />
+                {else}
+                    <option n:attr="selected: $value === $option, value: $option">{$optionlabel}</option>
+                {/if}
+            {/foreach}
         </select>
     {else}
-        <input n:attr="id: $elementId, name: $name, type: $type !== text ? $type, value: $value ?: null, class: $class, placeholder: $placeholder ?: $label, autocomplete: $autocomplete ?: null, disabled: (bool) $disabled, required: (bool) $required">
+        <input n:attr="
+            id: $elementId,
+            name: $name,
+            type: $type !== text ? $type,
+            value: $value ?: null,
+            class: $class,
+            placeholder: $placeholder ?: $label,
+            autocomplete: $autocomplete ?: null,
+            disabled: (bool) $disabled,
+            required: (bool) $required
+        ">
     {/if}
     <span class="input-group-addon" n:if=$show_toggle>
         <input type="checkbox" class="input-group-addon"
-        n:attr="checked: $sichtbarkeit, name: $uncover, id: $uncover"
+        n:attr="
+            checked: $sichtbarkeit,
+            name: $uncover,
+            id: $uncover
+        "
         data-height="32" data-width="50"
         data-toggle="toggle"
         data-onstyle="success"

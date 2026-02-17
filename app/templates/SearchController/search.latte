@@ -5,16 +5,62 @@
 
 <p>Willkommen im Mitgliederverzeichnis des Mind-Hochschul-Netzwerks. Hier kannst du deine Daten in unserer Mitgliederdatenbank aktualisieren und andere Mitglieder finden. Das Netzwerk lebt von deiner aktiven Beteiligung und den Kontakten unter den Mitgliedern.</p>
 
+<p>Gefunden werden Mitglieder, bei denen alle gewählten Bedingungen zutreffen. Nicht freigegebene Daten werden nicht durchsucht.</p>
+
 <form>
 
 <div class="form-group row">
-    <div class="col-sm-10">
-        {include '../partials/input.latte', name: q, value: $query, placeholder: Suche}
+    <div class="col-sm-3">
+        {include '../partials/input.latte', name: fullName, placeholder: "Name"}
+    </div>
+    <div class="col-sm-3">
+        {include '../partials/input.latte', name: location, placeholder: "Ort, PLZ-Bereich oder Land"}
+    </div>
+    <div class="col-sm-4">
+        {include '../partials/input.latte', name: any, placeholder: Suchbegriff}
     </div>
     <div class="col-sm-2">
         <button type="submit" class="btn btn-success" onclick="return suchen();"><span class="glyphicon glyphicon-search"></span> Suchen</button>
     </div>
 </div>
+
+<details n:attr="open: $key0 ? true : null">
+    <summary>
+        <div class="form-group row"><div class="col-sm-2">
+            <div class="btn btn-default">erweiterte Suche <i class="glyphicon glyphicon-chevron-down"></i></div>
+        </div></div>
+    </summary>
+
+    <div class="filters">
+        {include 'filter.latte', number: 0}
+        {include 'filter.latte', number: 1}
+        {include 'filter.latte', number: 2}
+        {include 'filter.latte', number: 3}
+        {include 'filter.latte', number: 4}
+    </div>
+
+    <div class="form-group row">
+        <div class="col-sm-12">
+            <button type="submit" class="btn btn-success" onclick="return suchen();"><span class="glyphicon glyphicon-search"></span> Suchen</button>
+        </div>
+    </div>
+</details>
+
+<style>
+details summary {
+    display: inline-block;
+}
+details[open] summary {
+    display: none;
+}
+form:has(details[open]) .col-sm-2 button {
+    display: none;
+}
+.filters .row:has(option[value="none"]:checked) + .row {
+    display: none;
+}
+</style>
+
 
 </form>
 

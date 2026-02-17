@@ -4,12 +4,23 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Repository\UserRepository;
-use App\Service\PasswordService;
+use App\Service\Ldap;
 use Hengeb\Db\Db;
 use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\RequireLogin;
 use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
+
+enum FilterOp: string {
+    case Contains = "contains";
+    case NotContains = "notContains";
+    case StartsWith = "startsWith";
+    case Equal = "eq";
+    case GreaterOrEqual =  "ge";
+    case LessOrEqual = "le";
+    case isTrue = "true";
+    case isFalse = "false";
+}
 
 class SearchController extends Controller {
     public function __construct(
@@ -26,65 +37,172 @@ class SearchController extends Controller {
     // Felder, bei denen nur nach Übereinstimmung statt nach Substring gesucht wird (müssen auch in felder aufgeführt sein)
     const felder_eq = ['id', 'mensa_nr', 'plz', 'plz2'];
 
-    #[Route('GET /(search|)?q={.+:query}'), RequireLogin]
-    public function search(string $query, Db $db): Response {
-        // TODO filter einbauen über beschaeftigung, auskunft_* und für mvread für aufgabe_*
-        $this->setTemplateVariable('query', $query);
-
-        // Strings die in Anführungszeichen stehen, müssen wirklich genau so vorkommen -> vor dem aufsplitten an Leerzeichen ersetzen
-        $literalMap = [];
-        $query = preg_replace_callback('/"([^"]+)"/', function ($matches) use (&$literalMap) {
-            $key = PasswordService::randomString(64);
-            $literalMap[$key] = $matches[1];
-            return ' ' . $key . ' ';
-        }, $query);
-
-        $query = preg_replace('/\s+/', ' ', $query);
-        $begriffe = explode(' ', trim($query));
-
-        // zurück ersetzen
-        array_walk($begriffe, function (&$begriff) use ($literalMap) {
-            if (isset($literalMap[$begriff])) {
-                $begriff = $literalMap[$begriff];
+    #[Route('GET /(search|)?fullName={fullName}'), RequireLogin]
+    public function search(Db $db, Ldap $ldap): Response {
+        $filters = [];
+        for ($i = 0; $i < 5;$i++) {
+            $key = $this->request->query->getString("key$i");
+            if ($key === 'none') {
+                continue;
             }
-        });
-
-        $AND = ['(1=1)'];
-        $values = [];
-        foreach ($begriffe as $b) {
-            $OR = [];
-            foreach (self::felder as $feld) {
-                $f = '';
-                if (strpos($feld, '|')) {
-                    list($feld, $sichtbarkeitsfeld) = explode('|', $feld);
-                    if ($sichtbarkeitsfeld === 's') {
-                        $sichtbarkeitsfeld = 'sichtbarkeit_' . $feld;
-                    }
-                    $f .= "$sichtbarkeitsfeld = 1 AND ";
-                }
-                if (in_array($feld, self::felder_eq, true)) {
-                    $f .= "$feld = :$feld";
-                    $values[$feld] = $b;
-                } else {
-                    $f .= "$feld LIKE :$feld";
-                    $values[$feld] = "%$b%";
-                }
-                $OR[] = "($f)";
+            if (in_array($key, ['rolle', 'resigned', 'emailInvalid'], true) && !$this->currentUser->hasRole('mvread')) {
+                throw new \Hengeb\Router\Exception\AccessDeniedException();
+            }
+            // TODO
+            if (in_array($key, ['email', 'rolle', 'emailInvalid', 'datenschutzverpflichtung'], true)) {
+                throw new \Exception('not implemented');
             }
 
-            $AND[] = '(' . implode(' OR ', $OR) . ')';
+            $op = $this->request->query->getEnum("op$i", FilterOp::class);
+            $value = $this->request->query->getString("value$i");
+
+            $filters[] = [$key, $op, $value];
+
+            $this->setTemplateVariable("key$i", $key);
+            $this->setTemplateVariable("op$i", $op->value);
+            $this->setTemplateVariable("value$i", $value);
         }
 
-        // TODO Pagination?? oder einfach suche einschränken lassen und die erst 50 zeigen...
-        $ids = $db->query('SELECT id FROM mitglieder WHERE ' . implode(' AND ', $AND) . ' ORDER BY nachname, vorname LIMIT 50', $values)->getColumn();
+        foreach (['fullName', 'location', 'any'] as $field) {
+            $value = $this->request->query->getString($field);
+            if ($value) {
+                $this->setTemplateVariable($field, $value);
+                $filters[] = [$field, FilterOp::Contains, $value];
+            }
+        }
+
+        if (!$filters) {
+            return $this->form();
+        }
+
+        $conditions = ['true'];
+        $values = [];
+        foreach ($filters as $k=>[$field, $op, $value]) {
+            $this->generateFilterSql($k, $field, $op, $value, $conditions, $values);
+        }
+        $where = '(' . implode(') AND (', $conditions) . ')';
+        // remove unused keys from $values
+        foreach ($values as $name=>$value) {
+            if (!preg_match("/:$name\W/", $where)) {
+                unset($values[$name]);
+            }
+        }
+        bdump($where);
+        bdump($values);
+
+        $dbIds = $db->query("SELECT id FROM mitglieder WHERE $where ORDER BY nachname, vorname", $values)->getColumn();
+
+        // TODO
+        // $ldapIds = $ldap->;
+
+        $ids = $dbIds;  // $ids = array_intersect($dbIds, $ldapIds);
+        $ids = array_slice($ids, 0, 50);
+
         return $this->showResults($ids);
     }
 
-    #[Route('GET /search/resigned'), AllowIf(role: 'mvread')]
-    public function showResigned(Db $db): Response {
-        $this->setTemplateVariable('query', ' '); // show the "search results" title even if the list is empty
-        $ids = $db->query('SELECT id FROM mitglieder WHERE resignation IS NOT NULL')->getColumn();
-        return $this->showResults($ids);
+    private function generateFilterSql(int $k, string $field, FilterOp $op, string $value, array &$conditions, array &$values): void
+    {
+        if ($field === 'aufnahmedatum') {
+            if (preg_match('/^(\d\d?)\.(\d\d?)\.(\d\d\d\d)$/', $value, $matches)) {
+                $value = sprintf('%04d-%02d-%02d', $matches[3], $matches[2], $matches[1]);
+            } elseif (preg_match('/^(\d\d\d\d)$/', $value)) {
+                $value = "$value-01-01";
+            }
+        }
+
+        $valueName = 'value' . $k;
+        $values[$valueName] = $value;
+        $condition = '';
+
+        switch ($field) {
+            case 'fullName':
+                $conditionParts = [];
+                foreach (explode(' ', $value) as $i=>$part) {
+                    if ($part === '') {
+                        continue;
+                    }
+                    $valuePartName = $valueName . '_' . $i;
+                    $values[$valuePartName] = $part;
+                    $conditionParts[] = '(' . $this->generateSingleFilterExpression('titel', FilterOp::StartsWith, $valuePartName)
+                        . ' OR ' . $this->generateSingleFilterExpression('vorname', FilterOp::StartsWith, $valuePartName)
+                        . ' OR ' . $this->generateSingleFilterExpression('nachname', FilterOp::StartsWith, $valuePartName) . ')';
+                }
+                $condition = implode(' AND ', $conditionParts);
+                break;
+            case 'location':
+                if (preg_match('/^[0-9]+$/', $value)) {
+                    $condition = $this->generateSingleFilterExpression('plz', FilterOp::StartsWith, $valueName);
+                } elseif (preg_match('/^([0-9]+)\s*\-\s*([0-9]+)$/', $value, $matches)) {
+                    $values[$valueName . '_min'] = $matches[1];
+                    $values[$valueName . '_max'] = $matches[2];
+                    $condition = '(' . $this->generateSingleFilterExpression('plz', FilterOp::GreaterOrEqual, $valueName . '_min')
+                        . 'AND' . $this->generateSingleFilterExpression('plz', FilterOp::LessOrEqual, $valueName . '_max') . ')'
+                        . ' OR (' . $this->generateSingleFilterExpression('plz2', FilterOp::GreaterOrEqual, $valueName . '_min')
+                        . 'AND' . $this->generateSingleFilterExpression('plz2', FilterOp::LessOrEqual, $valueName . '_max') . ')';
+                } else {
+                    $condition = $this->generateSingleFilterExpression('ort', $op, $valueName)
+                        . 'OR' . $this->generateSingleFilterExpression('ort2', $op, $valueName)
+                        . 'OR' . $this->generateSingleFilterExpression('land', $op, $valueName)
+                        . 'OR' . $this->generateSingleFilterExpression('land2', $op, $valueName);
+                }
+                break;
+            case 'any':
+                $fields = ['telefon', 'mensa_nr', 'titel', 'sprachen', 'hobbys', 'interessen', 'stipendien', 'auslandsaufenthalte', 'praktika', 'beruf', 'id', 'studienfach', 'nebenfach'];
+                $conditionParts = array_map(fn($f) => $this->generateSingleFilterExpression($f, $op, $valueName), $fields);
+                $condition = implode(' OR ', $conditionParts);
+                break;
+            case 'studienfach':
+                $condition = $this->generateSingleFilterExpression($field, $op, $valueName)
+                    . 'OR' . $this->generateSingleFilterExpression('nebenfach', $op, $valueName);
+                break;
+            case 'beschaeftigung':
+                throw new \OutOfBoundsException('not implemented: ' . $field);
+                break;
+            case 'telefon':
+            case 'mensa_nr':
+            case 'titel':
+            case 'sprachen':
+            case 'hobbys':
+            case 'interessen':
+            case 'stipendien':
+            case 'auslandsaufenthalte':
+            case 'praktika':
+            case 'beruf':
+            case 'id':
+            case 'aufnahmedatum':
+            case 'resignation':
+                $condition = $this->generateSingleFilterExpression($field, $op, $valueName);
+                break;
+            case 'aufgaben':
+                throw new \OutOfBoundsException('not implemented: ' . $field);
+                break;
+        }
+
+        if ($condition) {
+            $conditions[] = $condition;
+        }
+    }
+
+    function generateSingleFilterExpression(string $field, FilterOp $op, $valueName) {
+        $sql = "($field " . match ($op) {
+            FilterOp::Contains => "LIKE CONCAT('%', :$valueName, '%')",
+            FilterOp::NotContains => "NOT LIKE CONCAT('%', :$valueName, '%')",
+            FilterOp::StartsWith => "LIKE CONCAT(:$valueName, '%')",
+            FilterOp::Equal => "= :$valueName",
+            FilterOp::GreaterOrEqual => ">= :$valueName",
+            FilterOp::LessOrEqual => "<= :$valueName",
+            FilterOp::isTrue => "IS NOT NULL AND $field != ''",
+            FilterOp::isFalse => "IS NULL OR $field r= ''",
+        } . ')';
+        if (!$this->currentUser->hasRole('mvread')) {
+            if (in_array("$field|s", self::felder, true)) {
+                $sql .= " AND sichtbarkeit_$field = true";
+            } elseif ($field === 'plz' || $field === 'ort') {
+                $sql .= " AND sichtbarkeit_plz_ort = true";
+            }
+        }
+        return "($sql)";
     }
 
     private function showResults(array $ids): Response {

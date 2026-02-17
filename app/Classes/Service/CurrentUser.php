@@ -67,10 +67,11 @@ class CurrentUser implements CurrentUserInterface {
 
     public function hasRole(string $roleName): bool
     {
+        static $cache = [];
         if (!$this->user) {
             return false;
         }
-        return $this->user->hasRole($roleName);
+        return $cache[$roleName] ??= $this->user->hasRole($roleName);
     }
 
     public function hasId(int $id): bool
