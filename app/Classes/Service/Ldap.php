@@ -71,6 +71,17 @@ class Ldap
         return $list;
     }
 
+    public function getUserIdsByQuery(string $query): array
+    {
+        $this->bind();
+        try {
+            $result = $this->ldap->query($this->peopleDn, '(&(objectclass=inetOrgPerson)' . $query . ')')->execute();
+        } catch (\Exception $e) {
+            return [];
+        }
+        return array_map(fn($userEntry) => $userEntry->getAttribute('employeeNumber')[0], $result->toArray());
+    }
+
     public function getEntryByUsername(string $username): ?Entry
     {
         $this->bind();
