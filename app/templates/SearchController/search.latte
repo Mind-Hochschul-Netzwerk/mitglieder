@@ -10,7 +10,7 @@
 <form>
 
 <div class="form-group row">
-    <div class="col-sm-3">
+    <div class="col-sm-4">
         {include '../partials/input.latte', name: fullName, placeholder: "Name"}
     </div>
     <div class="col-sm-3">
@@ -19,7 +19,7 @@
     <div class="col-sm-4">
         {include '../partials/input.latte', name: any, placeholder: Suchbegriff}
     </div>
-    <div class="col-sm-2">
+    <div class="col-sm-1">
         <button type="submit" class="btn btn-success" onclick="return suchen();"><span class="glyphicon glyphicon-search"></span> Suchen</button>
     </div>
 </div>
@@ -53,10 +53,13 @@ details summary {
 details[open] summary {
     display: none;
 }
-form:has(details[open]) .col-sm-2 button {
+form:has(details[open]) .col-sm-1 button {
     display: none;
 }
 .filters .row:has(option[value="none"]:checked) + .row {
+    display: none;
+}
+.filters .row div:has(option:is([value="true"], [value="false"]):checked) + div {
     display: none;
 }
 </style>

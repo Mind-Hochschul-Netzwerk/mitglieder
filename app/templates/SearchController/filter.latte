@@ -28,13 +28,17 @@
                 ] : []
             ]}
         </div>
-        <div class="col-sm-2">
+        <div class="col-sm-3">
             {include '../partials/input.latte', name: "op$number", type: select, options: [
                 contains => "enthält",
+                containsWord => "enthält als Wort",
                 notContains => "enthält nicht",
+                startsWith => "beginnt mit",
+                endsWith => "endet mit",
                 eq => "ist gleich",
                 ge => "ist mindestens",
                 le => "ist höchstens",
+                between => "ist zwischen",
                 "true" => "trifft zu / ist nicht leer",
                 "false" => "trifft nicht zu / ist leer",
             ]}

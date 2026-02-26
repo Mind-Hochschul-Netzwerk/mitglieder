@@ -11,14 +11,17 @@ use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 enum FilterOp: string {
-    case Contains = "contains";
-    case NotContains = "notContains";
-    case StartsWith = "startsWith";
-    case Equal = "eq";
-    case GreaterOrEqual =  "ge";
-    case LessOrEqual = "le";
-    case isTrue = "true";
-    case isFalse = "false";
+    case Contains = 'contains';
+    case ContainsWord = 'containsWord';
+    case NotContains = 'notContains';
+    case StartsWith = 'startsWith';
+    case EndsWith = 'endsWith';
+    case Equal = 'eq';
+    case GreaterOrEqual =  'ge';
+    case LessOrEqual = 'le';
+    case Between = 'between';
+    case isTrue = 'true';
+    case isFalse = 'false';
 }
 
 class SearchController extends Controller {
@@ -28,16 +31,16 @@ class SearchController extends Controller {
 
     #[Route('GET /(search|)'), RequireLogin]
     public function form(): Response {
-        return $this->render('SearchController/search', ['query' => '']);
+        return $this->render('SearchController/search');
     }
+
+    private array $filterValues = [];
 
     // Felder mit |s bzw |s* nur mit sichtbarkeit
     const felder = ['username', 'id', 'vorname', 'nachname', 'mensa_nr|s', 'strasse|s', 'adresszusatz|s', 'plz|sichtbarkeit_plz_ort', 'ort|sichtbarkeit_plz_ort', 'land|s', 'strasse2', 'adresszusatz2', 'plz2', 'ort2', 'land2', 'homepage', 'sprachen', 'hobbys', 'interessen', 'studienort|s', 'studienfach|s', 'unityp|s', 'schwerpunkt|s', 'nebenfach|s', 'abschluss|s', 'zweitstudium|s', 'hochschulaktivitaeten|s', 'stipendien|s', 'auslandsaufenthalte|s', 'praktika|s', 'beruf|s'];
-    // Felder, bei denen nur nach Übereinstimmung statt nach Substring gesucht wird (müssen auch in felder aufgeführt sein)
-    const felder_eq = ['id', 'mensa_nr', 'plz', 'plz2'];
 
-    #[Route('GET /(search|)?fullName={fullName}'), RequireLogin]
-    public function search(Db $db, Ldap $ldap): Response {
+    #[Route('GET /(search|)?fullName={fullName}&location={location}&any={any}'), RequireLogin]
+    public function search(string $fullName, string $location, string $any, Db $db, Ldap $ldap): Response {
         $filters = [];
         for ($i = 0; $i < 5;$i++) {
             $key = $this->request->query->getString("key$i");
@@ -55,18 +58,48 @@ class SearchController extends Controller {
             $op = $this->request->query->getEnum("op$i", FilterOp::class);
             $value = $this->request->query->getString("value$i");
 
-            $filters[] = [$key, $op, $value];
+            $this->addFilterValue("value$i", $value);
+
+            $filters[] = [[$key], $op, "value$i"];
 
             $this->setTemplateVariable("key$i", $key);
             $this->setTemplateVariable("op$i", $op->value);
             $this->setTemplateVariable("value$i", $value);
         }
 
-        foreach (['fullName', 'location', 'any'] as $field) {
-            $value = $this->request->query->getString($field);
-            if ($value) {
-                $this->setTemplateVariable($field, $value);
-                $filters[] = [$field, FilterOp::Contains, $value];
+        if ($fullName) {
+            $this->setTemplateVariable('fullName', $fullName);
+
+            foreach (preg_split('/[\.;, ]/', $fullName) as $k=>$part) {
+                $this->addFilterValue("fullName$k", $part);
+                $filters[] = [['titel', 'vorname', 'nachname'], FilterOp::StartsWith, "fullName$k"];
+            }
+        }
+        if ($location) {
+            $this->setTemplateVariable('location', $location);
+            $this->addFilterValue("location", $location);
+
+            if (preg_match('/^[0-9]+$/', $location)) {
+                $filters[] = [['plz', 'plz2'], FilterOp::StartsWith, 'location'];
+            } elseif (preg_match('/^([0-9]+)\s*\-\s*([0-9]+)$/', $location)) {
+                $filters[] = [['plz', 'plz2'], FilterOp::Between, 'location'];
+            } else {
+                $filters[] = [['ort', 'ort2', 'land', 'land2'], FilterOp::Contains, 'location'];
+            }
+        }
+        if ($any) {
+            $this->setTemplateVariable('any', $any);
+
+            foreach (preg_split('/[\.;, ]/', $any) as $k=>$part) {
+                if ($part === '') {
+                    continue;
+                }
+                $this->addFilterValue("any$k", $part);
+                $filters[] = [
+                    ['telefon', 'mensa_nr', 'titel', 'sprachen', 'hobbys', 'interessen', 'stipendien', 'auslandsaufenthalte', 'praktika', 'beruf', 'id', 'studienfach', 'nebenfach'],
+                    FilterOp::Contains,
+                    "any$k"
+                ];
             }
         }
 
@@ -75,21 +108,22 @@ class SearchController extends Controller {
         }
 
         $conditions = ['true'];
-        $values = [];
-        foreach ($filters as $k=>[$field, $op, $value]) {
-            $this->generateFilterSql($k, $field, $op, $value, $conditions, $values);
+        bdump($filters);
+        foreach ($filters as [$fields, $op, $value]) {
+            $conditions[] = $this->generateFilterSql($fields, $op, $value);
         }
+        bdump($conditions);
         $where = implode(' AND ', $conditions);
         // remove unused keys from $values
-        foreach ($values as $name=>$value) {
+        foreach ($this->filterValues as $name=>$value) {
             if (!preg_match("/:$name\W/", $where)) {
-                unset($values[$name]);
+                unset($this->filterValues[$name]);
             }
         }
         bdump($where);
-        bdump($values);
+        bdump($this->filterValues);
 
-        $dbIds = $db->query("SELECT id FROM mitglieder WHERE $where ORDER BY nachname, vorname", $values)->getColumn();
+        $dbIds = $db->query("SELECT id FROM mitglieder WHERE $where ORDER BY nachname, vorname", $this->filterValues)->getColumn();
 
         // TODO
         // $ldapIds = $ldap->;
@@ -100,77 +134,70 @@ class SearchController extends Controller {
         return $this->showResults($ids);
     }
 
-    private function generateFilterSql(int $k, string $field, FilterOp $op, string $value, array &$conditions, array &$values): void
+    private function addFilterValue(string $name, string $value): void
     {
+        $this->filterValues[$name] = $value;
+        $this->filterValues[$name . '_like'] = "%$value%";
+        $this->filterValues[$name . '_start'] = "$value%";
+        $this->filterValues[$name . '_end'] = "$value%";
+        $this->filterValues[$name . '_word'] = '[[:<:]]' . preg_quote($value, '/') . '[[:>:]]';
+        if (preg_match('/^([0-9]+)\s*\-\s*([0-9]+)$/', $value, $matches)) {
+            [$min, $max] = array_map('trim', explode('-', $value));
+            $this->filterValues[$name . '_min'] = $min;
+            $this->filterValues[$name . '_max'] = $max;
+        } else {
+            $this->filterValues[$name . '_min'] = $value;
+            $this->filterValues[$name . '_max'] = $value;
+        }
+        if (preg_match('/^(\d\d?)\.(\d\d?)\.((19|20)\d\d)$/', $value, $matches)) {
+            $this->filterValues[$name . '_date'] = $this->filterValues[$name . '_date_min'] = $this->filterValues[$name . '_date_max']
+                = sprintf('%04d-%02d-%02d', $matches[3], $matches[2], $matches[1]);
+        } elseif (preg_match('/^((19|20)\d\d)$/', $value)) {
+            $this->filterValues[$name . '_date'] = "$value-01-01";
+            $this->filterValues[$name . '_date_min'] = "$value-01-01";
+            $this->filterValues[$name . '_date_max'] = "$value-12-31";
+        } elseif (preg_match('/^(\d\d?)\.(\d\d?)\.((19|20)\d\d)\s*\-\s*(\d\d?)\.(\d\d?)\.((19|20)\d\d)$/', $value, $matches)) {
+            $this->filterValues[$name . '_date'] = 'invalid';
+            $this->filterValues[$name . '_date_min'] = sprintf('%04d-%02d-%02d', $matches[3], $matches[2], $matches[1]);
+            $this->filterValues[$name . '_date_max'] = sprintf('%04d-%02d-%02d', $matches[7], $matches[6], $matches[5]);
+        } elseif (preg_match('/^((19|20)\d\d)\s*\-\s*((19|20)\d\d)$/', $value, $matches)) {
+            $this->filterValues[$name . '_date'] = 'invalid';
+            $this->filterValues[$name . '_date_min'] = "{$matches[1]}-01-01";
+            $this->filterValues[$name . '_date_max'] = "{$matches[3]}-12-31";
+        } else {
+            $this->filterValues[$name . '_date'] = $this->filterValues[$name . '_date_min'] = $this->filterValues[$name . '_date_max'] = $value;
+        }
+    }
+
+    private function generateFilterSql(array $fields, FilterOp $op, string $valueName): string
+    {
+        if (count($fields) > 1) {
+            return '(' . implode(' OR ', array_filter(array_map(fn($field) => $this->generateFilterSql([$field], $op, $valueName), $fields))) . ')';
+        }
+        $field = $fields[0];
+
         if ($field === 'aufnahmedatum') {
-            if (preg_match('/^(\d\d?)\.(\d\d?)\.(\d\d\d\d)$/', $value, $matches)) {
-                $value = sprintf('%04d-%02d-%02d', $matches[3], $matches[2], $matches[1]);
-            } elseif (preg_match('/^(\d\d\d\d)$/', $value)) {
-                $value = "$value-01-01";
-            }
+            $valueName = $valueName . '_date';
         }
 
-        $valueName = 'value' . $k;
-        $values[$valueName] = $value;
-        $condition = '';
-
         switch ($field) {
-            case 'fullName':
-                $conditionParts = [];
-                foreach (preg_split('/[, ]/', $value) as $i=>$part) {
-                    if ($part === '') {
-                        continue;
-                    }
-                    $valuePartName = $valueName . '_' . $i;
-                    $values[$valuePartName] = $part;
-                    $conditionParts[] = '(' . $this->generateSingleFilterExpression('titel', FilterOp::StartsWith, $valuePartName)
-                        . ' OR ' . $this->generateSingleFilterExpression('vorname', FilterOp::StartsWith, $valuePartName)
-                        . ' OR ' . $this->generateSingleFilterExpression('nachname', FilterOp::StartsWith, $valuePartName) . ')';
-                }
-                $condition = implode(' AND ', $conditionParts);
-                break;
-            case 'location':
-                if (preg_match('/^[0-9]+$/', $value)) {
-                    $condition = $this->generateSingleFilterExpression('plz', FilterOp::StartsWith, $valueName);
-                } elseif (preg_match('/^([0-9]+)\s*\-\s*([0-9]+)$/', $value, $matches)) {
-                    $values[$valueName . '_min'] = $matches[1];
-                    $values[$valueName . '_max'] = $matches[2];
-                    $condition = '(' . $this->generateSingleFilterExpression('plz', FilterOp::GreaterOrEqual, $valueName . '_min')
-                        . 'AND' . $this->generateSingleFilterExpression('plz', FilterOp::LessOrEqual, $valueName . '_max') . ')'
-                        . ' OR (' . $this->generateSingleFilterExpression('plz2', FilterOp::GreaterOrEqual, $valueName . '_min')
-                        . 'AND' . $this->generateSingleFilterExpression('plz2', FilterOp::LessOrEqual, $valueName . '_max') . ')';
-                } else {
-                    $condition = $this->generateSingleFilterExpression('ort', $op, $valueName)
-                        . 'OR' . $this->generateSingleFilterExpression('ort2', $op, $valueName)
-                        . 'OR' . $this->generateSingleFilterExpression('land', $op, $valueName)
-                        . 'OR' . $this->generateSingleFilterExpression('land2', $op, $valueName);
-                }
-                break;
-            case 'any':
-                $fields = ['telefon', 'mensa_nr', 'titel', 'sprachen', 'hobbys', 'interessen', 'stipendien', 'auslandsaufenthalte', 'praktika', 'beruf', 'id', 'studienfach', 'nebenfach'];
-                $conditionParts = [];
-                foreach (preg_split('/[, ]/', $value) as $i=>$part) {
-                    if ($part === '') {
-                        continue;
-                    }
-                    $valuePartName = $valueName . '_' . $i;
-                    $values[$valuePartName] = $part;
-
-                    $parts = array_map(fn($f) => $this->generateSingleFilterExpression($f, $op, $valuePartName), $fields);
-                    $conditionParts[] = '(' . implode(' OR ', $parts) . ')';
-                }
-                $condition = implode(' AND ', $conditionParts);
-                break;
             case 'studienfach':
-                $condition = $this->generateSingleFilterExpression($field, $op, $valueName)
-                    . 'OR' . $this->generateSingleFilterExpression('nebenfach', $op, $valueName);
-                break;
+                return '(' . $this->generateSingleFilterExpression($field, $op, $valueName)
+                    . ' OR ' . $this->generateSingleFilterExpression('nebenfach', $op, $valueName) . ')';
             case 'beschaeftigung':
                 throw new \OutOfBoundsException('not implemented: ' . $field);
                 break;
             case 'telefon':
             case 'mensa_nr':
             case 'titel':
+            case 'plz':
+            case 'plz2':
+            case 'ort':
+            case 'ort2':
+            case 'land':
+            case 'land2':
+            case 'vorname':
+            case 'nachname':
             case 'sprachen':
             case 'hobbys':
             case 'interessen':
@@ -181,29 +208,29 @@ class SearchController extends Controller {
             case 'id':
             case 'aufnahmedatum':
             case 'resignation':
-                $condition = $this->generateSingleFilterExpression($field, $op, $valueName);
-                break;
+                return $this->generateSingleFilterExpression($field, $op, $valueName);
             case 'aufgaben':
                 throw new \OutOfBoundsException('not implemented: ' . $field);
                 break;
-        }
-
-        if ($condition) {
-            $conditions[] = '(' . $condition . ')';
+            default:
+                return '';
         }
     }
 
     function generateSingleFilterExpression(string $field, FilterOp $op, $valueName) {
-        $sql = "($field " . match ($op) {
-            FilterOp::Contains => "LIKE CONCAT('%', :$valueName, '%')",
-            FilterOp::NotContains => "NOT LIKE CONCAT('%', :$valueName, '%')",
-            FilterOp::StartsWith => "LIKE CONCAT(:$valueName, '%')",
+        $sql = "$field " . match ($op) {
+            FilterOp::Contains => "LIKE :{$valueName}_like",
+            FilterOp::ContainsWord => "REGEXP :{$valueName}_word",
+            FilterOp::NotContains => "NOT LIKE :{$valueName}_like",
+            FilterOp::StartsWith => "LIKE :{$valueName}_start",
+            FilterOp::EndsWith => "LIKE :{$valueName}_end",
             FilterOp::Equal => "= :$valueName",
-            FilterOp::GreaterOrEqual => ">= :$valueName",
-            FilterOp::LessOrEqual => "<= :$valueName",
+            FilterOp::GreaterOrEqual => ">= :{$valueName}_min",
+            FilterOp::LessOrEqual => "<= :{$valueName}_max",
+            FilterOp::Between => ">= :{$valueName}_min AND $field <= :{$valueName}_max",
             FilterOp::isTrue => "IS NOT NULL AND $field != ''",
             FilterOp::isFalse => "IS NULL OR $field = ''",
-        } . ')';
+        };
         if (!$this->currentUser->hasRole('mvread')) {
             if (in_array("$field|s", self::felder, true)) {
                 $sql .= " AND sichtbarkeit_$field = true";
