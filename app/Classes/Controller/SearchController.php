@@ -27,6 +27,8 @@ enum FilterOp: string {
 class SearchController extends Controller {
     public function __construct(
         private UserRepository $userRepository,
+        private Db $db,
+        private Ldap $ldap,
     ) {}
 
     #[Route('GET /(search|)'), RequireLogin]
@@ -40,7 +42,7 @@ class SearchController extends Controller {
     const felder = ['username', 'id', 'vorname', 'nachname', 'mensa_nr|s', 'strasse|s', 'adresszusatz|s', 'plz|sichtbarkeit_plz_ort', 'ort|sichtbarkeit_plz_ort', 'land|s', 'strasse2', 'adresszusatz2', 'plz2', 'ort2', 'land2', 'homepage', 'sprachen', 'hobbys', 'interessen', 'studienort|s', 'studienfach|s', 'unityp|s', 'schwerpunkt|s', 'nebenfach|s', 'abschluss|s', 'zweitstudium|s', 'hochschulaktivitaeten|s', 'stipendien|s', 'auslandsaufenthalte|s', 'praktika|s', 'beruf|s'];
 
     #[Route('GET /(search|)?fullName={fullName}&location={location}&any={any}'), RequireLogin]
-    public function search(string $fullName, string $location, string $any, Db $db, Ldap $ldap): Response {
+    public function search(string $fullName, string $location, string $any): Response {
         $filters = [];
         for ($i = 0; $i < 5;$i++) {
             $key = $this->request->query->getString("key$i");
@@ -51,7 +53,7 @@ class SearchController extends Controller {
                 throw new \Hengeb\Router\Exception\AccessDeniedException();
             }
             // TODO
-            if (in_array($key, ['email', 'rolle', 'emailInvalid', 'datenschutzverpflichtung'], true)) {
+            if (in_array($key, ['rolle', 'datenschutzverpflichtung'], true)) {
                 throw new \Exception('not implemented');
             }
 
@@ -87,6 +89,8 @@ class SearchController extends Controller {
                 $filters[] = [['ort', 'ort2', 'land', 'land2'], FilterOp::Contains, 'location'];
             }
         }
+
+        // TODO: correct lookup for <any> in ldap/sdb
         if ($any) {
             $this->setTemplateVariable('any', $any);
 
@@ -103,35 +107,109 @@ class SearchController extends Controller {
             }
         }
 
-        if (!$filters) {
+        $dbIds = $this->getDbIds($filters, $this->filterValues);
+        $ldapIds = $this->getLdapIds($filters, $this->filterValues);
+
+        if ($dbIds === null && $ldapIds === null) {
             return $this->form();
         }
 
-        $conditions = ['true'];
-        bdump($filters);
+        $ids = match (true) {
+            $dbIds === null => $ldapIds,
+            $ldapIds === null => $dbIds,
+            default => array_intersect($dbIds, $ldapIds),
+        };
+        $ids = array_slice($ids, 0, 50);
+
+        return $this->showResults($ids);
+    }
+
+    /**
+     * @return null if no filter is an LDAP filter
+     */
+    function getLdapIds(array $filters, array $values): ?array
+    {
+        $query = '';
+
+        foreach ($filters as [$fields, $op, $valueName]) {
+            $field = $fields[0]; // TODO multi
+            if ($field === 'email') {
+                $query .= $this->generateLdapQuery('mail', $op, $values[$valueName]);
+            }
+            if ($field === 'emailInvalid') {
+                if ($op === FilterOp::isTrue) {
+                    $query .= '(mail=*.invalid)';
+                } elseif ($op === FilterOp::isFalse) {
+                    $query .= '(!(mail=*.invalid))';
+                } else {
+                    throw new \Exception('invalid filter operator for emailInvalid');
+                }
+
+            }
+        }
+
+        bdump($query);
+
+        if (!$query) {
+            return null;
+        } else {
+            return $this->ldap->getUserIdsByQuery($query);
+        }
+    }
+
+    function generateLdapQuery(string $field, FilterOp $op, string $value): string
+    {
+        $value = ldap_escape($value);
+        switch ($op) {
+            case FilterOp::Equal:
+                return "($field=$value)";
+            case FilterOp::Contains:
+                return "($field=*$value*)";
+            case FilterOp::StartsWith:
+                return "($field=$value*)";
+            case FilterOp::EndsWith:
+                return "($field=*$value)";
+            case FilterOp::NotContains:
+                return "(!($field=*$value*))";
+            case FilterOp::GreaterOrEqual:
+                return "($field>=$value)";
+            case FilterOp::LessOrEqual:
+                return "($field<=$value)";
+            case FilterOp::isTrue:
+                return "(!($field=))";
+            case FilterOp::isFalse:
+                return "($field=)";
+            default:
+                throw new \Exception('filter operator not implement for LDAP');
+        }
+    }
+
+    /**
+     * @return null if no filter is an SQL filter
+     */
+    function getDbIds(array $filters, array $values): ?array
+    {
+        $conditions = [];
         foreach ($filters as [$fields, $op, $value]) {
             $conditions[] = $this->generateFilterSql($fields, $op, $value);
         }
         bdump($conditions);
-        $where = implode(' AND ', $conditions);
+        $where = implode(' AND ', array_filter($conditions));
+
+        if (!$where) {
+            return null;
+        }
+
         // remove unused keys from $values
-        foreach ($this->filterValues as $name=>$value) {
+        foreach ($values as $name=>$value) {
             if (!preg_match("/:$name\W/", $where)) {
-                unset($this->filterValues[$name]);
+                unset($values[$name]);
             }
         }
         bdump($where);
-        bdump($this->filterValues);
+        bdump($values);
 
-        $dbIds = $db->query("SELECT id FROM mitglieder WHERE $where ORDER BY nachname, vorname", $this->filterValues)->getColumn();
-
-        // TODO
-        // $ldapIds = $ldap->;
-
-        $ids = $dbIds;  // $ids = array_intersect($dbIds, $ldapIds);
-        $ids = array_slice($ids, 0, 50);
-
-        return $this->showResults($ids);
+        return $this->db->query("SELECT id FROM mitglieder WHERE $where ORDER BY nachname, vorname", $values)->getColumn();
     }
 
     private function addFilterValue(string $name, string $value): void

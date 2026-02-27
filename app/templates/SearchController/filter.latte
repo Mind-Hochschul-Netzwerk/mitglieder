@@ -2,7 +2,7 @@
         <div class="col-sm-4">
             {include '../partials/input.latte', name: "key$number", type: select, options: [
                 none => "",
-                /* email => "E-Mail-Adresse", */
+                email => "E-Mail-Adresse",
                 /* telefon => "Telefon", */
                 /* beschaeftigung => "Beschäftigung", */
                 mensa_nr => "Mensa-Mitgliedsnr.",
@@ -24,7 +24,7 @@
                     '---' => '---',
                     /* rolle => "Gruppe / Rolle", */
                     resignation => "hat Austritt erklärt",
-                    /* emailInvalid => "E-Mail-Adresse nicht erreichbar", */
+                    emailInvalid => "E-Mail-Adresse nicht erreichbar",
                 ] : []
             ]}
         </div>
