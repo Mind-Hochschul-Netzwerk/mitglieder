@@ -81,7 +81,7 @@ class SearchController extends Controller {
                 throw new \Hengeb\Router\Exception\AccessDeniedException();
             }
             // TODO
-            if (in_array($key, ['rolle', 'datenschutzverpflichtung'], true)) {
+            if (in_array($key, ['rolle'], true)) {
                 throw new \Exception('not implemented');
             }
 
@@ -176,28 +176,18 @@ class SearchController extends Controller {
     function generateLdapQuery(string $field, FilterOp $op, string $value): string
     {
         $value = ldap_escape($value);
-        switch ($op) {
-            case FilterOp::Equal:
-                return "($field=$value)";
-            case FilterOp::Contains:
-                return "($field=*$value*)";
-            case FilterOp::StartsWith:
-                return "($field=$value*)";
-            case FilterOp::EndsWith:
-                return "($field=*$value)";
-            case FilterOp::NotContains:
-                return "(!($field=*$value*))";
-            case FilterOp::GreaterOrEqual:
-                return "($field>=$value)";
-            case FilterOp::LessOrEqual:
-                return "($field<=$value)";
-            case FilterOp::isTrue:
-                return "(!($field=))";
-            case FilterOp::isFalse:
-                return "($field=)";
-            default:
-                throw new \Exception('filter operator not implement for LDAP');
-        }
+        return match ($op) {
+            FilterOp::Equal => "($field=$value)",
+            FilterOp::Contains => "($field=*$value*)",
+            FilterOp::StartsWith => "($field=$value*)",
+            FilterOp::EndsWith => "($field=*$value)",
+            FilterOp::NotContains => "(!($field=*$value*))",
+            FilterOp::GreaterOrEqual => "($field>=$value)",
+            FilterOp::LessOrEqual => "($field<=$value)",
+            FilterOp::isTrue => "(!($field=))",
+            FilterOp::isFalse => "($field=)",
+            default => throw new \Exception('filter operator not implement for LDAP'),
+        };
     }
 
     /**
@@ -209,7 +199,6 @@ class SearchController extends Controller {
         foreach ($filters as [$fields, $op, $value]) {
             $conditions[] = $this->generateFilterSql($fields, $op, $value);
         }
-        bdump($conditions);
         $where = implode(' AND ', array_filter($conditions));
 
         if (!$where) {
@@ -278,6 +267,14 @@ class SearchController extends Controller {
                     FilterOp::Equal, FilterOp::GreaterOrEqual, FilterOp::LessOrEqual, FilterOp::Between, FilterOp::isTrue, FilterOp::isFalse => $this->generateSingleFilterExpression($field, $op, $valueName . '_date'),
                     default => throw new \OutOfBoundsException('op implemented: ' . $op),
                 },
+            'datenschutzverpflichtung' => $this->generateSingleFilterExpression('(
+                    SELECT IF(user_agreements.action != "accept", NULL, agreements.version)
+                    FROM user_agreements
+                    INNER JOIN agreements ON agreements.id = user_agreements.agreement_id
+                    WHERE agreements.name = "Datenschutzverpflichtung" AND user_agreements.user_id = mitglieder.id
+                    ORDER BY user_agreements.id DESC
+                    LIMIT 1
+                )', $op, $valueName),
             'id', 'titel', 'vorname', 'nachname',
             'plz', 'plz2', 'ort', 'ort2', 'land', 'land2',
             'telefon', 'mensa_nr', 'sprachen', 'hobbys', 'interessen',
@@ -300,7 +297,9 @@ class SearchController extends Controller {
             FilterOp::Between => ">= :{$valueName}_min AND $field <= :{$valueName}_max",
             FilterOp::isTrue => "IS NOT NULL AND $field != ''",
             FilterOp::isFalse => "IS NULL OR $field = ''",
+            default => throw new \Exception('filter operator not implement for SQL'),
         };
+        // handle protected fields
         if (!$this->currentUser->hasRole('mvread')) {
             if (in_array("$field|s", self::felder, true)) {
                 $sql .= " AND sichtbarkeit_$field = true";
