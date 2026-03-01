@@ -263,11 +263,16 @@ class SearchController extends Controller {
         }
         $field = $fields[0];
 
+        $combinationLogic = match ($op) {
+            FilterOp::NotContains, FilterOp::isFalse => ' AND ',
+            default => ' OR ',
+        };
+
         return match ($field) {
             // email is in LDAP but protection flag is in DB
             'email' => !$this->currentUser->hasRole('mvread') ? '(sichtbarkeit_email = true)' : '',
             'studienfach' => '(' . $this->generateSingleFilterExpression($field, $op, $valueName)
-                    . ' OR ' . $this->generateSingleFilterExpression('nebenfach', $op, $valueName) . ')',
+                    . $combinationLogic . $this->generateSingleFilterExpression('nebenfach', $op, $valueName) . ')',
             'aufnahmedatum', 'resignation' => match ($op) {
                     FilterOp::Contains, FilterOp::ContainsWord, FilterOp::NotContains, FilterOp::StartsWith, FilterOp::EndsWith => $this->generateSingleFilterExpression("DATE_FORMAT($field, '%d.%m.%Y')", $op, $valueName),
                     FilterOp::Equal, FilterOp::GreaterOrEqual, FilterOp::LessOrEqual, FilterOp::Between, FilterOp::isTrue, FilterOp::isFalse => $this->generateSingleFilterExpression($field, $op, $valueName . '_date'),
@@ -281,6 +286,23 @@ class SearchController extends Controller {
                     ORDER BY user_agreements.id DESC
                     LIMIT 1
                 )', $op, $valueName),
+            'aufgabe' => '(' . implode($combinationLogic, [
+                ...array_map(fn($item) => $this->generateSingleFilterExpression("IF($item[0]=TRUE, '$item[1]', '')", $op, $valueName), [
+                    ['aufgabe_ma', 'Mithilfe bei der Organisation der Mind-Akademie'],
+                    ['aufgabe_orte', 'Mithilfe bei der Suche nach Veranstaltungsorten'],
+                    ['aufgabe_vortrag', 'einen Vortrag, ein Seminar oder einen Workshop anbieten'],
+                    ['aufgabe_koord', 'eine Koordinations-Aufgabe, die man per Mail/Tel. von zu Hause erledigen kann'],
+                    ['aufgabe_graphisch', 'eine graphisch-kreative Aufgabe'],
+                    ['aufgabe_computer', 'eine Aufgabe, in der ich mein Computer-/IT-Wissen einbringen kann'],
+                    ['aufgabe_texte_schreiben', 'Texte verfassen (z.B. für die Homepage oder den MHN-Newsletter)'],
+                    ['aufgabe_texte_lesen', 'Texte durchlesen und kommentieren'],
+                    ['aufgabe_vermittlung', 'Weitervermittlung von Kontakten'],
+                    ['aufgabe_ansprechpartner', 'Ansprechpartner vor Ort (lokale Treffen organisieren, Plakate aufhängen)'],
+                    ['aufgabe_hilfe', 'eine kleine, zeitlich begrenzte Aufgabe, wenn ihr dringend Hilfe braucht'],
+                    ['aufgabe_sonstiges', 'Sonstiges'],
+                ]),
+                $this->generateSingleFilterExpression('aufgabe_sonstiges_beschreibung', $op, $valueName),
+            ]) . ')',
             'id', 'titel', 'vorname', 'nachname',
             'plz', 'plz2', 'ort', 'ort2', 'land', 'land2',
             'telefon', 'mensa_nr', 'sprachen', 'hobbys', 'interessen',
