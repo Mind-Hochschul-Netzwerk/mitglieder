@@ -233,7 +233,7 @@ class SearchController extends Controller {
         $this->filterValues[$name] = $value;
         $this->filterValues[$name . '_like'] = "%$value%";
         $this->filterValues[$name . '_start'] = "$value%";
-        $this->filterValues[$name . '_end'] = "$value%";
+        $this->filterValues[$name . '_end'] = "%$value";
         $this->filterValues[$name . '_word'] = '[[:<:]]' . preg_quote($value, '/') . '[[:>:]]';
         if (preg_match('/^([0-9]+)\s*\-\s*([0-9]+)$/', $value, $matches)) {
             [$min, $max] = array_map('trim', explode('-', $value));
@@ -270,45 +270,21 @@ class SearchController extends Controller {
         }
         $field = $fields[0];
 
-        if ($field === 'aufnahmedatum') {
-            $valueName = $valueName . '_date';
-        }
-
-        switch ($field) {
-            case 'studienfach':
-                return '(' . $this->generateSingleFilterExpression($field, $op, $valueName)
-                    . ' OR ' . $this->generateSingleFilterExpression('nebenfach', $op, $valueName) . ')';
-            case 'beschaeftigung':
-                throw new \OutOfBoundsException('not implemented: ' . $field);
-                break;
-            case 'telefon':
-            case 'mensa_nr':
-            case 'titel':
-            case 'plz':
-            case 'plz2':
-            case 'ort':
-            case 'ort2':
-            case 'land':
-            case 'land2':
-            case 'vorname':
-            case 'nachname':
-            case 'sprachen':
-            case 'hobbys':
-            case 'interessen':
-            case 'stipendien':
-            case 'auslandsaufenthalte':
-            case 'praktika':
-            case 'beruf':
-            case 'id':
-            case 'aufnahmedatum':
-            case 'resignation':
-                return $this->generateSingleFilterExpression($field, $op, $valueName);
-            case 'aufgaben':
-                throw new \OutOfBoundsException('not implemented: ' . $field);
-                break;
-            default:
-                return '';
-        }
+        return match ($field) {
+            'studienfach' => '(' . $this->generateSingleFilterExpression($field, $op, $valueName)
+                    . ' OR ' . $this->generateSingleFilterExpression('nebenfach', $op, $valueName) . ')',
+            'aufnahmedatum', 'resignation' => match ($op) {
+                    FilterOp::Contains, FilterOp::ContainsWord, FilterOp::NotContains, FilterOp::StartsWith, FilterOp::EndsWith => $this->generateSingleFilterExpression("DATE_FORMAT($field, '%d.%m.%Y')", $op, $valueName),
+                    FilterOp::Equal, FilterOp::GreaterOrEqual, FilterOp::LessOrEqual, FilterOp::Between, FilterOp::isTrue, FilterOp::isFalse => $this->generateSingleFilterExpression($field, $op, $valueName . '_date'),
+                    default => throw new \OutOfBoundsException('op implemented: ' . $op),
+                },
+            'id', 'titel', 'vorname', 'nachname',
+            'plz', 'plz2', 'ort', 'ort2', 'land', 'land2',
+            'telefon', 'mensa_nr', 'sprachen', 'hobbys', 'interessen',
+            'stipendien', 'auslandsaufenthalte', 'praktika', 'beruf',
+                => $this->generateSingleFilterExpression($field, $op, $valueName),
+            default => '',
+        };
     }
 
     function generateSingleFilterExpression(string $field, FilterOp $op, $valueName) {

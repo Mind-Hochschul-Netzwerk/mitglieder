@@ -65,7 +65,7 @@ form:has(details[open]) .col-sm-1 button {
 .filters .row div:has(option:is([value="email"], [value="emailInvalid"]):checked) + div option:is([value="containsWord"], [value="between"]) {
     display: none;
 }
-.filters .row div:has(option:is([value="resignation"], [value="emailInvalid"]):checked) + div option:not(:is([value="true"], [value="false"])) {
+.filters .row div:has(option:is([value="emailInvalid"]):checked) + div option:not(:is([value="true"], [value="false"])) {
     display: none;
 }
 </style>
