@@ -43,7 +43,7 @@ class SearchController extends Controller {
 
     #[Route('GET /(search|)?fullName={fullName}&location={location}&any={any}'), RequireLogin]
     public function search(string $fullName, string $location, string $any): Response {
-        // "any" filter has to be done first
+        // handle the "any" filter
         $anyIds = null;
         if ($any) {
             $this->setTemplateVariable('any', $any);
@@ -70,8 +70,32 @@ class SearchController extends Controller {
             };
         }
 
+        // reset filters after the handling of the "any" filter
         $filters = [];
         $this->filterValues = [];
+
+        if ($fullName) {
+            $this->setTemplateVariable('fullName', $fullName);
+
+            foreach (preg_split('/[\.;, ]/', $fullName) as $k=>$part) {
+                $this->addFilterValue("fullName$k", $part);
+                $filters[] = [['titel', 'vorname', 'nachname'], FilterOp::StartsWith, "fullName$k"];
+            }
+        }
+
+        if ($location) {
+            $this->setTemplateVariable('location', $location);
+            $this->addFilterValue("location", $location);
+
+            if (preg_match('/^[0-9]+$/', $location)) {
+                $filters[] = [['plz', 'plz2'], FilterOp::StartsWith, 'location'];
+            } elseif (preg_match('/^([0-9]+)\s*\-\s*([0-9]+)$/', $location)) {
+                $filters[] = [['plz', 'plz2'], FilterOp::Between, 'location'];
+            } else {
+                $filters[] = [['ort', 'ort2', 'land', 'land2'], FilterOp::Contains, 'location'];
+            }
+        }
+
         for ($i = 0; $i < 5;$i++) {
             $key = $this->request->query->getString("key$i");
             if ($key === 'none' || !$key) {
@@ -95,27 +119,6 @@ class SearchController extends Controller {
             $this->setTemplateVariable("key$i", $key);
             $this->setTemplateVariable("op$i", $op->value);
             $this->setTemplateVariable("value$i", $value);
-        }
-
-        if ($fullName) {
-            $this->setTemplateVariable('fullName', $fullName);
-
-            foreach (preg_split('/[\.;, ]/', $fullName) as $k=>$part) {
-                $this->addFilterValue("fullName$k", $part);
-                $filters[] = [['titel', 'vorname', 'nachname'], FilterOp::StartsWith, "fullName$k"];
-            }
-        }
-        if ($location) {
-            $this->setTemplateVariable('location', $location);
-            $this->addFilterValue("location", $location);
-
-            if (preg_match('/^[0-9]+$/', $location)) {
-                $filters[] = [['plz', 'plz2'], FilterOp::StartsWith, 'location'];
-            } elseif (preg_match('/^([0-9]+)\s*\-\s*([0-9]+)$/', $location)) {
-                $filters[] = [['plz', 'plz2'], FilterOp::Between, 'location'];
-            } else {
-                $filters[] = [['ort', 'ort2', 'land', 'land2'], FilterOp::Contains, 'location'];
-            }
         }
 
         $dbIds = $this->getDbIds($filters, $this->filterValues);
@@ -152,6 +155,7 @@ class SearchController extends Controller {
             $field = $fields[0]; // TODO multi
             if ($field === 'email') {
                 $query .= $this->generateLdapQuery('mail', $op, $values[$valueName]);
+                // email protection is handled in generateFilterSql()
             } elseif ($field === 'emailInvalid') {
                 if ($op === FilterOp::isTrue) {
                     $query .= '(mail=*.invalid)';
@@ -260,6 +264,8 @@ class SearchController extends Controller {
         $field = $fields[0];
 
         return match ($field) {
+            // email is in LDAP but protection flag is in DB
+            'email' => !$this->currentUser->hasRole('mvread') ? '(sichtbarkeit_email = true)' : '',
             'studienfach' => '(' . $this->generateSingleFilterExpression($field, $op, $valueName)
                     . ' OR ' . $this->generateSingleFilterExpression('nebenfach', $op, $valueName) . ')',
             'aufnahmedatum', 'resignation' => match ($op) {
