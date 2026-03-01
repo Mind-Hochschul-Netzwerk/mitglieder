@@ -43,11 +43,39 @@ class SearchController extends Controller {
 
     #[Route('GET /(search|)?fullName={fullName}&location={location}&any={any}'), RequireLogin]
     public function search(string $fullName, string $location, string $any): Response {
+        // "any" filter has to be done first
+        $anyIds = null;
+        if ($any) {
+            $this->setTemplateVariable('any', $any);
+
+            foreach (preg_split('/[\.;, ]/', $any) as $k=>$part) {
+                if ($part === '') {
+                    continue;
+                }
+                $this->addFilterValue("any$k", $part);
+                $filters[] = [
+                    ['telefon', 'mensa_nr', 'titel', 'sprachen', 'hobbys', 'interessen', 'stipendien', 'auslandsaufenthalte', 'praktika', 'beruf', 'id', 'studienfach', 'nebenfach'],
+                    FilterOp::Contains,
+                    "any$k"
+                ];
+            }
+
+            $dbIds = $this->getDbIds($filters, $this->filterValues);
+            $ldapIds = $this->getLdapIds($filters, $this->filterValues);
+
+            $anyIds = match (null) {
+                $dbIds => $ldapIds,
+                $ldapIds => $dbIds,
+                default => array_unique([...$dbIds, ...$ldapIds]),
+            };
+        }
+
         $filters = [];
+        $this->filterValues = [];
         for ($i = 0; $i < 5;$i++) {
             $key = $this->request->query->getString("key$i");
             if ($key === 'none' || !$key) {
-                continue;
+                break;
             }
             if (in_array($key, ['rolle', 'resigned', 'emailInvalid'], true) && !$this->currentUser->hasRole('mvread')) {
                 throw new \Hengeb\Router\Exception\AccessDeniedException();
@@ -90,42 +118,31 @@ class SearchController extends Controller {
             }
         }
 
-        // TODO: correct lookup for <any> in ldap/sdb
-        if ($any) {
-            $this->setTemplateVariable('any', $any);
-
-            foreach (preg_split('/[\.;, ]/', $any) as $k=>$part) {
-                if ($part === '') {
-                    continue;
-                }
-                $this->addFilterValue("any$k", $part);
-                $filters[] = [
-                    ['telefon', 'mensa_nr', 'titel', 'sprachen', 'hobbys', 'interessen', 'stipendien', 'auslandsaufenthalte', 'praktika', 'beruf', 'id', 'studienfach', 'nebenfach'],
-                    FilterOp::Contains,
-                    "any$k"
-                ];
-            }
-        }
-
         $dbIds = $this->getDbIds($filters, $this->filterValues);
         $ldapIds = $this->getLdapIds($filters, $this->filterValues);
 
-        if ($dbIds === null && $ldapIds === null) {
+        // now we have $anyIds (from the "any" filter), $dbIds and $ldapIds. Let's combine them.
+        $ids = null;
+        foreach ([$anyIds, $dbIds, $ldapIds] as $current) {
+            if ($ids === null) {
+                $ids = $current;
+            } elseif ($current !== null) {
+                $ids = array_intersect($ids, $current);
+            }
+        }
+
+        if (!$ids) {
             return $this->form();
         }
 
-        $ids = match (true) {
-            $dbIds === null => $ldapIds,
-            $ldapIds === null => $dbIds,
-            default => array_intersect($dbIds, $ldapIds),
-        };
+        // show a maximum of 50 results
         $ids = array_slice($ids, 0, 50);
 
         return $this->showResults($ids);
     }
 
     /**
-     * @return null if no filter is an LDAP filter
+     * @return array|null (null if no filter is an LDAP filter)
      */
     function getLdapIds(array $filters, array $values): ?array
     {
@@ -135,8 +152,7 @@ class SearchController extends Controller {
             $field = $fields[0]; // TODO multi
             if ($field === 'email') {
                 $query .= $this->generateLdapQuery('mail', $op, $values[$valueName]);
-            }
-            if ($field === 'emailInvalid') {
+            } elseif ($field === 'emailInvalid') {
                 if ($op === FilterOp::isTrue) {
                     $query .= '(mail=*.invalid)';
                 } elseif ($op === FilterOp::isFalse) {
@@ -185,7 +201,7 @@ class SearchController extends Controller {
     }
 
     /**
-     * @return null if no filter is an SQL filter
+     * @return array|null (null if no filter is an SQL filter)
      */
     function getDbIds(array $filters, array $values): ?array
     {
