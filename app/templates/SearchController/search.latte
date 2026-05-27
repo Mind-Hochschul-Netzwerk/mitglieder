@@ -56,7 +56,7 @@ details[open] summary {
 form:has(details[open]) .col-sm-1 button {
     display: none;
 }
-.filters .row:has(option[value="none"]:checked) + .row {
+.filters .row:has(option[value="none"]:checked) ~ .row {
     display: none;
 }
 .filters .row div:has(option:is([value="true"], [value="false"]):checked) + div {
