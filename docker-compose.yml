@@ -19,6 +19,7 @@ services:
     restart: unless-stopped
     container_name: ${SERVICENAME}
     volumes:
+      - "./app:/var/www"
       - "${VOLUMES_DIR}/profilbilder:/var/www/html/profilbilder"
     environment:
       - DOMAINNAME
@@ -62,8 +63,6 @@ services:
 
 networks:
   traefik:
-    name: traefik
     external: true
   ldap:
-    name: ldap
     external: true
