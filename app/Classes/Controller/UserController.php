@@ -64,6 +64,8 @@ class UserController extends Controller {
         foreach (array_keys(User::felder) as $feld) {
             $templateVars[$feld] = $user->get($feld);
         }
+        // E-Mail ist in User::felder nicht enthalten, da sie in LDAP liegt
+        $templateVars['email'] = $user->get('email');
 
         // Dann die sichtgeschützten Felder gesondert behandeln, damit das Template möglichst frei von Logik bleiben kann
         if (!$isAdmin) {
