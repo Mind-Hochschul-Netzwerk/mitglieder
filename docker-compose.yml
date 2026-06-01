@@ -19,7 +19,9 @@ services:
     restart: unless-stopped
     container_name: ${SERVICENAME}
     volumes:
-      - "./app:/var/www"
+      - "./app/Classes:/var/www/Classes"
+      - "./app/templates:/var/www/templates"
+      - "./app/html:/var/www/html"
       - "${VOLUMES_DIR}/profilbilder:/var/www/html/profilbilder"
     environment:
       - DOMAINNAME
