@@ -1,53 +1,13 @@
-{var $navId = suche}
-{block content}
-<h1 n:block=title>Einwilligungstexte</h1>
+{var $navId = datenschutz}
 
-<style>
-#agreements td {
-    cursor: pointer;
-}
-#agreements tr:has(td:hover) {
-    background: #eee;
-    text-decoration: underline;
-}
-#agreements tr.active {
-    font-weight: bold;
-    color: purple;
-}
-</style>
+{block title}Einwilligungstexte{/block}
 
-<form id="agreement">
-    <input class="form__name" type="hidden">
-    <h3 id="name"></h3>
-    <div class="form-group row"><div class="col-sm-12">
-        <textarea class='form__text form-control' rows="10"></textarea>
-    </div></div>
-    <div class="form-group row"><div class="col-sm-12">
-        <button class='btn btn-primary'>Als neuste Version speichern</button>
-    </div></div>
-</form>
-
-<h3>Texte</h3>
-
-<table class="table" id="agreements">
-    <thead><tr><th>Bezeichnung</th><th>Version</th><th>Datum</th><th>Zustimmungen<sup>1</sup></th></tr></thead>
-    <tbody></tbody>
-</table>
-
-
-<div class="loader hidden"></div>
-
-<p><sup>1</sup> Jedes Mitglied wird pro Einwilligungstext nur bei der neusten zugestimmten Version gezählt.</p>
-
-<template id="rowTemplate">
-    <tr><td class="name"></td><td class="version"></td><td class="timestamp"></td><td class="count"></td></tr>
-</template>
-
-<script n:syntax=off>
+{block script}{syntax off}
 const table = document.querySelector('#agreements tbody');
 const form = document.getElementById('agreement');
 const name = form.querySelector(".form__name");
-const nameDisplay = document.getElementById("name");
+const nameDisplay = document.getElementById("agreement-heading");
+const version = document.getElementById("agreement-version");
 const text = form.querySelector(".form__text");
 const button = form.querySelector("button");
 const template = document.getElementById('rowTemplate');
@@ -74,8 +34,10 @@ function loadAgreement(agreement) {
     name.value = agreement.name;
     text.value = agreement.text;
     text.dataset.value = agreement.text;
-    nameDisplay.innerText = `${agreement.name} (Version ${agreement.version} vom ${formatTime(agreement.timestamp)})`;
+    nameDisplay.innerText = agreement.name;
+    version.innerText = `Version ${agreement.version} vom ${formatTime(agreement.timestamp)}`;
     button.disabled = true;
+    nameDisplay.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function handleResponse(data) {
@@ -100,4 +62,50 @@ function handleResponse(data) {
 }
 
 callApi("GET", "/agreements/api", {}, loader).then((data) => handleResponse(data));
-</script>
+{/syntax}{/block}
+
+{block page-label}<i class="ti ti-settings" aria-hidden="true"></i> Administration{/block}
+
+{block page-header}
+    <div class="page-subtitle">Einwilligungstexte verwalten</div>
+{/block}
+
+
+{block content}
+<section class="panel" aria-labelledby="agreement-heading">
+    <h2 id="agreement-heading" id="name">-</h2>
+    <div id="agreement-version" class="meta-note"></div>
+    <form id="agreement">
+    <input class="form__name" type="hidden">
+    <div class="form-group">
+        <label for="agreement-text">Text</label>
+        <textarea id="agreement-text" class="form__text" rows="10"></textarea>
+    </div>
+    <button type="submit"><i class="ti ti-device-floppy" aria-hidden="true"></i> Als neueste Version speichern</button>
+    </form>
+</section>
+
+<section class="panel" aria-labelledby="texts-heading">
+    <h2 id="texts-heading">Texte</h2>
+    <div class="table-wrapper">
+    <table id="agreements" class="clickable">
+        <thead>
+        <tr>
+            <th>Bezeichnung</th>
+            <th>Version</th>
+            <th>Datum</th>
+            <th>Zustimmungen<sup>1</sup></th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    </div>
+    <p class="small-note"><sup>1</sup> Jedes Mitglied wird pro Einwilligungstext nur bei der neusten zugestimmten Version gezählt.</p>
+</section>
+
+<div class="loader hidden"></div>
+
+<template id="rowTemplate">
+    <tr><td class="name"></td><td class="version"></td><td class="timestamp"></td><td class="count"></td></tr>
+</template>
+

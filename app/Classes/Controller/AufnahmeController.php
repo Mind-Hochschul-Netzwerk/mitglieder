@@ -12,8 +12,10 @@ use App\Model\UserAgreement;
 use App\Repository\AgreementRepository;
 use App\Repository\UserAgreementRepository;
 use App\Repository\UserRepository;
+use App\Service\CurrentUser;
 use App\Service\EmailService;
 use App\Service\Ldap;
+use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\PublicAccess;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\InvalidUserDataException;
@@ -237,6 +239,12 @@ class AufnahmeController extends Controller
             $this->setTemplateVariable('passwordMismatch', true);
             return;
         }
+    }
+
+    #[Route('GET /aufnahme/test'), AllowIf(productionMode: false)]
+    public function testForm(CurrentUser $currentUser): Response
+    {
+        return $this->render('AufnahmeController/form', ['mhn_vorname' => 'Max', 'username' => 'max.mustermann']);
     }
 
     private function showForm(): Response

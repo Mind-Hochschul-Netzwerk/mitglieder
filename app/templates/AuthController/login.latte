@@ -1,62 +1,64 @@
 {var $navId = login}
+
 {block htmlTitle}Login{/block}
 
-{block content}
-
-<div id="loginModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="false">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-<form method="post" action="/login">
-    {=csrfTokenTag()}
-    {include '../partials/input.latte', name: redirect, type: hidden}
-    <div class="modal-header">
-        <h4 class="modal-title" id="myModalLabel">Login ins MHN-Mitgliederverzeichnis</h4>
-    </div>
-    <div class="modal-body">
-        <h4>Gib deine Mitgliedsdaten ein, um dich anzumelden.</h4>
-
-        {if $lost_password}
-            {include '../partials/alert.latte',
-                type: success,
-                text: "Falls ein entsprechendes Benutzerkonto gefunden wurde, wurde eine E-Mail an deine E-Mail-Adresse gesendet.",
-            }
-        {/if}
-        {if $error_passwort_falsch}
-            <div id="alertFalsch" class="alert alert-danger">Die Benutzerkennung oder das Passwort ist falsch.</div>
-        {/if}
-
-        <div id="alertBenutzerkennung" n:class="alert, alert-danger, !$error_username_leer ? hide">Gib deinen Benutzernamen oder E-Mail-Adresse an.</div>
-        <div class="row form-group">
-            <div class="col-sm-12">
-                {include '../partials/input.latte', name: login, placeholder: 'Benutzername, Mitgliedsnummer oder E-Mail-Adresse'}
-            </div>
-        </div>
-        <div class="row form-group">
-            <div class="col-sm-12">
-                {include '../partials/input.latte', name: password, placeholder: Passwort, type: password}
-            </div>
-        </div>
-
-        <button type="submit" onclick="return check_username();" class="hidden-default-button"></button>
-        <p><button class="link btn btn-secondary" onclick="return check_username();" name="passwort_vergessen" value="1">Ich habe mein Passwort vergessen.</button></p>
-    </div>
-    <div class="modal-footer">
-        <button type="submit" onclick="return check_username();" class="btn btn-primary">Login</button>
-    </div>
-</form>
-
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div>
-
-<script>
+{block script}
 function check_username() {
-    $("#alertBenutzerkennung").addClass("hide");
-    $("#alertFalsch").addClass("hide");
-    if ($("#id").val() == "") {
-        $("#alertBenutzerkennung").removeClass("hide");
+    document.getElementById("alertBenutzerkennung").classList.add("hidden");
+    document.getElementById("alertFalsch")?.classList.add("hidden");
+    if (document.getElementById("input-login").value == "") {
+        document.getElementById("alertBenutzerkennung").classList.remove("hidden");
         return false;
     }
     return true;
 }
-</script>
+{/block}
+
+{block content}
+  <dialog aria-label="Login-Formular" open>
+    <div class="page-label"><i class="ti ti-login" aria-hidden="true"></i> Anmelden</div>
+    <h1 class="dialog-title">Willkommen</h1>
+    <p class="dialog-subtitle">Melde dich mit deinen Mitgliedsdaten an.</p>
+
+    {if $lost_password}
+        {include alert,
+            type: success,
+            text: "Falls ein entsprechendes Benutzerkonto gefunden wurde, wurde eine E-Mail an deine E-Mail-Adresse gesendet.",
+        }
+    {/if}
+    {if $error_passwort_falsch}
+        {include alert,
+            type: danger,
+            text: "Die Benutzerkennung oder das Passwort ist falsch.",
+        }
+    {/if}
+
+    {include alert,
+        alertId: 'alertBenutzerkennung',
+        type: danger,
+        text: "Gib deinen Benutzernamen oder deine E-Mail-Adresse an.",
+        hide: !$error_username_leer,
+    }
+    <div id="alertBenutzerkennung" n:class="alert, alert--danger, !$error_username_leer ? hidden" role="alert">
+        <div>Gib deinen Benutzernamen oder deine E-Mail-Adresse an.</div>
+    </div>
+
+    <form method="post" action="/login">
+      {=csrfTokenTag()}
+      {include input, name: redirect, type: hidden}
+      {include form-group, label: "Benutzername oder E-Mail", name: login, placeholder: "Benutzername, Mitgliedsnummer oder E-Mail", autocomplete: "username", required: true}
+      {include form-group, label: "Passwort", name: password, type: password, placeholder: "Passwort", autocomplete: "current-password", required: true}
+
+      <div class="form-actions">
+        <button type="submit"><i class="ti ti-login" aria-hidden="true"></i> Anmelden</button>
+        <button type="submit" class="secondary" onclick="return check_username();" name="passwort_vergessen" value="1">
+          Passwort vergessen?
+        </button>
+      </div>
+    </form>
+  </dialog>
+{/block}
+
+
+</body>
+</html>

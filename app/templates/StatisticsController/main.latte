@@ -1,8 +1,14 @@
 {var $navId = statistics}
 
-{block content}
-<h1 n:block=title>Statistik</h1>
+{block title}Statistik{/block}
 
+{block page-label}<i class="ti ti-settings" aria-hidden="true"></i> Administration{/block}
+{block page-header}
+    <div class="page-subtitle">Statistische Übersicht über die Mitglieder</div>
+{/block}
+
+{block content}
+<section class="panel">
 <pre>
 Einträge in der Mitgliedertabelle: {$countAllEntries}
 zusätzlich {$countDeleted} gesperrte Benutzernamen (= gelöschte Mitglieder)
@@ -19,3 +25,5 @@ Von den {$countAllEntries} Mitgliedern:
     <tr n:foreach="$eintritte as $entry"><td>{$entry['eintrittsjahr']}</td><td>{$entry['anzahl']}</td><td>{$entry['max_id']}</td></tr>
 </table>
 <p><sup>1</sup> In der Statistik sind nur Mitglieder enthalten, die aktuell noch Mitglied sind.</p>
+
+</section>

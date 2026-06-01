@@ -1,39 +1,65 @@
+{import partials/components.latte}
+
 <!DOCTYPE html>
 <html lang="de">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <title>{ifset htmlTitle}{include htmlTitle} – {elseifset title}{include title|striptags} – {/ifset}Mein MHN</title>
-
-    <!-- META -->
-
     <link rel="icon" href="/favicon.png">
-
-    <!-- CSS -->
-    <link href="/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/css/bootstrap-toggle.min.css" rel="stylesheet">
-    <link href="/css/sidebar.css" rel="stylesheet">
-    <link href="/css/MHN.css?{=md5((string)filemtime('/var/www/html/css/MHN.css'))}" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css?{=md5((string)filemtime('/var/www/html/css/style.css'))}">
+    <link rel="stylesheet" href="/css/MHN.css?{=md5((string)filemtime('/var/www/html/css/MHN.css'))}">
+    <link rel="stylesheet" href="/css/tabler-icons.min.css"/>
+    {ifset css}<style>{include css|noescape}</style>{/ifset}
   </head>
-  <body>
+  <body class="{$bodyClass}">
     {=debugger()}
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/sidebar.js"></script>
-    <script src="/js/bootstrap-toggle.min.js"></script>
     <script src="/js/MHN.js"></script>
     <script src="/js/marked.min.js"></script>
     <script>csrfToken = {csrfToken()};</script>
 
-    {include partials/navigation.latte}
+<a class="skip-link" href="#main-content">Zum Hauptinhalt springen</a>
+<input id="nav-toggle" type="checkbox" aria-hidden="true">
 
-    <div class="main"><div class="container-fluid">
-        {block content}
-        Leere Seite
-        {/block}
-    </div></div>
+<div class="topbar">
+  <label class="brand" for="nav-toggle">
+    <img src="/img/mhn-logo-small.png" alt="MHN-Logo">
+    <div class="brand-text">
+      <span class="name">Mind-Hochschul-Netzwerk</span>
+      <span class="caption">Mitgliederverzeichnis</span>
+    </div>
+  </label>
+  <form n:if="(currentUser()->isLoggedIn())" class="topbar-search-form" role="search" action="/" method="get">
+      <label class="visually-hidden" for="member-search">Mitglied suchen</label>
+      <input id="member-search" class="search-input" type="search" name="fullName" placeholder="Mitglied suchen…">
+      <button type="submit" class="search-button" aria-label="Suche starten">
+      <i class="ti ti-search" aria-hidden="true"></i>
+      </button>
+  </form>
+  <label class="nav-toggle" for="nav-toggle" aria-controls="site-navigation" aria-label="Navigation öffnen">
+    <span class="hamburger" aria-hidden="true"></span>
+  </label>
+</div>
+
+{include partials/navigation.latte}
+
+<label class="overlay" for="nav-toggle" tabindex="-1"></label>
+<main id="main-content" class="main-content">
+    <section n:ifset=title class="page-header" aria-labelledby="title">
+        <div class="page-header-image" n:ifcontent>{block header-image}{/block}</div>
+        <div class="summary">
+            <span class="page-label" n:ifcontent>{block page-label}{/block}</span>
+            <h1 id="title">{include title}</h1>
+            {block page-header}{/block}
+        </div>
+    </section>
+
+{block content}{/block}
+
+</main>
+
+    {ifset script}<script>{include script|noescape}</script>{/ifset}
   </body>
 </html>
 

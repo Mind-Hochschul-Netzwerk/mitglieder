@@ -1,6 +1,10 @@
-$(function() {
-    $('[data-tooltip="sichtbarkeit"] .toggle-group .toggle-on').prop("title", "sichtbar für andere Mitglieder");
-    $('[data-tooltip="sichtbarkeit"] .toggle-group .toggle-off').prop("title", "nicht sichtbar");
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll('[data-tooltip="sichtbarkeit"] .toggle-group .toggle-on').forEach(function(element) {
+        element.setAttribute("title", "sichtbar für andere Mitglieder");
+    });
+    document.querySelectorAll('[data-tooltip="sichtbarkeit"] .toggle-group .toggle-off').forEach(function(element) {
+        element.setAttribute("title", "nicht sichtbar");
+    });
 });
 
 function formatTime(timestamp, includeDate = true, includeTime = true) {

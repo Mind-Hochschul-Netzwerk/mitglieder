@@ -1,123 +1,205 @@
 {var $navId = suche}
 
-{block content}
-<h1 n:block=title>MHN-Mitgliederverzeichnis</h1>
+{block title}Mitgliedersuche{/block}
 
-<p>Willkommen im Mitgliederverzeichnis des Mind-Hochschul-Netzwerks. Hier kannst du deine Daten in unserer Mitgliederdatenbank aktualisieren und andere Mitglieder finden. Das Netzwerk lebt von deiner aktiven Beteiligung und den Kontakten unter den Mitgliedern.</p>
-
-<p>Gefunden werden Mitglieder, bei denen alle gewählten Bedingungen zutreffen. Nicht freigegebene Daten werden nicht durchsucht.</p>
-
-<form>
-
-<div class="form-group row">
-    <div class="col-sm-4">
-        {include '../partials/input.latte', name: fullName, placeholder: "Name"}
-    </div>
-    <div class="col-sm-3">
-        {include '../partials/input.latte', name: location, placeholder: "Ort, PLZ-Bereich oder Land"}
-    </div>
-    <div class="col-sm-4">
-        {include '../partials/input.latte', name: any, placeholder: Suchbegriff}
-    </div>
-    <div class="col-sm-1">
-        <button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-search"></span> Suchen</button>
-    </div>
-</div>
-
-<details n:attr="open: $key0 ? true : null">
-    <summary>
-        <div class="form-group row"><div class="col-sm-2">
-            <div class="btn btn-default">erweiterte Suche <i class="glyphicon glyphicon-chevron-down"></i></div>
-        </div></div>
-    </summary>
-
-    <div class="filters">
-        {include 'filter.latte', number: 0}
-        {include 'filter.latte', number: 1}
-        {include 'filter.latte', number: 2}
-        {include 'filter.latte', number: 3}
-        {include 'filter.latte', number: 4}
-    </div>
-
-    <div class="form-group row">
-        <div class="col-sm-12">
-            <button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-search"></span> Suchen</button>
-        </div>
-    </div>
-</details>
-
-<style>
+{block css}
 details summary {
-    display: inline-block;
+    display: block;
 }
 details[open] summary {
     display: none;
 }
-form:has(details[open]) .col-sm-1 button {
+form:has(details[open]) > div button {
     display: none;
 }
-.filters .row:has(option[value="none"]:checked) ~ .row {
+.filters div:has(option[value="none"]:checked) ~ div {
     display: none;
 }
-.filters .row div:has(option:is([value="true"], [value="false"]):checked) + div {
-    display: none;
-}
-.filters .row div:has(option:is([value="email"], [value="emailInvalid"]):checked) + div option:is([value="containsWord"], [value="between"]) {
-    display: none;
-}
-.filters .row div:has(option:is([value="emailInvalid"]):checked) + div option:not(:is([value="true"], [value="false"])) {
-    display: none;
-}
-</style>
-
-
-<script>
-function ensureVisibleSelection(select) {
-    const current = select.selectedOptions[0];
-    if (!current || getComputedStyle(current).display !== 'none') {
-        return;
+.filters select:has(option:is([value="true"], [value="false"]):checked) + input {
+    visibility: hidden;
+    @container (width < 640px) {
+        display: none;
     }
+}
+.filters select:has(option:is([value="email"], [value="emailInvalid"]):checked) + select option:is([value="containsWord"], [value="between"]) {
+    display: none;
+}
+.filters select:has(option:is([value="emailInvalid"]):checked) + select option:not(:is([value="true"], [value="false"])) {
+    display: none;
+}
 
-    for (const opt of select.options) {
-        if (getComputedStyle(opt).display !== 'none' && !opt.disabled) {
-            select.value = opt.value;
-            select.dispatchEvent(new Event('change', { bubbles: true }));
+main form {
+  container-type: inline-size;
+
+  .form-row {
+    margin-bottom: 1em;
+  }
+
+  &:not(:has(details[open])) > .form-row {
+    grid-template-columns: 1fr 1fr 1fr 100px;
+  }
+}
+
+@container (width < 640px) {
+  .form-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  button {
+    width: 100px;
+  }
+
+  .filters {
+    counter-reset: filter;
+  }
+
+  .filters .form-row::before {
+    counter-increment: filter;
+    display: block;
+    content: "Filter " counter(filter);
+    font-weight: bold;
+  }
+}
+{/block css}
+
+{define filter, $number}
+<div data-number="{$number}" class="form-row">
+    {include input, name: "key$number", type: select, options: [
+        none => "",
+        email => "E-Mail-Adresse",
+        /* telefon => "Telefon", */
+        /* beschaeftigung => "Beschäftigung", */
+        mensa_nr => "Mensa-Mitgliedsnr.",
+        titel => "Titel",
+        sprachen => "Sprachen",
+        hobbys => "Hobbys",
+        interessen => "Interessen",
+        studienfach => "Studienfach oder Ausbildung",
+        stipendien => "Stipendien",
+        auslandsaufenthalte => "Auslandsaufenthalte",
+        praktika => "Praktika, Fort- und Weiterbildungen",
+        beruf => "Beruf",
+        aufgabe => "Könnte bei einer Aufgabe helfen",
+        /* funktion => "Team / Funktion", */
+        id => "Mitgliedsnummer",
+        aufnahmedatum => "Aufnahmedatum",
+        datenschutzverpflichtung => "Verpflichtung zum Datenschutz (Version)",
+        ... (currentUser()->hasRole('mvread')) ? [
+            '---' => '---',
+            /* rolle => "Gruppe / Rolle", */
+            resignation => "Datum der Austrittserklärung",
+            emailInvalid => "E-Mail-Adresse als nicht erreichbar markiert",
+        ] : []
+    ]}
+    {include input, name: "op$number", type: select, options: [
+        contains => "enthält",
+        containsWord => "enthält als Wort",
+        notContains => "enthält nicht",
+        startsWith => "beginnt mit",
+        endsWith => "endet mit",
+        eq => "ist gleich",
+        ge => "ist mindestens",
+        le => "ist höchstens",
+        between => "ist zwischen",
+        "true" => "trifft zu / ist nicht leer",
+        "false" => "trifft nicht zu / ist leer",
+    ]}
+    {include input, name: "value$number", placeholder: Wert, type: search}
+</div>
+{/define}
+
+{block page-label}<i class="ti ti-user-search" aria-hidden="true"></i> Finden und gefunden werden{/block}
+{block page-header}
+    <p class="page-subtitle">Finde Mitglieder des Mind-Hochschul-Netzwerks nach Name, Ort oder Studiengang.</p>
+    <form role="search" method="get">
+        <div class="form-row">
+            {include input, name: fullName, placeholder: "Name", type: search}
+            {include input, name: location, placeholder: "Ort, PLZ-Bereich oder Land", type: search}
+            {include input, name: any, placeholder: Suchbegriff, type: search}
+            <button type="submit">
+                <i class="ti ti-search" aria-hidden="true"></i>
+                <span class="btn-label">Suchen</span>
+            </button>
+        </div>
+
+        <details n:attr="open: $key0 ? true : null">
+            <summary>
+                <div class="form-actions">
+                    <div class="secondary button">erweiterte Suche <i class="ti ti-chevron-down"></i></div>
+                </div>
+            </summary>
+
+            <div class="filters">
+                {include filter, 0}
+                {include filter, 1}
+                {include filter, 2}
+                {include filter, 3}
+                {include filter, 4}
+            </div>
+
+            <div class="form-actions">
+                <button type="submit">
+                    <i class="ti ti-search" aria-hidden="true"></i>
+                    <span class="btn-label">Suchen</span>
+                </button>
+            </div>
+        </details>
+    </form>
+{/block}
+
+{block script}
+    function ensureVisibleSelection(select) {
+        const current = select.selectedOptions[0];
+        if (!current || getComputedStyle(current).display !== 'none') {
             return;
         }
+
+        for (const opt of select.options) {
+            if (getComputedStyle(opt).display !== 'none' && !opt.disabled) {
+                select.value = opt.value;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                return;
+            }
+        }
     }
-}
 
-document.querySelectorAll(".filters .row").forEach((element) => {
-    const number = element.dataset.number;
-    const selectKey = document.querySelector("#input-key" + number);
-    const selectOp = document.querySelector("#input-op" + number);
-    selectKey.addEventListener("change", e => ensureVisibleSelection(selectOp));
-});
-</script>
+    document.querySelectorAll(".filters > div").forEach((element) => {
+        const number = element.dataset.number;
+        const selectKey = document.querySelector("#input-key" + number);
+        const selectOp = document.querySelector("#input-op" + number);
+        selectKey.addEventListener("change", e => ensureVisibleSelection(selectOp));
+    });
+{/block}
 
-</form>
+{block content}
 
-<div id="suchergebnisse" n:if="$ergebnisse !== null">
-<h2>Suchergebnisse</h2>
+{if $ergebnisse !== null}
+    <div class="results-header">
+        <h2>Suchergebnisse</h2>
+        <span class="results-count">{$resultCount} Mitglieder gefunden</span>
+    </div>
 
-{if !$ergebnisse}
-    <p>Die Suche erbrachte kein Ergebnis.</p>
-{else}
-    <div class="table-responsive" n:if=$ergebnisse><table class="table vertical-center" id="suchergebnisse">
-        <tr><th>#</th><th>Profilbild</th><th>Name</th><th>Ort</th></tr>
+    {if !$ergebnisse}
+        <p>Die Suche erbrachte kein Ergebnis.</p>
+    {else}
+        <ul class="cards" role="list">
+            <li n:foreach="$ergebnisse as $e"><a class="card" href="/user/{$e[username]}">
+                <div class="card-image">
+                    {if $e[profilbild]}
+                        <img src="/profilbilder/{$e[profilbild]}" alt="Profilbild von {$e[fullName]}">
+                    {else}
+                        <div class="card-image-placeholder" aria-hidden="true">{$e[vorname][0].$e[nachname][0]|upper}</div>
+                    {/if}
+                </div>
 
-        <tr n:foreach="$ergebnisse as $e">
-            <td>{$iterator->counter}</td>
-            <td><div class='thumbnail-container'><a href='/user/{$e[username]}'>
-                <img class='img-thumbnail' src="/{$e[profilbild] ? 'profilbilder/' . $e[profilbild] : 'img/thumbnail-profilbild-default.png'}" alt='Profilbild'>
-            </a></div></td>
-            <td><a href="/user/{$e[username]}">{$e[fullName]}</a></td>
-            <td>{$e[orte]}</td>
+                <div class="card-content">
+                    <p class="card-caption">{$e[fullName]}</p>
+                    <div class="card-info">{if $e[orte]}<i class="ti ti-map-pin" aria-hidden="true"></i> {$e[orte]}{/if}</div>
+                </div>
 
-        </tr>
+            </a></li>
+        </ul>
 
-    </table></div>
-    <p n:if="count($ergebnisse) >= 50">Es werden nicht alle Ergebnisse angezeigt. Grenze deine Suchkriterien weiter ein.</p>
-
+        <p n:if="$resultsCount >= 50">Es werden nicht alle Ergebnisse angezeigt. Grenze deine Suchkriterien weiter ein.</p>
+    {/if}
 {/if}
-</div>

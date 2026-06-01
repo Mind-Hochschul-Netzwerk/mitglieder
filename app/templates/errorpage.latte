@@ -1,6 +1,10 @@
-{layout 'layout.latte'}
-{block content}
+{layout layout.latte}
+{block title}Fehler{/block}
 
-<h1 n:block=title>Fehler</h1>
+{block page-label}<i class="ti ti-alert-triangle" aria-hidden="true"></i> Fehler{/block}
 
-{$text}
+{block page-header}
+    <div class="page-subtitle">{$text}</div>
+    <a class="action-link" href="javascript:history.back()"><i class="ti ti-arrow-left" aria-hidden="true"></i> Zurück</a>
+{/block}
+

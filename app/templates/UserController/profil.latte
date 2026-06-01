@@ -1,120 +1,102 @@
 {var $navId = suche}
-{block htmlTitle}{$fullName}{/block}
+{block title}{$fullName}{/block}
+{block header-image}<img n:if=$profilbild src="/profilbilder/{$profilbild}" alt="Profilbild von {$fullName}">{/block}
+{block page-label}<i class="ti ti-user" aria-hidden="true"></i> Mitglied {$aufnahmedatum ? "seit ". ($aufnahmedatum?|format:'Y')}{/block}
+{block page-header}
+    <div class="meta">
+        <span n:if=$db_modified><strong>Stand:</strong> {$db_modified|format:'d.m.Y@local'}</span>
+        <span n:if=$ort><i class="ti ti-map-pin" aria-hidden="true"></i> {$ort}</span>
+    </div>
+    <a n:if=$mayEdit class="action-link" href="{$bearbeitenUrl}">
+        <i class="ti ti-pencil" aria-hidden="true"></i> Profil bearbeiten
+    </a>
+{/block}
+
+{define row, $label, $name, $value, $sichtbarkeit, $href}
+    {var $sichtbarkeit = $sichtbarkeit ?? get_defined_vars()["sichtbarkeit_" . $name]}
+    {var $value = $value ?? get_defined_vars()[$name]}
+    <div n:if=$value>
+        <dt>{$label}</dt>
+        <dd><a n:tag-if="$href" href="{$href}">{$value}</a><i n:if="$sichtbarkeit === false" class="protected-value-icon ti ti-eye-off"></i></dd>
+    </div>
+{/define}
+
 {block content}
+    <section class="panel" aria-labelledby="contact-heading">
+      <h2 id="contact-heading">
+        <i class="label-icon ti ti-at" aria-hidden="true"></i>Kontakt &amp; Ort
+      </h2>
+      <dl>
+        {include row, 'E-Mail', name: email, href: ("mailto:" . $email)}
+        {include row, 'Webseite', name: homepage, value: preg_replace('/(^https?:\/*(www\.)?|\/$)/', '', $homepage), href: ($homepage)}
+        {include row, 'Adresse',
+            value: implode(', ', array_filter([
+                $strasse,
+                $adresszusatz,
+                trim("$plz $ort"),
+                $land !== 'Deutschland' ? $land
+            ])),
+            sichtbarkeit: $uncoverAll ? ($sichtbarkeit_strasse && $sichtbarkeit_adresszusatz && $sichtbarkeit_plz_ort && $sichtbarkeit_land) : true,
+        }
+        {include row, 'Zweitwohnsitz',
+            value: implode(', ', array_filter([
+                $strasse2,
+                $adresszusatz2,
+                trim("$plz2 $ort2"),
+                $land2 !== 'Deutschland' ? $land2
+            ]))
+        }
+        {include row, 'Telefon', name: telefon, href: ("tel:" . preg_replace('/(,.*$|\s)/', '', $telefon))}
+      </dl>
+    </section>
 
-<h1 n:block=title>
-    {$fullName}
-    <small n:if=$db_modified>Stand: {$db_modified|format:'d.m.Y@local'}</small>
-    <small n:if=$mayEdit><a href="{$bearbeitenUrl}"><span class="glyphicon glyphicon-pencil"></span> Daten bearbeiten</a></small>
-</h1>
+    <section class="panel" aria-labelledby="career-heading">
+      <h2 id="career-heading">
+        <i class="label-icon ti ti-school" aria-hidden="true"></i>Ausbildung &amp; Beruf
+      </h2>
+      <dl>
+        {include row, 'Beschäftigung', name: beschaeftigung, value: match($beschaeftigung) {
+            'Schueler' => 'Schüler:in',
+            'Hochschulstudent' => 'Hochschulstudent:in',
+            'Doktorand' => 'Doktorand:in',
+            'Berufstaetig' => 'berufstätig',
+            'Sonstiges' => 'sonstiges',
+            default => null,
+        }}
+        {include row, 'Beruf', name: beruf}
+        {include row, 'Hochschultyp', name: unityp}
+        {include row, 'Studienort', name: studienort}
+        {include row, 'Studiengang, Ausbildung', name: studienfach}
+        {include row, 'Schwerpunkt', name: schwerpunkt}
+        {include row, 'Nebenfach', name: nebenfach}
+        {include row, 'Abschluss', name: abschluss}
+        {include row, 'Zweitstudium', name: zweitstudium}
+        {include row, 'Ehrenamtliches Engagement', name: hochschulaktivitaeten}
+        {include row, 'Stipendien', name: stipendien}
+        {include row, 'Auslandsaufenthalte', name: auslandsaufenthalte}
+        {include row, 'Praktika, Fort- und Weiterbildung', name. praktika}
+      </dl>
+    </section>
 
-<div class="profilbild pull-right" n:if="$profilbild">
-    <img src="/profilbilder/{$profilbild}" alt="Profilbild" />
-</div>
+    <section class="panel" aria-labelledby="activity-heading">
+      <h2 id="activity-heading">
+        <span class="label-icon" aria-hidden="true"><i class="ti ti-affiliate"></i></span> Netzwerk
+      </h2>
 
-<div class="row">
-    <div class="col-sm-6">
-        <h4>Mitgliedschaft</h4>
-        {include 'row.latte', label: 'Mitgliedsnummer', name: id}
-        {include 'row.latte', label: 'Mitglied seit', value: ($aufnahmedatum|format:'d.m.Y') ?? 'unbekannt'}
-        {include 'row.latte', label: 'Mensa-Mitgliedsnummer', name: mensa_nr}
+      <h3>Angebote für andere Mitglieder</h3>
 
-        {if $datenschutzverpflichtung}
-            <div class="row">
-                <div class="col-xs-6">Verpflichtungserklärung zum Datenschutz abgegeben:</div>
-                <div class="col-xs-6">ja (Version {$datenschutzverpflichtung->agreement->version} vom {$datenschutzverpflichtung->agreement->timestamp|format:'d.m.Y@local'})</div>
-            </div>
-        {/if}
-    </div>
-    <div class="col-sm-6" n:if=$geburtstag>
-        <h4>Persönliche Daten</h4>
-        {include 'row.latte', label: 'Geburtsdatum', name: geburtstag, value: ($geburtstag|format:'d.m.Y')}
-    </div>
+      <ul n:ifcontent class="feature-list">
+        <li n:if=$auskunft_studiengang>Auskunft über den Studiengang, Ausbildung</li>
+        <li n:if=$auskunft_stipendien>Auskunft über Stipendien</li>
+        <li n:if=$auskunft_auslandsaufenthalte>Auskunft über Auslandsaufenthalte</li>
+        <li n:if=$auskunft_praktika>Auskunft über Praktika, Fort- und Weiterbildung</li>
+        <li n:if=$auskunft_beruf>Auskunft über den Beruf</li>
+        <li n:if=$mentoring>berufliches Mentoring</li>
+      </ul>
+      <p n:else>Keine Angebote angegeben.</p>
 
-    <div class="col-sm-6" n:if="$sprachen || $hobbys || $interessen">
-        <h4>Interessen</h4>
-        {include 'row.latte', label: 'Sprachen', name: sprachen}
-        {include 'row.latte', label: 'Hobbys', name: hobbys}
-        {include 'row.latte', label: 'Interessen', name: interessen}
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-sm-3" n:if="$email || $telefon || $homepage">
-        <h4>Kontaktdaten</h4>
-        <p n:if=$email n:class="$sichtbarkeit_email === false ? unsichtbar"><span class="glyphicon glyphicon-at"></span> <a href="mailto:{$email}">{$email}</a></p>
-        <p n:if=$telefon n:class="$sichtbarkeit_telefon === false ? unsichtbar"><span class="glyphicon glyphicon-earphone"></span> {$telefon}</p>
-        <p n:if=$homepage><span class="glyphicon glyphicon-globe"></span> <a href="{$homepage}">{$homepage}</a></p>
-    </div>
-
-    <div class="col-sm-3" n:if="$strasse || $adresszusatz || $plz || $ort || $land">
-        <h4>Adresse</h4>
-        <address>
-                {if $strasse}<span n:class="$sichtbarkeit_strasse === false ? unsichtbar">{$strasse}</span><br>{/if}
-                {if $adresszusatz}<span n:class="$sichtbarkeit_adresszusatz === false ? unsichtbar">{$adresszusatz}</span><br>{/if}
-                {if $plz || $ort}<span n:class="$sichtbarkeit_plz_ort === false ? unsichtbar">{$plz} {$ort}</span><br>{/if}
-                {if $land}<span n:class="$sichtbarkeit_land === false ? unsichtbar">{$land}</span><br>{/if}
-        </address>
-    </div>
-
-    <div class="col-sm-3" n:if="$strasse2 || $adresszusatz2 || $plz2 || $ort2 || $land2">
-        <h4>Zweitwohnsitz</h4>
-        <address>
-                {if $strasse2}{$strasse2}<br>{/if}
-                {if $adresszusatz2}{$adresszusatz2}<br>{/if}
-                {if $plz2 || $ort2}{$plz2} {$ort2}<br>{/if}
-                {if $land2}{$land2}<br>{/if}
-        </address>
-    </div>
-</div>
-
-<div class="row" n:if="$beschaeftigung || $unityp || $studienort || $studienfach || $schwerpunkt || $nebenfach || $abschluss || $zweitstudium || $hochschulaktivitaeten || $stipendien || $auslandsaufenthalte || $praktika || $beruf">
-    <div class="col-sm-6">
-        <h4>Angaben zu Ausbildung und Beruf</h4>
-        <div n:if=$beschaeftigung n:class="row, $sichtbarkeit_beschaeftigung === false ? unsichtbar">
-            <div class="col-xs-6">Beschäftigung</div>
-            <div class="col-xs-6">
-                {switch $beschaeftigung}
-                    {case Schueler} Schüler:in
-                    {case Hochschulstudent} Hochschulstudent:in
-                    {case Doktorand} Doktorand:in
-                    {case Berufstaetig} berufstätig
-                    {case Sonstiges} sonstiges
-                    {default} unbekannt
-                {/switch}
-            </div>
-        </div>
-        {include 'row.latte', label: 'Hochschultyp', name: unityp}
-        {include 'row.latte', label: 'Studienort', name: studienort}
-        {include 'row.latte', label: 'Studiengang, Ausbildung', name: studienfach}
-        {include 'row.latte', label: 'Schwerpunkt', name: schwerpunkt}
-        {include 'row.latte', label: 'Nebenfach', name: nebenfach}
-        {include 'row.latte', label: 'Abschluss', name: abschluss}
-        {include 'row.latte', label: 'Zweitstudium', name: zweitstudium}
-        {include 'row.latte', label: 'Ehrenamtliches Envalue: gagement', $hochschulaktivitaeten}
-        {include 'row.latte', label: 'Stipendien', name: stipendien}
-        {include 'row.latte', label: 'Auslandsaufenthalte', name: auslandsaufenthalte}
-        {include 'row.latte', label: 'Praktika, Fvalue: ort- und Weiterbildung', $praktika}
-        {include 'row.latte', label: 'Beruf', name: beruf}
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-sm-6">
-        <h4>{$vorname} gibt Auskunft über</h4>
-        <div class="profil-checkbox"><span class="checkbox">{$auskunft_studiengang ? ☑ : ☐}</span> Studiengang, Ausbildung</div>
-        <div class="profil-checkbox"><span class="checkbox">{$auskunft_stipendien ? ☑ : ☐}</span> Stipendien</div>
-        <div class="profil-checkbox"><span class="checkbox">{$auskunft_auslandsaufenthalte ? ☑ : ☐}</span> Auslandsaufenthalte</div>
-        <div class="profil-checkbox"><span class="checkbox">{$auskunft_praktika ? ☑ : ☐}</span> Praktika, Fort- und Weiterbildung</div>
-        <div class="profil-checkbox"><span class="checkbox">{$auskunft_beruf ? ☑ : ☐}</span> Beruf</div>
-        <div>{$vorname} ist {$mentoring ? 'prinzipiell' : 'nicht'} bereit zu beruflichem Mentoring.</div>
-    </div>
-</div>
-
-<div class="row">
-<div class="col-sm-6">
-    <h4>{$vorname} könnte bei folgenden Aufgaben helfen</h4>
-    <ul n:ifcontent>
+      <h3>Angebote für den Verein</h3>
+      <ul n:ifcontent class="feature-list">
         <li n:if=$aufgabe_ma>Mithilfe bei der Organisation der Mind-Akademie</li>
         <li n:if=$aufgabe_orte>Mithilfe bei der Suche nach Veranstaltungsorten</li>
         <li n:if=$aufgabe_vortrag>einen Vortrag, ein Seminar oder einen Workshop anbieten</li>
@@ -127,7 +109,31 @@
         <li n:if=$aufgabe_ansprechpartner>Ansprechpartner vor Ort (lokale Treffen organisieren, Plakate aufhängen)</li>
         <li n:if=$aufgabe_hilfe>eine kleine, zeitlich begrenzte Aufgabe, wenn ihr dringend Hilfe braucht</li>
         <li n:if=$aufgabe_sonstiges>Sonstiges, und zwar: „{$aufgabe_sonstiges_beschreibung}”</li>
-    </ul>
-    <p n:else>Keine Aufgaben angegeben.</p>
-</div>
-</div>
+      </ul>
+      <p n:else>Keine Angebote angegeben.</p>
+
+    </section>
+
+    <section class="panel" aria-labelledby="about-heading">
+      <h2 id="about-heading">
+        <span class="label-icon" aria-hidden="true"><i class="ti ti-mood-spark"></i></span>Persönliches
+      </h2>
+      <dl>
+        {include row, 'Geburtsdatum', name: geburtstag, value: ($geburtstag|format:'d.m.Y')}
+        {include row, 'Sprachen', name: sprachen}
+        {include row, 'Hobbys', name: hobbys}
+        {include row, 'Interessen', name: interessen}
+      </dl>
+    </section>
+
+    <section class="panel" aria-labelledby="membership-heading">
+      <h2 id="membership-heading">
+        <span class="label-icon" aria-hidden="true"><i class="ti ti-file-description"></i></span>Mitgliedschaft
+      </h2>
+      <dl>
+        {include row, 'Mitgliedsnummer', name: id}
+        {include row, 'Mitglied seit', value: ($aufnahmedatum|format:'d.m.Y') ?? 'unbekannt'}
+        {include row, 'Mensa-Mitgliedsnummer', name: mensa_nr}
+        {include row, 'Datenschutz', value: $datenschutzverpflichtung ? ("Verpflichtungserklärung abgegeben (Version " . $datenschutzverpflichtung->agreement->version . " vom " . ($datenschutzverpflichtung->agreement->timestamp|format:'d.m.Y@local') . ")") : "Verpflichtungserklärung nicht abgegeben"}
+      </dl>
+    </section>

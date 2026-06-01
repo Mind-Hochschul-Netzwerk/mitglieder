@@ -51,11 +51,11 @@ class UserController extends Controller {
         RequireLogin,
     ]
     public function show(User $user, UserAgreementRepository $userAgreementRepository): Response {
-        $db_modified = $user->get('db_modified');
         $isAdmin = $this->currentUser->hasRole('mvread');
 
         $templateVars = [
             'fullName' => $user->get('fullName'),
+            'uncoverAll' => $isAdmin,
             'bearbeitenUrl' => $user->get('bearbeitenUrl'),
             'mayEdit' => $this->currentUser->get('id') === $user->get('id') || $this->currentUser->hasRole('mvedit'),
         ];
@@ -93,7 +93,6 @@ class UserController extends Controller {
 
         return $this->render('UserController/profil', [
             ...$templateVars,
-            'email' => $user->get('email'),
             'datenschutzverpflichtung' => $userAgreementRepository->findLatestByUserAndName($user, 'datenschutzverpflichtung'),
         ]);
     }

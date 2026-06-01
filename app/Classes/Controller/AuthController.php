@@ -6,6 +6,7 @@ namespace App\Controller;
 use App\Model\User;
 use App\Repository\UserRepository;
 use App\Service\EmailService;
+use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\PublicAccess;
 use Hengeb\Router\Attribute\RequestValue;
 use Hengeb\Router\Attribute\Route;
@@ -117,10 +118,18 @@ class AuthController extends Controller {
         return $user;
     }
 
+    #[Route('GET /lost-password/test'), AllowIf(productionMode: false)]
+    public function lostPasswordFormTest(): Response {
+        return $this->render('AuthController/lost-password', [
+            'vorname' => 'Max',
+        ]);
+    }
+
     #[Route('GET /lost-password?token={token}'), PublicAccess]
     public function resetPasswordForm(string $token): Response {
         $user = $this->validatePasswordToken($token);
         return $this->render('AuthController/lost-password', [
+            'vorname' => $user->get('vorname'),
             'password' => '',
             'password2' => '',
         ]);

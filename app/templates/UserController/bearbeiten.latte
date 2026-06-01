@@ -1,359 +1,11 @@
 {var $navId = bearbeiten}
+
 {block htmlTitle}Profil bearbeiten{/block}
-{block content}
+{block title}{$fullName}{/block}
 
-<h1 n:block=title>
-    Meine Mitgliedsdaten im MHN
-    <small>
-        <span class='glyphicon glyphicon-user'></span>
-        <a href='/user/{$username}'>Profil anzeigen</a>
-    </small>
-</h1>
-
-{default $active_pane = basisdaten}
-
-{var $changes = false}
-{var $error = false}
-{var $password_error = false}
-
-{* Alerts generieren *}
-
-{if $profilbild_format_unbekannt}
-    {include '../partials/alert.latte',
-        type: danger,
-        text: "Das Dateiformat des Profilbilds wurde nicht erkannt oder wird nicht unterstützt. Unterstützte Formate: JPEG, PNG.",
-    }
-    {var $active_pane = profilbild}
-    {var $changes = true}
-    {var $error = true}
-{/if}
-
-{if $profilbild_uploadfehler}
-    {include '../partials/alert.latte',
-        type: danger,
-        text: "Beim Upload des Profilbilds ist es leider zu einem unbekannten Fehler gekommen. Bitte wende dich an die Mitgliederbetreuung.",
-    }
-    {var $active_pane = profilbild}
-    {var $changes = true}
-    {var $error = true}
-{/if}
-
-{if $email_error}
-    {include '../partials/alert.latte',
-        type: danger,
-        text: "Die eigegebene E-Mail-Adresse ist ungültig. Die E-Mail-Adresse und wurde nicht gespeichert.",
-    }
-    {var $changes = true}
-    {var $error = true}
-{/if}
-
-{if $email_changed}
-    {include '../partials/alert.latte',
-        type: success,
-        text: "Deine E-Mail-Adresse wurde erfolgreich geändert.",
-    }
-{/if}
-
-{include '../partials/alert.latte',
-    alertId: AlertWiederholungFalsch,
-    type: danger,
-    hide: !$new_password2_error,
-    text: "Die Wiederholung stimmt nicht mit dem neuen Passwort überein.",
-}
-
-{if $new_password2_error}
-    {var $active_pane = basisdaten}
-    {var $password_error = true}
-    {var $changes = true}
-    {var $error = true}
-{/if}
-
-{if $old_password_error}
-    {include '../partials/alert.latte',
-        type: danger,
-        text: "Das alte Passwort ist falsch. Das Passwort wurde nicht geändert.",
-    }
-    {var $active_pane = basisdaten}
-    {var $password_error = true}
-    {var $changes = true}
-    {var $error = true}
-{/if}
-
-{if $data_saved_info}
-    {include '../partials/alert.latte',
-        type: success,
-        text: (!$error ? 'Deine Daten wurden geändert.' : 'Die anderen Änderungen wurden gespeichert.') . ($email_auth_info ? ' Bitte schau in dein E-Mail-Postfach, um die Änderung deiner E-Mail-Adresse abzuschließen.'),
-    }
-{/if}
-
-{if $errorMessage}
-    {include '../partials/alert.latte',
-        type: warning,
-        text: $errorMessage,
-    }
-{/if}
-
-<ul class="nav nav-tabs">
-    <li n:class="$active_pane === basisdaten ? active"><a data-toggle="tab" href="#basisdaten">Basisdaten</a></li>
-    <li n:class="$active_pane === uebermich ? active"><a data-toggle="tab" href="#uebermich">Über mich</a></li>
-    <li n:class="$active_pane === ausbildungberuf ? active"><a data-toggle="tab" href="#ausbildungberuf">Ausbildung und Beruf</a></li>
-    <li n:class="$active_pane === profilbild ? active"><a data-toggle="tab" href="#profilbild">Profilbild</a></li>
-    <li n:class="$active_pane === settings ? active"><a data-toggle="tab" href="#settings">Netzwerk</a></li>
-    <li n:class="$active_pane === account ? active"><a data-toggle="tab" href="#account">MHN-Mitgliedskonto</a></li>
-</ul>
-
-<form enctype="multipart/form-data" method="post" id="profile-form">
-    {=csrfTokenTag()}
-
-<div class="tab-content">
-    <div n:class="tab-pane, $active_pane === basisdaten ? active" id="basisdaten">
-        <h3>Basisdaten</h3>
-        <p>Diese Basisdaten werden von allen Mitgliedern erhoben. Mit der Sichtbarkeits-Auswahl
-            (<span class="glyphicon glyphicon-eye-open btn-success sichtbarkeit-beispiel"></span> und <span class="glyphicon glyphicon-eye-close btn-danger sichtbarkeit-beispiel"></span>)
-            neben den Einträgen  kannst du einstellen, welche Daten für alle Mitglieder oder nur für dich und die
-            Beauftragten der Mitgliederverwaltung sichtbar sind. Bei einigen Angaben kann die Sichtbarkeit nicht geändert werden. Weitere Informationen findest du in der Datenschutzerklärung (Link in der Navigation).
-        </p>
-        <div class='form-group row'><label class='col-sm-2 col-form-label'>Vorname(n) + Nachname</label>
-            <div class='col-sm-5'>{include '../partials/input.latte', name: vorname, placeholder: Vorname, disabled: !$isAdmin}</div>
-            <div class='col-sm-5'>{include '../partials/input.latte', name: nachname, placeholder: Nachname, disabled: !$isAdmin}</div>
-        </div>
-        {include 'form-row.latte', name: strasse, label: "Straße + Hausnummer"}
-        {include 'form-row.latte', name: adresszusatz, label: "ggf. Adresszusatz", placeholder: "Adresszusatz"}
-        <div class='form-group row'><label class='col-sm-2 col-form-label'>PLZ + Ort + Land</label>
-            <div class='col-sm-2'>{include '../partials/input.latte', name: plz, placeholder: "PLZ", uncover: sichtbarkeit_plz_ort}</div>
-            <div class='col-sm-4'>{include '../partials/input.latte', name: ort, placeholder: "Ort", uncover: sichtbarkeit_plz_ort}</div>
-            <div class='col-sm-4'>{include '../partials/input.latte', name: land, placeholder: "Land"}</div>
-        </div>
-
-        <script>
-            let sichtbarkeit_plz_ort_recursion = false;
-            document.querySelectorAll('[name=sichtbarkeit_plz_ort]').forEach(a => a.onchange = function () {
-                if (sichtbarkeit_plz_ort_recursion) return;
-                sichtbarkeit_plz_ort_recursion = true;
-                const check = this.checked;
-                document.querySelectorAll('[name=sichtbarkeit_plz_ort]').forEach(b => {
-                    if (a == b) return;
-                    $(b).bootstrapToggle(check ? 'on' : 'off');
-                });
-                sichtbarkeit_plz_ort_recursion = false;
-            });
-        </script>
-
-        {default $geburtstag = \DateTimeImmutable::fromFormat('0000-00-00')}
-
-        {include 'form-row.latte', name: geburtstag, label: "Geburtsdatum", type: date, disabled: !$isAdmin}
-        {include 'form-row.latte', name: email, label: "E-Mail" . ($email_auth_info ? " (wird geändert)"), placeholder: "E-Mail", type: email}
-        {include 'form-row.latte', name: telefon, label: "Telefon", type: tel}
-
-        {include 'form-row.latte', name: beschaeftigung, label: "Beschäftigung", type: select, options: [
-            'Schueler' => 'Schüler:in',
-            'Hochschulstudent' => 'Hochschulstudent:in',
-            'Doktorand' => 'Doktorand:in',
-            'Berufstaetig' => 'berufstätig',
-            'Sonstiges' => 'sonstiges',
-        ]}
-    </div>
-
-    <div n:class="tab-pane, $active_pane === uebermich ? active" id="uebermich">
-        <h3>Über mich</h3>
-        <p>Teile mehr von dir mit, damit du im Netzwerk leichter gefunden wirst.</p>
-        {include 'form-row.latte', name: mensa_nr, label: "ggf. Mensa-Mitgliedsnr.", placeholder: "Mensa-Mitgliedsnummer"}
-        {include 'form-row.latte', name: titel, label: "Titel"}
-
-        <h4>Kontaktdaten</h4>
-        {include 'form-row.latte', name: homepage, label: "Homepage"}
-
-        <h4>Zweitwohnsitz <small>z.B. Adresse der Eltern</small></h4>
-
-        {include 'form-row.latte', name: strasse2, label: "Straße + Hausnummer"}
-        {include 'form-row.latte', name: adresszusatz2, label: "ggf. Adresszusatz", placeholder: "Adresszusatz"}
-        <div class='form-group row'><label class='col-sm-2 col-form-label'>PLZ + Ort + Land</label>
-            <div class='col-sm-2'>{include '../partials/input.latte', name: plz2, placeholder: "PLZ"}</div>
-            <div class='col-sm-4'>{include '../partials/input.latte', name: ort2, placeholder: "Ort"}</div>
-            <div class='col-sm-4'>{include '../partials/input.latte', name: land2, placeholder: "Land"}</div>
-        </div>
-
-        <h4>Sprachen, Hobbys, Interessen</h4>
-        {include 'form-row.latte', name: sprachen, label: "Sprachen"}
-        {include 'form-row.latte', name: hobbys, label: "Hobbys"}
-        {include 'form-row.latte', name: interessen, label: "Interessen"}
-    </div>
-
-    <div n:class="tab-pane, $active_pane === ausbildungberuf ? active" id="ausbildungberuf">
-        <h3>Ausbildung und Beruf</h3>
-
-        <p>
-            Angaben über deine Ausbildung und Beruf können anderen Mitgliedern helfen, Ansprechpartner/innen für Fragen zu ihrer eigenen Ausbildung zu finden. Dies ist einer der Kerngedanken des Netzwerks.
-        </p>
-
-        <div class='form-group row'><label class='col-sm-2 col-form-label'>Hochschultyp + Studienort</label>
-            <div class='col-sm-5'>{include '../partials/input.latte', name: unityp, placeholder: "Hochschultyp (Universität, Fachhochschule, ...)"}</div>
-            <div class='col-sm-5'>{include '../partials/input.latte', name: studienort, placeholder: "Studienort"}</div>
-        </div>
-        <div class='form-group row'><label class='col-sm-2 col-form-label'>Studienfach, Ausbildung + Schwerpunkt</label>
-            <div class='col-sm-5'>{include '../partials/input.latte', name: studienfach, placeholder: "Studiengang, Ausbildung"}</div>
-            <div class='col-sm-5'>{include '../partials/input.latte', name: schwerpunkt, placeholder: "Schwerpunkt"}</div>
-        </div>
-        {include 'form-row.latte', name: sprachen, label: "Sprachen"}
-        {include 'form-row.latte', label: 'ggf. Nebenfach', name: nebenfach, placeholder: 'Nebenfach'}
-        {include 'form-row.latte', label: 'Abschluss', name: abschluss}
-        {include 'form-row.latte', label: 'ggf. Zweitstudium', name: zweitstudium, placeholder: 'Zweitstudium'}
-        {include 'form-row.latte', label: 'Hochschulaktivitäten', name: hochschulaktivitaeten, placeholder: 'Hochschulaktivitäten (Fachschaftsarbeit, ...)'}
-        {include 'form-row.latte', label: 'Stipendien', name: stipendien}
-        {include 'form-row.latte', label: 'Auslandsaufenthalte', name: auslandsaufenthalte}
-        {include 'form-row.latte', label: 'Praktika, Fort- und Weiterbildungen', name: praktika}
-        {include 'form-row.latte', label: 'Beruf', name: beruf}
-
-    </div>
-
-    <div n:class="tab-pane, $active_pane === profilbild ? active" id="profilbild">
-        <h3>Profilbild</h3>
-
-        <p>Lade ein Profilbild hoch, damit andere eine Vorstellung haben, mit wem sie es zu tun haben. Das Profilbild ist für alle Mitglieder sichtbar.</p>
-
-        <div class="form-group row">
-            <label for="aktuellesBild" class="col-sm-2 col-form-label">Profilbild</label>
-            <div class="col-sm-10 text-center">
-                <img id="aktuellesBild" src="{$profilbild ? '/profilbilder/'.$profilbild : '/img/profilbild-default.png'}" />
-            </div>
-        </div>
-
-        <div class="form-group row">
-            <label for="profilbild" class="col-sm-2 col-form-label">Bild ändern</label>
-            <div class="col-sm-10">
-                <div class="input-group">
-                    <label class="input-group-btn">
-                        <span class="btn btn-primary">
-                            Datei auswählen &hellip; <input name="profilbild" type="file" style="display: none;">
-                        </span>
-                    </label>
-                    <input type="text" class="form-control" readonly="readonly">
-                </div>
-            </div>
-        </div>
-
-        {if $profilbild}
-            <div class="form-group row">
-                <label for="bildLoeschen" class="col-sm-2 col-form-label">Bild löschen</label>
-                <div class="col-sm-10">{include '../partials/box.latte', name: bildLoeschen, label: 'Bild löschen'}</div>
-            </div>
-        {/if}
-    </div>
-
-    <div n:class="tab-pane, $active_pane === settings ? active" id="settings">
-        <h3>Netzwerk</h3>
-
-        <p>
-            Wie möchtest du im Netzwerk aktiv sein? Diese Angaben können für alle Mitglieder sichtbar sein.
-        </p>
-
-        <div class="row form-group">
-            <div class="col-sm-6">
-                <h4>Ich gebe Auskunft über</h4>
-                <div class="checkbox">{include '../partials/box.latte', name: auskunft_studiengang, label: 'Studiengang'}</div>
-                <div class="checkbox">{include '../partials/box.latte', name: auskunft_stipendien, label: 'Stipendien'}</div>
-                <div class="checkbox">{include '../partials/box.latte', name: auskunft_auslandsaufenthalte, label: 'Auslandsaufenthalte'}</div>
-                <div class="checkbox">{include '../partials/box.latte', name: auskunft_praktika, label: 'Praktika'}</div>
-                <div class="checkbox">{include '../partials/box.latte', name: auskunft_beruf, label: 'Beruf'}</div>
-                <div class="checkbox">{include '../partials/box.latte', name: mentoring, label: 'Ich bin prinzipiell bereit zu beruflichem Mentoring'}</div>
-            </div>
-
-            <div class="col-sm-6">
-                <h4>Ich könnte bei folgenden Aufgaben helfen</h4>
-                <div class="checkbox">{include '../partials/box.latte', name: auskunft_studiengang, label: 'Studiengang'}</div>
-                <div class="checkbox">{include '../partials/box.latte', name: aufgabe_ma, label: "Mithilfe bei der Organisation der MIND AKADEMIE"}</div>
-                <div class="checkbox">{include '../partials/box.latte', name: aufgabe_orte, label: "Mithilfe bei der Suche nach Veranstaltungsorten"}</div>
-                <div class="checkbox">{include '../partials/box.latte', name: aufgabe_vortrag, label: "einen Vortrag, ein Seminar oder einen Workshop anbieten"}</div>
-                <div class="checkbox">{include '../partials/box.latte', name: aufgabe_koord, label: "eine Koordinations-Aufgabe, die man per Mail/Tel. von zu Hause erledigen kann"}</div>
-                <div class="checkbox">{include '../partials/box.latte', name: aufgabe_graphisch, label: "eine graphisch-kreative Aufgabe"}</div>
-                <div class="checkbox">{include '../partials/box.latte', name: aufgabe_computer, label: "eine Aufgabe, in der ich mein Computer-/IT-Wissen einbringen kann"}</div>
-                <div class="checkbox">{include '../partials/box.latte', name: aufgabe_texte_schreiben, label: "Texte verfassen (z.B. für die Homepage oder den MHN-Newsletter)"}</div>
-                <div class="checkbox">{include '../partials/box.latte', name: aufgabe_texte_lesen, label: "Texte durchlesen und kommentieren"}</div>
-                <div class="checkbox">{include '../partials/box.latte', name: aufgabe_vermittlung, label: "Weitervermittlung von Kontakten"}</div>
-                <div class="checkbox">{include '../partials/box.latte', name: aufgabe_ansprechpartner, label: "Ansprechpartner vor Ort (lokale Treffen organisieren, Plakate aufhängen)"}</div>
-                <div class="checkbox">{include '../partials/box.latte', name: aufgabe_hilfe, label: "eine kleine, zeitlich begrenzte Aufgabe, wenn ihr dringend Hilfe braucht"}</div>
-                <div class="checkbox"><label>{include '../partials/box.latte', name: aufgabe_sonstiges, label: null} Sonstiges: {include '../partials/input.latte', name: aufgabe_sonstiges_beschreibung, placeholder: "Bitte spezifizieren"}</label></div>
-            </div>
-        </div>
-    </div>
-
-    <div n:class="tab-pane, $active_pane === account ? active" id="account">
-            <h3>Mitgliedskonto</h3>
-
-            <div class="row"><div class="col-sm-2">MHN-Mitgliedsnummer</div><div class="col-sm-10">{$id}</div></div>
-            <div class="row"><div class="col-sm-2">Anmeldename</div><div class="col-sm-10">{$username}</div></div>
-            <div class="row"><div class="col-sm-2">Aufnahmedatum</div><div class="col-sm-10">{($aufnahmedatum|format:'d.m.Y') ?? 'unbekannt'}</div></div>
-            <div class="row"><div class="col-sm-2">Letzte Bearbeitung</div><div class="col-sm-10">
-                {($db_modified|format:'d.m.Y H:i@local') ?? unbekannt} durch
-                <a n:tag-if="$db_modified_user" href="{$db_modified_user->profilUrl}">{$db_modified_user?->get('fullName') ?? 'unbekannt'}</a>
-            </div></div>
-            <div class="row"><div class="col-sm-2">Vereinseintritt</div><div class="col-sm-10">{($dateOfJoining|format:'d.m.Y') ?? 'kein Mitglied'}</div></div>
-            <div class="row"><div class="col-sm-2">Datenschutzerklärungen</div><div class="col-sm-10"><a href="/user/{$username}/agreements">Einwilligungen anzeigen / ändern</a></div></div>
-            <div class="row">
-                <div class="col-sm-2"><label for="resignPassword">Austritt erklären</label></div>
-                <div class="col-sm-10">
-                    {if $isAdmin}
-                        {include '../partials/box.latte', name: resign, label: 'Das Mitglied hat seinen Austritt erklärt.',
-                            elementId: 'resignCheckbox',
-                            onclick: 'return confirm("Bist du ganz sicher, dass dieses Häkchen " + (!$("#resignCheckbox").get(0).checked ? "entfernt" : "gesetzt") + " werden soll?")'
-                        }
-                        <p n:if=$resignation>Die Austrittserklärung wurde am {$resignation|format:'d.m.Y@local'} gespeichert.</p>
-                    {else}
-                        {if $resignation}
-                            <p>Deine Austrittserklärung wurde am {$resignation|format:'d.m.Y@local'} gespeichert. Wenn du deinen Austritt zurücknehmen möchtest, wende dich bitte an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>. Der Austritt wird gemäß unserer Satzung zum Ende des Kalenderjahres wirksam.</p>
-                        {else}
-                            <p>Mit einer Erklärung an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>, kannst du deine MHN-Mitgliedschaft beenden. Mit dem Ende deiner Mitgliedschaft werden wir deine persönlichen Daten aus der Mitgliederdatenbank löschen.</p>
-                            <p class="resign__button"><button type="button" id="resign" name="resign" class="btn btn-danger">Austritt erklären</button></p>
-                            <div class="resign__password hidden">
-                                <p>Gib hier dein Passwort ein, wenn du deine Mitgliedschaft wirklich beenden möchtest, und klicke dann auf speichern.</p>
-                                <div><input id="resignPassword" name="resignPassword" type="password" class="form-control" autocomplete="new-password" placeholder="Passwort"></div>
-                            </div>
-                        {/if}
-                    {/if}
-                </div>
-            </div>
-
-            <h4>Passwort ändern</h4>
-            {if !$isAdmin || $isSelf}
-                {include 'form-row.latte', label: 'Altes Passwort', name: password, type: password, value: null, autocomplete: 'current-password'}
-            {/if}
-            {include 'form-row.latte', label: 'Neues Passwort', name: new_password, type: password, value: null, autocomplete: 'new-password'}
-            {include 'form-row.latte', label: 'Passwort wiederholen', name: new_password2, type: password, value: null}
-
-            {if $isAdmin}
-                <h4>Mitgliederverwaltung</h4>
-
-                {if $isSuperAdmin}
-                    {include 'form-row.latte', label: 'Gruppen ändern', name: groups, placeholder: "Trennen durch Komma. Mögliche Werte siehe Menüpunkt „Mitgliederverwaltung”"}
-                {else}
-                    <div class="row">
-                        <div class="col-sm-2">Gruppen</div>
-                        <div class="col-sm-10">{$groups}</div>
-                    </div>
-                {/if}
-
-                <div class="form-group row">
-                    <label class="col-sm-2 col-form-label">Mitglied löschen</label>
-                    <div class="col-sm-10">
-                        {include '../partials/box.latte', name: delete, label: 'Die Daten werden SOFORT endgültig und unwiederbringlich gelöscht! Die Mitglieder der Mitgliederbetreuung werden informiert.',
-                            onclick: 'return confirm("Bist du ganz sicher?" + (!$("#delete").get(0).checked ? "" : " Daten werden unwiederbringlich gelöscht!"))'
-                        }
-                    </div>
-                </div>
-            {/if}
-
-    </div>
-</div>
-
-<div class="form-group row">
-    <div class="col-sm-12">
-        <button type="submit" class="btn btn-success">Speichern</button>
-    </div>
-</div>
-
-</form>
-    <script>
-$(function() {
+{block script}
+/*
+document.addEventListener('DOMContentLoaded', (function() {
   // We can attach the fileselect event to all file inputs on the page
   $(document).on('change', ':file', function() {
     var input = $(this),
@@ -362,7 +14,7 @@ $(function() {
   });
 
   // We can watch for our custom fileselect event like this
-  $(document).ready( function() {
+  document.addEventListener('ready', function() {
       $(':file').on('fileselect', function(event, label) {
 
           var input = $(this).parents('.input-group').find(':text');
@@ -373,12 +25,13 @@ $(function() {
       });
   });
 });
+*/
 
 // vor dem Verlassen warnen, falls etwas geändert wurde
-let changes = {$changes};
+let changes = {$changes ? 'true' : 'false'};
 let saving = false;
 
-$(document).on('change', 'input', (e) => {
+document.addEventListener('change', (e) => {
     if (e.target.autocomplete != "current-password") {
         changes = true;
     }
@@ -398,7 +51,7 @@ document.getElementById("profile-form").addEventListener("submit", e => {
     let input2 = document.querySelector("[name=new_password2]").value;
     if (input1 !== input2) {
         let alert = document.getElementById("AlertWiederholungFalsch");
-        alert.classList.remove("hide");
+        alert.classList.remove("hidden");
         alert.scrollIntoView();
         e.preventDefault();
     }
@@ -412,5 +65,391 @@ if (resignButton !== null) {
         document.querySelector(".resign__button").classList.add("hidden");
     });
 }
+{/block}
 
-</script>
+{define private-input, $label, $name, $type, $value, $class = "", $uncoverVariable, $type = 'text', $id, $placeholder, $autocomplete, $disabled, $required, $options = []}
+    {var $uncoverVariable = $uncoverVariable ?? "sichtbarkeit_" . $name}
+    {var $show_toggle = isset(get_defined_vars()[$uncoverVariable])}
+    {var $sichtbarkeit = (bool) get_defined_vars()[$uncoverVariable]}
+
+    <div class="input-group" n:tag-if=$show_toggle>
+        {include input, ...get_defined_vars()}
+        <span class="uncover-toggle" n:if=$show_toggle>
+            <input type="checkbox"
+            n:attr="
+                checked: $sichtbarkeit,
+                name: $uncoverVariable,
+                id: $uncoverVariable,
+            ">
+            <label for="{$uncoverVariable}">
+                <i class="ti ti-eye protected-value-icon" aria-hidden="true" title="für andere Mitglieder sichtbar"></i>
+                <i class="ti ti-eye-off protected-value-icon" aria-hidden="true" title="nicht für andere Mitglieder sichtbar"></i>
+                <span class="visually-hidden">für andere Mitglieder sichtbar</span>
+            </label>
+        </span>
+    </div>
+{/define}
+
+{define private-form-group, $label, $name, $type, $value, $class = "", $uncoverVariable, $type = 'text', $id, $placeholder, $autocomplete, $disabled, $required, $options = []}
+    {var $id = $id ?? ($name ? 'input-' . $name)}
+    <div class='form-group'>
+        <label for={$id}>{$label}</label>
+        {include private-input, ...get_defined_vars(), label: null, placeholder: $placeholder ?: $label}
+    </div>
+{/define}
+
+{block header-image}<img n:if=$profilbild src="/profilbilder/{$profilbild}" alt="Profilbild von {$fullName}">{/block}
+{block page-label}<i class="ti ti-user" aria-hidden="true"></i> Mitglied {$aufnahmedatum ? "seit ". ($aufnahmedatum?|format:'Y')}{/block}
+{block page-header}
+    <!--<div class="page-subtitle">Mitgliedsdaten bearbeiten</div>-->
+    <div class="meta">
+        <span n:if=$db_modified><strong>Stand:</strong> {$db_modified|format:'d.m.Y@local'}</span>
+        <span n:if=$ort><i class="ti ti-map-pin" aria-hidden="true"></i> {$ort}</span>
+    </div>
+    <a class="action-link" href="/user/{$username}">
+        <i class="ti ti-user" aria-hidden="true"></i> Profil ansehen
+    </a>
+{/block}
+
+{block content}
+{var $changes = false}
+{var $error = false}
+{var $password_error = false}
+
+{* Alerts generieren *}
+
+{if $profilbild_format_unbekannt}
+    {include alert,
+        type: danger,
+        text: "Das Dateiformat des Profilbilds wurde nicht erkannt oder wird nicht unterstützt. Unterstützte Formate: JPEG, PNG.",
+    }
+    {var $changes = true}
+    {var $error = true}
+{/if}
+
+{if $profilbild_uploadfehler}
+    {include alert,
+        type: danger,
+        text: "Beim Upload des Profilbilds ist es leider zu einem unbekannten Fehler gekommen. Bitte wende dich an die Mitgliederbetreuung.",
+    }
+    {var $changes = true}
+    {var $error = true}
+{/if}
+
+{if $email_error}
+    {include alert,
+        type: danger,
+        text: "Die eigegebene E-Mail-Adresse ist ungültig. Die E-Mail-Adresse und wurde nicht gespeichert.",
+    }
+    {var $changes = true}
+    {var $error = true}
+{/if}
+
+{if $email_changed}
+    {include alert,
+        type: success,
+        text: "Deine E-Mail-Adresse wurde erfolgreich geändert.",
+    }
+{/if}
+
+{include alert,
+    alertId: AlertWiederholungFalsch,
+    type: danger,
+    hide: !$new_password2_error,
+    text: "Die Wiederholung stimmt nicht mit dem neuen Passwort überein.",
+}
+
+{if $new_password2_error}
+    {var $password_error = true}
+    {var $changes = true}
+    {var $error = true}
+{/if}
+
+{if $old_password_error}
+    {include alert,
+        type: danger,
+        text: "Das alte Passwort ist falsch. Das Passwort wurde nicht geändert.",
+    }
+    {var $password_error = true}
+    {var $changes = true}
+    {var $error = true}
+{/if}
+
+{if $data_saved_info}
+    {include alert,
+        type: success,
+        text: (!$error ? 'Deine Daten wurden geändert.' : 'Die anderen Änderungen wurden gespeichert.') . ($email_auth_info ? ' Bitte schau in dein E-Mail-Postfach, um die Änderung deiner E-Mail-Adresse abzuschließen.'),
+    }
+{/if}
+
+{if $errorMessage}
+    {include alert,
+        type: warning,
+        text: $errorMessage,
+    }
+{/if}
+
+<form enctype="multipart/form-data" method="post" id="profile-form">
+    {=csrfTokenTag()}
+
+
+    <section class="panel" aria-labelledby="basisdaten-heading">
+        <h2 id="basisdaten-heading">
+            <i class="label-icon ti ti-id-badge" aria-hidden="true"></i>Basisdaten
+        </h2>
+
+        <p>Diese Basisdaten werden von allen Mitgliedern erhoben. Mit der Sichtbarkeits-Auswahl
+            (<span class="protected-value-icon ti ti-eye"></span> und <span class="protected-value-icon ti ti-eye-off"></span>)
+            neben den Einträgen  kannst du einstellen, welche Daten für alle Mitglieder oder nur für dich und die
+            Beauftragten der Mitgliederverwaltung sichtbar sind. Bei einigen Angaben kann die Sichtbarkeit nicht geändert werden. Weitere Informationen findest du in der Datenschutzerklärung (Link in der Navigation).
+        </p>
+        <div class="form-row">
+            {include private-form-group, "Vorname", vorname, disabled: !$isAdmin}
+            {include private-form-group, "Nachname", nachname, disabled: !$isAdmin}
+        </div>
+        {include private-form-group, "Straße + Hausnummer", strasse}
+        {include private-form-group, "ggf. Adresszusatz", adresszusatz, placeholder: "Adresszusatz"}
+        <div class="form-row">
+            {include private-form-group, "PLZ", plz}
+            {include private-form-group, "Ort", ort, uncoverVariable: sichtbarkeit_plz_ort}
+        </div>
+        {include private-form-group, "Land", land}
+
+        <script>
+            let sichtbarkeit_plz_ort_recursion = false;
+            document.querySelectorAll('[name=sichtbarkeit_plz_ort]').forEach(a => a.onchange = function () {
+                if (sichtbarkeit_plz_ort_recursion) return;
+                sichtbarkeit_plz_ort_recursion = true;
+                const check = this.checked;
+                document.querySelectorAll('[name=sichtbarkeit_plz_ort]').forEach(b => {
+                    if (a == b) return;
+                    $(b).bootstrapToggle(check ? 'on' : 'off');
+                });
+                sichtbarkeit_plz_ort_recursion = false;
+            });
+        </script>
+
+        {default $geburtstag = \DateTimeImmutable::fromFormat('0000-00-00')}
+
+        {include private-form-group, "Geburtsdatum", geburtstag, type: date, disabled: !$isAdmin}
+        {include private-form-group, "E-Mail" . ($email_auth_info ? " (wird geändert)"), email, placeholder: "E-Mail", type: email}
+        {include private-form-group, "Telefon", telefon, type: tel}
+
+        {include private-form-group, "Beschäftigung", beschaeftigung, type: select, options: [
+            'Schueler' => 'Schüler:in',
+            'Hochschulstudent' => 'Hochschulstudent:in',
+            'Doktorand' => 'Doktorand:in',
+            'Berufstaetig' => 'berufstätig',
+            'Sonstiges' => 'sonstiges',
+        ]}
+    </section>
+    <section class="panel" aria-labelledby="about-heading">
+        <h2 id="about-heading">
+            <i class="label-icon ti ti-user" aria-hidden="true"></i>Über mich
+        </h2>
+
+        <p>Teile mehr von dir mit, damit du im Netzwerk leichter gefunden wirst.</p>
+        {include private-form-group, "ggf. Mensa-Mitgliedsnummer.", mensa_nr, placeholder: "Mensa-Mitgliedsnummer"}
+        {include private-form-group, "Titel", titel}
+
+        <h3>Kontaktdaten</h3>
+        {include private-form-group, "Homepage", homepage, type: url}
+
+        <h3>Zweitwohnsitz <small>z.B. Adresse der Eltern</small></h3>
+
+        <div class="form-row">
+            {include private-form-group, "Straße + Hausnummer", strasse2}
+            {include private-form-group, "ggf. Adresszusatz", adresszusatz2, placeholder: "Adresszusatz"}
+        </div>
+        <div class="form-row">
+            {include private-form-group, "PLZ", plz2}
+            {include private-form-group, "Ort", ort2}
+            {include private-form-group, "Land", land2}
+        </div>
+
+        <h3>Sprachen, Hobbys, Interessen</h3>
+        {include private-form-group, "Sprachen", sprachen}
+        {include private-form-group, "Hobbys", hobbys}
+        {include private-form-group, "Interessen", interessen}
+    </section>
+
+    <section class="panel" aria-labelledby="career-heading">
+        <h2 id="career-heading">
+            <i class="label-icon ti ti-school" aria-hidden="true"></i>Ausbildung &amp; Beruf
+        </h2>
+
+        <p>
+            Angaben über deine Ausbildung und Beruf können anderen Mitgliedern helfen, Ansprechpartner/innen für Fragen zu ihrer eigenen Ausbildung zu finden. Dies ist einer der Kerngedanken des Netzwerks.
+        </p>
+
+        <div class="form-row">
+            {include private-form-group, "Studienort", studienort}
+            {include private-form-group, "Hochschultyp", unityp, placeholder: "Universität, Fachhochschule, ..."}
+        </div>
+        <div class="form-row">
+            {include private-form-group, "Studiengang, Ausbildung", studienfach}
+            {include private-form-group, "Schwerpunkt", schwerpunkt}
+        </div>
+        {include private-form-group, "ggf. Nebenfach", nebenfach, placeholder: 'Nebenfach'}
+        {include private-form-group, "Abschluss", abschluss}
+        {include private-form-group, "ggf. Zweitstudium", zweitstudium, placeholder: 'Zweitstudium'}
+        {include private-form-group, "Hochschulaktivitäten", hochschulaktivitaeten, placeholder: 'Hochschulaktivitäten (Fachschaftsarbeit, ...)'}
+        {include private-form-group, "Stipendien", stipendien}
+        {include private-form-group, "Auslandsaufenthalte", auslandsaufenthalte}
+        {include private-form-group, "Praktika, Fort- und Weiterbildungen", praktika}
+        {include private-form-group, "Beruf", beruf}
+
+    </section>
+
+    <section class="panel" aria-labelledby="profile-picture-heading">
+        <h2 id="profile-picture-heading">
+            <i class="label-icon ti ti-camera" aria-hidden="true"></i>Profilbild
+        </h2>
+        <p>Lade ein Profilbild hoch, damit andere eine Vorstellung haben, mit wem sie es zu tun haben. Das Profilbild ist für alle Mitglieder sichtbar.</p>
+        <div class="form-group">
+            <label>Aktuelles Bild</label>
+            <img id="aktuellesBild" src="{$profilbild ? '/profilbilder/'.$profilbild : '/img/profilbild-default.png'}" style="max-width: 180px; border-radius: var(--radius-btn);">
+        </div>
+
+        <div class="form-group">
+            <label for="profilbild">Bild ändern</label>
+            <div>
+                <div class="input-group">
+                    <label for="profilbild" class="button">
+                        <span class="button">
+                            Datei auswählen &hellip;
+                        </span>
+                    </label>
+                    <input name="profilbild" id="profilbild" type="file" accept="image/*">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group" n:if=$profilbild>
+            {include box, name: bildLoeschen, label: 'Bild löschen'}
+        </div>
+
+    </section>
+
+    <section class="panel" aria-labelledby="network-heading">
+        <h2 id="network-heading">
+            <i class="label-icon ti ti-affiliate" aria-hidden="true"></i>Netzwerk
+        </h2>
+
+        <p>
+            Wie möchtest du im Netzwerk aktiv sein? Diese Angaben können für alle Mitglieder sichtbar sein.
+        </p>
+
+        <div>
+            <h4>Ich gebe Auskunft über</h4>
+            {include box, name: auskunft_studiengang, label: 'Studiengang'}
+            {include box, name: auskunft_stipendien, label: 'Stipendien'}
+            {include box, name: auskunft_auslandsaufenthalte, label: 'Auslandsaufenthalte'}
+            {include box, name: auskunft_praktika, label: 'Praktika'}
+            {include box, name: auskunft_beruf, label: 'Beruf'}
+            {include box, name: mentoring, label: 'Ich bin prinzipiell bereit zu beruflichem Mentoring'}
+        </div>
+
+        <div>
+            <h4>Ich könnte bei folgenden Aufgaben helfen</h4>
+            {include box, auskunft_studiengang, 'Studiengang'}
+            {include box, aufgabe_ma, "Mithilfe bei der Organisation der MIND AKADEMIE"}
+            {include box, aufgabe_orte, "Mithilfe bei der Suche nach Veranstaltungsorten"}
+            {include box, aufgabe_vortrag, "einen Vortrag, ein Seminar oder einen Workshop anbieten"}
+            {include box, aufgabe_koord, "eine Koordinations-Aufgabe, die man per Mail/Tel. von zu Hause erledigen kann"}
+            {include box, aufgabe_graphisch, "eine graphisch-kreative Aufgabe"}
+            {include box, aufgabe_computer, "eine Aufgabe, in der ich mein Computer-/IT-Wissen einbringen kann"}
+            {include box, aufgabe_texte_schreiben, "Texte verfassen (z.B. für die Homepage oder den MHN-Newsletter)"}
+            {include box, aufgabe_texte_lesen, "Texte durchlesen und kommentieren"}
+            {include box, aufgabe_vermittlung, "Weitervermittlung von Kontakten"}
+            {include box, aufgabe_ansprechpartner, "Ansprechpartner vor Ort (lokale Treffen organisieren, Plakate aufhängen)"}
+            {include box, aufgabe_hilfe, "eine kleine, zeitlich begrenzte Aufgabe, wenn ihr dringend Hilfe braucht"}
+            {include box, aufgabe_sonstiges, "Sonstiges:"}
+            {include input, name: aufgabe_sonstiges_beschreibung, placeholder: "Bitte spezifizieren"}
+        </div>
+
+    </section>
+
+    <section class="panel" aria-labelledby="membership-heading">
+            <h2 id="membership-heading">
+                <i class="label-icon ti ti-id-badge" aria-hidden="true"></i>Mitgliedskonto
+            </h2>
+
+            <dl>
+                <div><dt>MHN-Mitgliedsnummer</dt><dd>{$id}</dd></div>
+                <div><dt>Anmeldename</dt><dd>{$username}</dd></div>
+                <div><dt>Aufnahmedatum</dt><dd>{($aufnahmedatum|format:'d.m.Y') ?? 'unbekannt'}</dd></div>
+                <div><dt>Letzte Bearbeitung</dt>
+                    <dd>{($db_modified|format:'d.m.Y H:i@local') ?? unbekannt} durch
+                    <a n:tag-if="$db_modified_user" href="{$db_modified_user->profilUrl}">{$db_modified_user?->get('fullName') ?? 'unbekannt'}</a>
+                </dd></div>
+                <div><dt>Vereinseintritt</dt><dd>{($dateOfJoining|format:'d.m.Y') ?? 'kein Mitglied'}</dd></div>
+                <div><dt>Datenschutzerklärungen</dt><dd><a href="/user/{$username}/agreements">Einwilligungen anzeigen / ändern</a></dd></div>
+            </dl>
+
+            <div class="form-group">
+                <label for="resignPassword">Austritt erklären</label>
+                <div>
+                    {if $isAdmin}
+                        {include box, name: resign, label: 'Das Mitglied hat seinen Austritt erklärt.',
+                            id: 'resignCheckbox',
+                            onclick: 'return confirm("Bist du ganz sicher, dass dieses Häkchen " + (!$("#resignCheckbox").get(0).checked ? "entfernt" : "gesetzt") + " werden soll?")'
+                        }
+                        <p n:if=$resignation>Die Austrittserklärung wurde am {$resignation|format:'d.m.Y@local'} gespeichert.</p>
+                    {else}
+                        {if $resignation}
+                            <p>Deine Austrittserklärung wurde am {$resignation|format:'d.m.Y@local'} gespeichert. Wenn du deinen Austritt zurücknehmen möchtest, wende dich bitte an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>. Der Austritt wird gemäß unserer Satzung zum Ende des Kalenderjahres wirksam.</p>
+                        {else}
+                            <p>Mit einer Erklärung an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>, kannst du deine MHN-Mitgliedschaft beenden. Mit dem Ende deiner Mitgliedschaft werden wir deine persönlichen Daten aus der Mitgliederdatenbank löschen.</p>
+                            <p class="resign__button"><button type="button" id="resign" name="resign" class="danger">Austritt erklären</button></p>
+                            <div class="resign__password hidden">
+                                <p>Gib hier dein Passwort ein, wenn du deine Mitgliedschaft wirklich beenden möchtest, und klicke dann auf speichern.</p>
+                                <div><input id="resignPassword" name="resignPassword" type="password" autocomplete="new-password" placeholder="Passwort"></div>
+                            </div>
+                        {/if}
+                    {/if}
+                </div>
+            </div>
+    </section>
+
+    <section class="panel" aria-labelledby="password-heading">
+        <h2 id="password-heading">
+            <i class="label-icon ti ti-lock" aria-hidden="true"></i>Passwort ändern
+        </h2>
+        {if !$isAdmin || $isSelf}
+            {include private-form-group, 'Altes Passwort', password, type: password, value: null, autocomplete: 'current-password'}
+        {/if}
+        {include private-form-group, 'Neues Passwort', new_password, type: password, value: null, autocomplete: 'new-password'}
+        {include private-form-group, 'Passwort wiederholen', new_password2, type: password, value: null}
+    </section>
+
+    <section class="panel" aria-labelledby="membership-heading" n:if=$isAdmin>
+        <h2 id="membership-heading">
+            <span class="label-icon ti ti-settings" aria-hidden="true"></span>Mitgliedsverwaltung
+        </h2>
+
+        {if $isSuperAdmin}
+            {include private-form-group, 'Gruppen ändern', groups, placeholder: "Trennen durch Komma. Mögliche Werte siehe Menüpunkt „Mitgliederverwaltung”"}
+        {else}
+            <dl>
+                <dt>Gruppen</dt>
+                <dd>{$groups}</dd>
+            </dl>
+        {/if}
+
+        <div class="form-group">
+            <label for="delete">Austritt erklären</label>
+            {include box, delete, 'Die Daten werden SOFORT endgültig und unwiederbringlich gelöscht! Die Mitglieder der Mitgliederbetreuung werden informiert.',
+                id: delete,
+                onclick: 'return confirm("Bist du ganz sicher?" + (!document.getElementById("delete").checked ? "" : " Daten werden unwiederbringlich gelöscht!"))'
+            }
+        </div>
+    </section>
+
+    <div class="form-actions">
+        <button type="submit"><i class="ti ti-device-floppy" aria-hidden="true"></i> Speichern</button>
+    </div>
+
+</form>
+
+</div>

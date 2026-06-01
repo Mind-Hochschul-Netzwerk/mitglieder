@@ -1,0 +1,70 @@
+{define alert, $alertId, $type, $hide, $text}
+<div
+    n:attr="id: $alertId ?: null"
+    n:class="alert, 'alert--' . $type, $hide ? hidden" role="alert">
+    <div>{$text}</div>
+    <button type="button" class="secondary" onclick="this.parentElement.classList.add('hidden')" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+{/define}
+
+{define input, $name, $label, $type, $value, $class = "", $uncoverVariable, $type = 'text', $elementId, $placeholder, $autocomplete, $disabled, $required, $options = []}
+    {var $elementId = $elementId ?? 'input-' . $name}
+    {var $value = $value ?? get_defined_vars()[$name]}
+    {if $value instanceof \DateTimeInterface}{var $value = ($value|format:'Y-m-d')}{/if}
+    <div class="form-group" n:tag-if=$label>
+        <label n:ifcontent for="$elementId">{$label}</label>
+        {if $type === select}
+            <select n:attr="id: $elementId, name: $name, class: $class">
+                {foreach $options as $option=>$optionlabel}
+                    {if $option === '---' || $optionlabel == '---'}
+                        <hr />
+                    {else}
+                        <option n:attr="selected: $value === $option, value: $option">{$optionlabel}</option>
+                    {/if}
+                {/foreach}
+            </select>
+        {else}
+            <input n:attr="
+                id: $elementId,
+                name: $name,
+                type: $type !== text ? $type,
+                value: $value ?: null,
+                class: $class,
+                placeholder: $placeholder ?: $label,
+                autocomplete: $autocomplete ?: null,
+                disabled: (bool) $disabled,
+                required: (bool) $required
+            ">
+        {/if}
+    </div>
+{/define}
+
+{define box, $name, $label, $type = checkbox, $id, $state, $value, $onclick, $disabled, $required}
+    {var $type = $type ?? checkbox}
+    {var $label = $label ?? $name}
+    {var $state = $state ?? get_defined_vars()[$name]}
+    {var $checked = $type === checkbox ? (bool) $state : ($state === $value)}
+    <label n:tag-if=$label><input n:attr="
+        type: $type,
+        checked: $checked,
+        value: $value,
+        id: $id ?? $type === checkbox ? 'input-' . $name,
+        name: $name,
+        class: $class,
+        onclick: $onclick ?: null,
+        disabled: (bool) $disabled,
+        required: (bool) $required
+    "> {$label}</label>
+{/define}
+
+{define form-group, $label, $name, $type, $value, $class = "", $type = 'text', $id, $placeholder, $autocomplete, $disabled, $required, $options = []}
+    {var $id = $id ?? ($name ? 'input-' . $name)}
+    <div class='form-group'>
+        <label for={$id}>{$label}</label>
+        {block inputs}
+            {include input, ...get_defined_vars(), label: null, placeholder: $placeholder ?: $label}
+        {/block}
+    </div>
+{/define}

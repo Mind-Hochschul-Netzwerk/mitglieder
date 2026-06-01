@@ -1,77 +1,42 @@
-{var $navId = datenschutz}
+{var $navId = einwilligungen}
 
-{block content}
-<h1 n:block="title">Einwilligungen</h1>
+{block title}Einwilligungen{/block}
 
-<style>
+{block css}
 .agreement {
-    border: solid 1px #ccc;
-    border-radius: 5px;
-    padding: 5px;
-    background-color: #f8f8f8;
-    overflow-y: auto;
-    height: 150px;
-    resize: vertical;
-    margin-bottom: 10px;
+  overflow-y: auto;
+  max-height: 400px;
+  padding: 1rem 1.25rem;
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  resize: vertical;
+
+  p, li { color: var(--muted); margin-bottom: 0.5rem; }
+  h1, h2, h3 { font-size: 1rem; color: var(--text); margin: 1rem 0 0.4rem; }
 }
+
 .agreement_info {
-    color: #999;
+  font-size: 0.82rem;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  font-style: italic;
 }
-dialog {
-    border: solid 1px #666;
-    border-radius: 5px;
-    z-index: 2;
+
+.timestamp {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 1rem;
 }
-dialog::backdrop {
-    backdrop-filter: blur(2px);
-}
-</style>
+{/block}
 
-<div id="Kenntnisnahme">
-    <h3>Kenntnisnahme der Datenverarbeitung</h3>
-    <div class="agreement" resizable></div>
-    <div class="timestamp">Du hast am <span></span> erklärt, diesen Text zur Kenntnis genommen zu haben.</div>
-</div>
 
-<div id="Einwilligung">
-    <h3>Einwilligung zur Datenverarbeitung</h3>
-    <div class="agreement" resizable></div>
-    <div class="timestamp">Du hast am <span></span> eingewilligt.</div>
-</div>
-
-<h3>Verpflichtung zum Datenschutz</h3>
-
-<form id="datenschutzverpflichtung">
-    <input type="hidden" name="name" value="Datenschutzverpflichtung">
-    <input type="hidden" name="id" value="">
-
-    <div class="agreement" resizable></div>
-
-    <div class="loader hidden"></div>
-
-    <div id="datenschutzverpflichtung_timestamp" class="hidden">
-        Du hast am <span></span> eingewilligt.
-        <div id="datenschutzverpflichtung_update" class="hidden">
-            Es liegt ein neuer Text vom <span></span> vor. Bitte aktualisiere deine Einwilligung. Andernfalls können dir Berechtigungen entzogen werden, für die Zustimmung zum aktualisierten Text nötig ist.
-            <button class='btn btn-primary' type="button">Anzeigen</button>
-        </div>
-        <button class='btn btn-danger' type="submit" name="action" value="revoke">Einwilligung widerrufen</button>
-    </div>
-    <div id="datenschutzverpflichtung_accept" class="hidden">
-        Du hast noch nicht eingewilligt. Du kannst deine Einwilligung jederzeit widerrufen.
-        <button class='btn btn-primary' type="submit" name="action" value="accept">Ja, ich stimme zu.</button>
-    </div>
-</form>
-
-<dialog id="datenschutzverpflichtung_dialog"><form>
-    <input type="hidden" name="name" value="Datenschutzverpflichtung">
-    <input type="hidden" name="id" value="">
-    <div class="agreement" resizable></div>
-    <button class='btn btn-primary' type="submit" name="action" value="accept">Ja, ich stimme zu.</button>
-    <button class='btn btn-default' type="button">Erstmal nicht</button>
-</form></dialog>
-
-<script>
+{block script}
 
 const divKenntnisnahme = document.getElementById("Kenntnisnahme");
 const divEinwilligung = document.getElementById("Einwilligung");
@@ -171,6 +136,80 @@ function handleResponse(data) {
     }
 }
 
-callApi("GET", {="/user/{$user->get('username')}/agreements/index"}, {}, loader).then((data) => handleResponse(data));
+callApi("GET", "/user/{$user->get('username')}/agreements/index", {}, loader).then((data) => handleResponse(data));
 
-</script>
+{/block}
+
+{block page-label}<i class="ti ti-shield-lock" aria-hidden="true"></i> Rechtliches{/block}
+{block page-header}
+    <p class="page-subtitle">Hier kannst du deine Einwilligungen und Kenntnisnahmen bezüglich der Datenverarbeitung einsehen und verwalten.</p>
+    <div id="datenschutzverpflichtung_update" class="info-box info-box--warning hidden">
+        <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+        <p>Für die Verpflichtung zum Datenschutz liegt ein neuer Text vom <span></span> vor. Bitte aktualisiere deine Einwilligung. Andernfalls können dir Berechtigungen entzogen werden.</p>
+        <div>    <button class="secondary" type="button">Anzeigen</button></div>
+    </div>
+{/block}
+
+
+
+{block content}
+
+
+<section class="panel" aria-labelledby="agreement-heading">
+    <h2 id="agreement-heading">Kenntnisnahme der Datenverarbeitung</h2>
+
+    <div id="Kenntnisnahme">
+        <div class="agreement"></div>
+        <div class="timestamp">Du hast am <span></span> erklärt, diesen Text zur Kenntnis genommen zu haben.</div>
+    </div>
+</section>
+
+<section class="panel" aria-labelledby="consent-heading">
+    <h2 id="consent-heading">Einwilligung zur Datenverarbeitung</h2>
+
+    <div id="Einwilligung">
+        <div class="agreement"></div>
+        <div class="timestamp">Du hast am <span></span> eingewilligt.</div>
+    </div>
+</section>
+
+<section class="panel" aria-labelledby="datenschutz-heading">
+    <h2 id="datenschutz-heading">Verpflichtung zum Datenschutz</h2>
+
+    <form id="datenschutzverpflichtung">
+        <input type="hidden" name="name" value="Datenschutzverpflichtung">
+        <input type="hidden" name="id" value="">
+
+        <div class="agreement"></div>
+
+        <div class="loader hidden"></div>
+
+        <div id="datenschutzverpflichtung_timestamp" class="hidden">
+            <p class="small-note">Du hast am <span></span> eingewilligt.</p>
+            <div class="form-actions">
+                <button class="danger" type="submit" name="action" value="revoke">
+                    <i class="ti ti-x" aria-hidden="true"></i> Einwilligung widerrufen
+                </button>
+            </div>
+        </div>
+
+        <div id="datenschutzverpflichtung_accept" class="hidden">
+            Du hast noch nicht eingewilligt. Du kannst deine Einwilligung jederzeit widerrufen.
+            <div class="form-actions">
+                <button type="submit" name="action" value="accept"><i class="ti ti-check" aria-hidden="true"></i> Ja, ich stimme zu.</button>
+            </div>
+        </div>
+    </form>
+</section>
+
+<dialog id="datenschutzverpflichtung_dialog" aria-labelledby="datenschutzverpflichtung_dialog_title"><form>
+    <h2 id="datenschutzverpflichtung_dialog_title" class="dialog-title">Aktualisierte Verpflichtung zum Datenschutz</h2>
+    <input type="hidden" name="name" value="Datenschutzverpflichtung">
+    <input type="hidden" name="id" value="">
+    <div class="agreement"></div>
+    <div class="form-actions">
+        <button type="submit" name="action" value="accept"><i class="ti ti-check" aria-hidden="true"></i> Ja, ich stimme zu.</button>
+        <button class="secondary" type="button">Erstmal nicht</button>
+    </div>
+</form></dialog>
+

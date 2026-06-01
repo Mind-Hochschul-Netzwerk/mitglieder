@@ -1,8 +1,16 @@
 {var $navId = logout}
 
+{block htmlTitle}Logout{/block}
+
 {block content}
-<h1 n:block=title>Logout</h1>
+<dialog aria-label="Logout-Bestätigung" open>
+    <span class="page-label"><i class="ti ti-check" aria-hidden="true"></i> Erfolgreich ausgeloggt</span>
+    <h1 class="dialog-title">Logout</h1>
+    <p class="dialog-subtitle">Du wurdest erfolgreich aus dem Mitgliederverzeichnis abgemeldet.</p>
 
-<p>Du wurdest erfolgreich ausgeloggt.</p>
+    <div class="form-actions">
+      <a class="button" href="/"><i class="ti ti-login" aria-hidden="true"></i> Erneut anmelden</a>
+      <a class="button secondary" href="https://www.{=getenv('DOMAINNAME')}?>">Zur MHN-Webseite</a>
+    </div>
 
-<p><a href="https://www.<?=getenv('DOMAINNAME')?>">Zurück zur MHN-Homepage gehen.</a></p>
+</dialog>

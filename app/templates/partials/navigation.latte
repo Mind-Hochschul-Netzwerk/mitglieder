@@ -1,43 +1,42 @@
-{if (currentUser()->isLoggedIn())}
-    {var $navItems = [
-        'suche' => ['/', 'Mitgliedersuche', 'search'],
-        'bearbeiten' => ['/user/self/edit', 'Meine Daten', 'user'],
-        'statistics' => currentUser()->hasRole('mvread') ? ['/statistics', 'Statistik', 'stats'] : null,
-        'admin' => currentUser()->hasRole('mvedit') ? ['/admin', 'Mitgliederverwaltung', 'wrench'] : null,
-        'logout' => ['/logout', 'Logout', 'log-out'],
-        'homepage' => ['https://www.' . getenv('DOMAINNAME'), 'MHN-Webseite', 'home'],
-        'datenschutz' => ['/user/self/agreements', 'Datenschutz', 'paragraph'],
-        'impressum' => ['https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=5', 'Impressum', 'globe'],
-    ]}
-{else}
-    {var $navItems = [
-        'homepage' => ['https://www.' . getenv('DOMAINNAME'), 'Startseite', 'home'],
-        'login' => ['/', 'Login', 'log-in'],
-        'logout' => ['/logout', 'Logout', 'log-out'],
-        'datenschutz' => ['https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=4', 'Datenschutz', 'paragraph'],
-        'impressum' => ['https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=5', 'Impressum', 'globe'],
-    ]}
-{/if}
-<nav class="navbar navbar-mhn sidebar" role="navigation">
-    <div class="container-fluid">
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-sidebar-navbar-collapse-1">
-                <span class="sr-only">Navigation aufklappen</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="/"><img src="/img/mhn-logo-small.png" id="mhn-logo"><span class="logo-text"> Mitglieder
-            </span>
-                <span class='pull-right showopacity glyphicon'><img src="/img/mhn-logo-small.png" id="mhn-icon"></span>
-            </a>
-        </div>
-        <div class="collapse navbar-collapse" id="bs-sidebar-navbar-collapse-1">
-            <ul class="nav navbar-nav" n:inner-foreach="$navItems as $itemname => $item">
-                <li n:if="$item" n:class='$navId === $itemname ? active'><a href='{$item[0]}'>{$item[1]}<span class='pull-right showopacity glyphicon glyphicon-{$item[2]}'></span></a></li>
-            </ul>
-        </div>
-    </div>
-</nav>
+{define nav-link, $label, $href, $icon, $name, $condition = true}
+    <a n:if=$condition n:attr="href: $href" class="{$navId && $navId === $name ? active}">
+        <i class="ti ti-{$icon} nav-icon" aria-hidden="true"></i> {$label}
+    </a>
+{/define}
 
+<div class="sidebar" id="site-navigation" aria-label="Seitennavigation">
+    <nav n:if="currentUser()->isLoggedIn()">
+        <p class="sidebar-section-label">Mitgliederverzeichnis</p>
+        {include nav-link, 'Mitgliedersuche', '/', 'user-search', suche}
+        {include nav-link, 'Meine Daten', '/user/self/edit', 'user', bearbeiten}
+        {include nav-link, 'Statistik', '/statistics', 'chart-bar', statistics, currentUser()->hasRole('mvread')}
+        {include nav-link, 'Mitgliederverwaltung', '/admin', 'settings', admin, currentUser()->hasRole('mvedit')}
+        {include nav-link, 'Einwilligungen', '/user/self/agreements', 'shield-check', einwilligungen}
+
+        <p class="sidebar-section-label">MHN-Tools</p>
+        {include nav-link, 'Diskussionslisten', 'https://www.mind-hochschul-netzwerk.de/listen', 'message-circle'}
+        {include nav-link, 'Wiki', 'https://wiki.mind-hochschul-netzwerk.de/', 'book'}
+        {include nav-link, 'Nextcloud', 'https://cloud.mind-hochschul-netzwerk.de/', 'cloud'}
+        {include nav-link, 'Veranstaltungen', 'https://www.mind-hochschul-netzwerk.de/veranstaltungen', 'calendar-event'}
+        {include nav-link, 'Mind-Akademie', 'https://mind-akademie.de/', 'school'}
+
+        <p class="sidebar-section-label">MHN</p>
+        {include nav-link, 'MHN-Webseite', 'https://www.' . getenv('DOMAINNAME'), 'home'}
+        {include nav-link, 'Datenschutz', 'https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=4', 'file-text-shield'}
+        {include nav-link, 'Impressum', 'https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=5', 'file'}
+
+        <div class="sidebar-bottom">
+            <p class="sidebar-section-label">Konto</p>
+            {include nav-link, 'Logout', '/logout', 'logout', logout}
+        </div>
+    </nav>
+    <nav n:else>
+        <p class="sidebar-section-label">Mitgliederverzeichnis</p>
+        {include nav-link, 'Login', '/', 'login', login}
+
+        <p class="sidebar-section-label">MHN</p>
+        {include nav-link, 'Startseite', 'https://www.' . getenv('DOMAINNAME'), 'home'}
+        {include nav-link, 'Datenschutz', 'https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=4', 'file-text-shield'}
+        {include nav-link, 'Impressum', 'https://www.' . getenv('DOMAINNAME') . '/mod/book/view.php?id=253&chapterid=5', 'file'}
+    </nav>
+</div>

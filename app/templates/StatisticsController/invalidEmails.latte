@@ -1,7 +1,9 @@
 {var $navId = statistics}
 
+{block title}Personen mit nicht-erreichbaren E-Mail-Adressen{/block}
+
 {block content}
-<h1 n:block=title>Personen mit nicht-erreichbaren E-Mail-Adressen</h1>
+<section class="panel">
 
 <p>Die folgenden Personen sind nicht mehr per E-Mail erreichbar. Sie wurden manuell markiert, nachdem E-Mails nicht zugestellt werden konnten (z.B. Server unbekannt, User unbekannt, Postfach voll).
 
@@ -16,3 +18,5 @@
         <td>{$u[moodle]}</td>
     </tr>
 </table>
+
+</section>

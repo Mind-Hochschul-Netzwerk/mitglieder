@@ -1,180 +1,146 @@
 {var $navId = start}
+
+{block title}Willkommen im Mind-Hochschul-Netzwerk{/block}
+
+{block page-label}<i class="ti ti-user-plus" aria-hidden="true"></i> Aufnahme abschließen{/block}
+{block page-header}
+    <p>Hallo {$mhn_vorname},</p>
+    <p>wir freuen uns, dich als neues Mitglied im Mind-Hochschul-Netzwerk zu begrüßen! Bevor es losgehen kann, musst du deine Zugangsdaten festlegen und entscheiden, welche Daten du im Netzwerk freigeben möchtest.</p>
+{/block}
+
 {block content}
-<h1 n:block=title>Benutzerkonto aktivieren</h1>
 
 {var $alerts = [
     usernameMissing: 'Bitte wähle einen Benutzernamen.',
-    usernameInvalid: 'Dein Benutzername enthält ungültige Zeichen.',
+    usernameInvalid: 'Dein Benutzername enthält ungültige Zeichen. Erlaubt sind Buchstaben, Zahlen, Punkte, Bindestriche und Unterstriche.',
     usernameUsed: 'Dieser Benutzername wird bereits verwendet.',
-    emailUsed: "Die E-Mail-Adresse $email wird bereits von einem anderen Mitglied verwendet. Bitte wende dich an die Mitgliederbetreuung, um das Problem zu lösen.",
+    emailUsed: "Zur E-Mail-Adresse $email existiert bereits ein Konto. Bitte wende dich an die Mitgliederbetreuung, um das Problem zu lösen.",
     passwordMissing: 'Bitte wähle ein Passwort.',
     passwordMismatch: 'Das Passwort und die Wiederholung stimmen nicht überein.',
 ]}
 
+<form method="post">
+    {=csrfTokenTag()}
+
 {foreach $alerts as $name=>$text}
     {if get_defined_vars()[$name]}
-        <div>{include '../partials/alert.latte', type: danger, text: $text}</div>
+        <div>{include alert, type: danger, text: $text}</div>
     {/if}
 {/foreach}
 
-<p>Hallo {$mhn_vorname},</p>
-<p>wir freuen uns, dich als neues Mitglied im Mind-Hochschul-Netzwerk zu begrüßen! Bevor es losgehen kann, musst du deine Zugangsdaten festlegen und entscheiden, welche Daten du im Netzwerk freigeben möchtest.</p>
+<section class="panel" aria-label="Einstellungen zu deinem Benutzerzugang">
+    <h2><i class="label-icon ti ti-key" aria-hidden="true"></i> Deine Zugangsdaten</h2>
+    <p>
+        Mit deinem Benutzernamen (Anmeldenamen) und deinem Passwort meldest du dich in unserem Mitgliedernetzwerk an.
+        Bitte beachte, dass du deinen Benutzernamen nachträglich nicht mehr ändern kannst.
+    </p>
+    {include form-group, "Benutzername", username, required: true}
+    {include form-group, "Passwort", password, type: password, placeholder: 'neues Passwort', autocomplete: 'new-password', required: true}
+    {include form-group, "Passwort wiederholen", password2, type: password, placeholder: 'Passwort wiederholen', required: true}
+</section>
 
-<form method="post">
-{=csrfTokenTag()}
+<section class="panel" aria-label="Sichtbarkeit deiner Daten">
+  <h2><i class="label-icon ti ti-eye" aria-hidden="true"></i> Was sollen andere Mitglieder sehen?</h2>
 
-<h3>Deine Zugangsdaten</h3>
+    <p>
+        Unser Netzwerk lebt davon, dass die Mitglieder sich gegenseitig finden und
+        miteinander in Kontakt treten können. Lege fest, welche Daten du im Netzwerk
+        freigibst.
+    </p>
+    <div class="info-box"><i class="ti ti-info-circle" aria-hidden="true"></i>
+        <p>
+            Was du nicht freigibst, ist nur für bestimme Personen wie
+            Administrator:innen und die Mitgliederbetreuung sichtbar. Freigegebene Daten sind
+            nur für Mitglieder sichtbar. Außerdem können Mitglieder dich über freigegebene
+            Daten in der Mitgliedersuche finden. Deine angegeben Daten und die Freigabeeinstellungen kannst du jederzeit in deinem Mitgliedsprofil anpassen.
+        </p>
+    </div>
 
-<p>Mit deinem Benutzernamen (Anmeldenamen) und deinem Passwort meldest du dich in unserem Mitgliedernetzwerk an. Bitte beachte, dass du deinen Benutzernamen nachträglich nicht mehr ändern kannst.</p>
+    {embed form-group, "Meine Adresse (Hauptwohnsitz)"}{block inputs}
+        {include box, name: sichtbarkeit_adresse, type: radio, value: 1, required: true, label: "für Mitglieder freigeben"}
+        {include box, name: sichtbarkeit_adresse, type: radio, value: 2, required: true, label: "eingeschränkt freigeben: nur PLZ, Ort und Land, aber nicht Straße/Hausnr. und Adresszusatz"}
+        {include box, name: sichtbarkeit_adresse, type: radio, value: 0, required: true, label: "nicht freigeben"}
+    {/block}{/embed}
 
-<div class='form-group row '>
-    <label for='input-username' class='col-sm-2 col-form-label'>Benutzername</label>
-    <div class='col-sm-10'>{include '../partials/input.latte', name: username, required: true}</div>
+    <div class="info-box"><i class="ti ti-info-circle" aria-hidden="true"></i>
+        <p>
+            Über unsere Webseite können sich alle Mitglieder gegenseitig
+            Direktnachrichten schicken, die per E-Mail zugestellt werden. Die E-Mail-Adressen werden dabei
+            nicht preisgegeben.
+
+            Darüber hinaus kannst du deine E-Mail-Adresse freigeben, sodass Mitglieder dich auch direkt per E-Mail anschreiben können.
+        </p>
+    </div>
+
+    {embed form-group, "E-Mail-Adresse"}{block inputs}
+
+        {include box, name: sichtbarkeit_email, type: radio, value: 1, required: true, label: "für Mitglieder freigeben"}
+        {include box, name: sichtbarkeit_email, type: radio, value: 0, required: true, label: "nicht freigeben"}
+    {/block}{/embed}
+
+    <p>Entscheide für deine weiteren Daten, ob andere Mitglieder sie sehen dürfen.</p>
+
+    {embed form-group, "Telefonnummer"}{block inputs}
+        {include box, name: sichtbarkeit_telefon, type: radio, value: 1, required: true, label: "für Mitglieder freigeben"}
+        {include box, name: sichtbarkeit_telefon, type: radio, value: 0, required: true, label: "nicht freigeben"}
+    {/block}{/embed}
+
+    {embed form-group, "Geburtsdatum / Alter"}{block inputs}
+        {include box, name: sichtbarkeit_geburtstag, type: radio, value: 1, required: true, label: "für Mitglieder freigeben"}
+        {include box, name: sichtbarkeit_geburtstag, type: radio, value: 0, required: true, label: "nicht freigeben"}
+    {/block}{/embed}
+
+    {if $mhn_mensa_nr}{embed form-group, "Mensa-Nummer"}{block inputs}
+        {include box, name: sichtbarkeit_mensa_nr, type: radio, value: 1, required: true, label: "für Mitglieder freigeben"}
+        {include box, name: sichtbarkeit_mensa_nr, type: radio, value: 0, required: true, label: "nicht freigeben"}
+    {/block}{/embed}{/if}
+
+    {embed form-group, "Ausbildung und Studium"}{block inputs}
+        {include box, name: sichtbarkeit_studium, type: radio, value: 1, required: true, label: "für Mitglieder freigeben"}
+        {include box, name: sichtbarkeit_studium, type: radio, value: 0, required: true, label: "nicht freigeben"}
+    {/block}{/embed}
+
+    {embed form-group, "Beruf und Tätigkeit"}{block inputs}
+        {include box, name: sichtbarkeit_beruf, type: radio, value: 1, required: true, label: "für Mitglieder freigeben"}
+        {include box, name: sichtbarkeit_beruf, type: radio, value: 0, required: true, label: "nicht freigeben"}
+    {/block}{/embed}
+</section>
+
+<section class="panel" aria-label="Übernahme vorhandener Daten">
+  <h2><i class="label-icon ti ti-file-import" aria-hidden="true"></i> Welche deiner bisherigen Angaben möchtest du übernehmen?</h2>
+
+    <p>Bei den folgenden Daten kannst du nicht auswählen, ob sie freigegeben werden sollen. Wenn du nicht möchtest,
+    dass andere Mitglieder sie sehen können, kannst du sie aus deinem Profil löschen.</p>
+
+    {if $mhn_titel}{embed form-group, "akademischer Titel"}{block inputs}
+        {include box, name: uebernahme_titel, type: radio, value: 1, required: true, label: "in mein Profil übernehmen"}
+        {include box, name: uebernahme_titel, type: radio, value: 0, required: true, label: "Angaben löschen"}
+    {/block}{/embed}{/if}
+
+    {if $mhn_homepage}{embed form-group, "Homepage"}{block inputs}
+        {include box, name: uebernahme_homepage, type: radio, value: 1, required: true, label: "in mein Profil übernehmen"}
+        {include box, name: uebernahme_homepage, type: radio, value: 0, required: true, label: "Angaben löschen"}
+    {/block}{/embed}{/if}
+
+    {if $mhn_zws_strasse || $mhn_zws_zusatz || $mhn_zws_plz || $mhn_zws_ort || $mhn_zws_land}{embed form-group, "Zweitwohnsitz"}{block inputs}
+        {include box, name: uebernahme_zweitwohnsitz, type: radio, value: 1, required: true, label: "in mein Profil übernehmen"}
+        {include box, name: uebernahme_zweitwohnsitz, type: radio, value: 2, required: true, label: "nur PLZ, Ort, Land übernehmen"}
+        {include box, name: uebernahme_zweitwohnsitz, type: radio, value: 0, required: true, label: "Angaben löschen"}
+    {/block}{/embed}{/if}
+
+    {embed form-group, "Sprachen, Hobbies, Interessen, Ehrenamt"}{block inputs}
+        {include box, name: uebernahme_interessen, type: radio, value: 1, required: true, label: "in mein Profil übernehmen"}
+        {include box, name: uebernahme_interessen, type: radio, value: 0, required: true, label: "Angaben löschen"}
+    {/block}{/embed}
+</section>
+
+<div class="info-box">
+  <i class="ti ti-info-circle" aria-hidden="true"></i>
+  <p>Für alle Mitglieder immer sichtbar: dein Name, deine Mitgliedsnummer, dein Aufnahmedatum sowie deine Angaben zu Auskunft und Mitarbeit. Ein Profilbild kannst du nach der Registrierung hinzufügen.</p>
 </div>
 
-<div class='form-group row '>
-    <label for='input-password' class='col-sm-2 col-form-label'>Passwort</label>
-    <div class='col-sm-10'>
-        <div>{include '../partials/input.latte', name: password, type: password, placeholder: 'neues Passwort', autocomplete: 'new-password', required: true}</div>
-    </div>
-</div>
-
-<div class='form-group row '>
-    <label for='input-password2' class='col-sm-2 col-form-label'>Passwort wiederholen</label>
-    <div class='col-sm-10'>
-        <div>{include '../partials/input.latte', name: password2, type: password, placeholder: 'neues Passwort', required: true}</div>
-    </div>
-</div>
-
-<h3>Deine Daten im Netzwerk</h3>
-
-<p>
-Unser Netzwerk lebt davon, dass die Mitglieder sich gegenseitig finden und
-miteinander in Kontakt treten können. Lege fest, welche Daten du im Netzwerk
-freigibst. Was du nicht freigibst, ist nur für bestimme Personen wie
-Administrator:innen und die Mitgliederbetreuung sichtbar. Freigegebene Daten sind
-nur für Mitglieder sichtbar. Außerdem können Mitglieder dich über freigegebene
-Daten in der Mitgliedersuche finden.</p>
-
-<p>
-Deine angegeben Daten und die Freigabeeinstellungen kannst du jederzeit in deinem Mitgliedsprofil anpassen.
-</p>
-
-<div class="form-group row">
-    <div class="col-sm-2">Meine Adresse (Hauptwohnsitz)</div>
-    <div class="col-sm-10">
-        <div>{include '../partials/box.latte', name: sichtbarkeit_adresse, type: radio, value: 1, required: true, label: "für Mitglieder freigeben"}</div>
-        <div>{include '../partials/box.latte', name: sichtbarkeit_adresse, type: radio, value: 2, required: true, label: "eingeschränkt freigeben: nur PLZ, Ort und Land, aber nicht Straße/Hausnr. und Adresszusatz"}</div>
-        <div>{include '../partials/box.latte', name: sichtbarkeit_adresse, type: radio, value: 0, required: true, label: "nicht freigeben"}</div>
-    </div>
-</div>
-
-<p>
-Deine E-Mail-Adresse wird für die vereinsinterne Kommunikation benötigt, zum Beispiel für die Einladung zu Vorstandswahlen.
-
-Außerdem haben wir einen monatlichen Newsletter und Diskussionsforen, deren Inhalte du an deine E-Mail-Adresse abonnieren kannst.
-
-Über unsere Webseite können sich alle Mitglieder gegenseitig
-Direktnachrichten schicken, die per E-Mail zugestellt werden. Die E-Mail-Adressen werden dabei
-nicht preisgegeben.
-
-Darüber hinaus kannst du deine E-Mail-Adresse freigeben, sodass Mitglieder dich auch direkt per E-Mail anschreiben können.
-</p>
-
-<div class="form-group row">
-    <div class="col-sm-2">E-Mail-Adresse</div>
-    <div class="col-sm-10">
-        <div>{include '../partials/box.latte', name: sichtbarkeit_email, type: radio, value: 1, required: true, label: "für Mitglieder freigeben"}</div>
-        <div>{include '../partials/box.latte', name: sichtbarkeit_email, type: radio, value: 0, required: true, label: "nicht freigeben"}</div>
-    </div>
-</div>
-
-<p>Entscheide für deine weiteren Daten, ob andere Mitglieder sie sehen dürfen.</p>
-
-<div class="form-group row">
-    <div class="col-sm-2">Telefonnummer</div>
-    <div class="col-sm-10">
-        <div>{include '../partials/box.latte', name: sichtbarkeit_telefon, type: radio, value: 1, required: true, label: "für Mitglieder freigeben"}</div>
-        <div>{include '../partials/box.latte', name: sichtbarkeit_telefon, type: radio, value: 0, required: true, label: "nicht freigeben"}</div>
-    </div>
-</div>
-
-<div class="form-group row">
-    <div class="col-sm-2">Geburtsdatum / Alter</div>
-    <div class="col-sm-10">
-        <div>{include '../partials/box.latte', name: sichtbarkeit_geburtstag, type: radio, value: 1, required: true, label: "für Mitglieder freigeben"}</div>
-        <div>{include '../partials/box.latte', name: sichtbarkeit_geburtstag, type: radio, value: 0, required: true, label: "nicht freigeben"}</div>
-    </div>
-</div>
-
-<div class="form-group row" n:if=$mhn_mensa_nr>
-    <div class="col-sm-2">Mensa-Nummer</div>
-    <div class="col-sm-10">
-        <div>{include '../partials/box.latte', name: sichtbarkeit_mensa_nr, type: radio, value: 1, required: true, label: "für Mitglieder freigeben"}</div>
-        <div>{include '../partials/box.latte', name: sichtbarkeit_mensa_nr, type: radio, value: 0, required: true, label: "nicht freigeben"}</div>
-    </div>
-</div>
-
-<div class="form-group row">
-    <div class="col-sm-2">Ausbildung und Studium</div>
-    <div class="col-sm-10">
-        <div>{include '../partials/box.latte', name: sichtbarkeit_studium, type: radio, value: 1, required: true, label: "für Mitglieder freigeben"}</div>
-        <div>{include '../partials/box.latte', name: sichtbarkeit_studium, type: radio, value: 0, required: true, label: "nicht freigeben"}</div>
-    </div>
-</div>
-
-<div class="form-group row">
-    <div class="col-sm-2">Beruf und Tätigkeit</div>
-    <div class="col-sm-10">
-        <div>{include '../partials/box.latte', name: sichtbarkeit_beruf, type: radio, value: 1, required: true, label: "für Mitglieder freigeben"}</div>
-        <div>{include '../partials/box.latte', name: sichtbarkeit_beruf, type: radio, value: 0, required: true, label: "nicht freigeben"}</div>
-    </div>
-</div>
-
-<p>Bei den folgenden Daten kannst du nicht auswählen, ob sie freigegeben werden sollen. Wenn du nicht möchtest,
-dass andere Mitglieder sie sehen können, kannst du sie aus deinem Profil löschen.</p>
-
-<div class="form-group row" n:if=$mhn_titel>
-    <div class="col-sm-2">akademischer Titel</div>
-    <div class="col-sm-10">
-        <div>{include '../partials/box.latte', name: uebernahme_titel, type: radio, value: 1, required: true, label: "in mein Profil übernehmen"}</div>
-        <div>{include '../partials/box.latte', name: uebernahme_titel, type: radio, value: 0, required: true, label: "Angaben löschen"}</div>
-    </div>
-</div>
-
-<div class="form-group row" n:if=$mhn_homepage>
-    <div class="col-sm-2">Homepage</div>
-    <div class="col-sm-10">
-        <div>{include '../partials/box.latte', name: uebernahme_homepage, type: radio, value: 1, required: true, label: "in mein Profil übernehmen"}</div>
-        <div>{include '../partials/box.latte', name: uebernahme_homepage, type: radio, value: 0, required: true, label: "Angaben löschen"}</div>
-    </div>
-</div>
-
-<div class="form-group row" n:if="$mhn_zws_strasse || $mhn_zws_zusatz || $mhn_zws_plz || $mhn_zws_ort || $mhn_zws_land">
-    <div class="col-sm-2">Zweitwohnsitz</div>
-    <div class="col-sm-10">
-        <div>{include '../partials/box.latte', name: uebernahme_zweitwohnsitz, type: radio, value: 1, required: true, label: "in mein Profil übernehmen"}</div>
-        <div>{include '../partials/box.latte', name: uebernahme_zweitwohnsitz, type: radio, value: 2, required: true, label: "nur PLZ, Ort, Land übernehmen"}</div>
-        <div>{include '../partials/box.latte', name: uebernahme_zweitwohnsitz, type: radio, value: 0, required: true, label: "Angaben löschen"}</div>
-    </div>
-</div>
-
-<div class="form-group row">
-    <div class="col-sm-2">Sprachen, Hobbies, Interessen, Ehrenamt</div>
-    <div class="col-sm-10">
-        <div>{include '../partials/box.latte', name: uebernahme_interessen, type: radio, value: 1, required: true, label: "in mein Profil übernehmen"}</div>
-        <div>{include '../partials/box.latte', name: uebernahme_interessen, type: radio, value: 0, required: true, label: "Angaben löschen"}</div>
-    </div>
-</div>
-
-<p>Außerdem sind sichtbar für alle Mitglieder: Dein Name, deine MHN-Mitgliedsnummer, dein Aufnahmedatum (heute), deine Angaben, worüber du Auskunft erteilst und bei welchen Aufgaben du helfen könntest.</p>
-
-<p>Nachdem du deinen Zugang angelegt hast, kannst du deinem Profil auch ein Foto von dir hinzufügen.</p>
-
-<div class="form-group row">
-    <div class="col-sm-offset-2 col-sm-10">
-        <button type="submit" class="btn btn-success">MHN-Benutzerzugang anlegen</button>
-    </div>
+<div class="form-actions">
+    <button type="submit"><i class="ti ti-check" aria-hidden="true"></i> Speichern und dem Verein beitreten</button>
 </div>
 
 </form>

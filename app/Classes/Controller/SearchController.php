@@ -41,13 +41,19 @@ class SearchController extends Controller {
     // Felder mit |s bzw |s* nur mit sichtbarkeit
     const felder = ['username', 'id', 'vorname', 'nachname', 'mensa_nr|s', 'strasse|s', 'adresszusatz|s', 'plz|sichtbarkeit_plz_ort', 'ort|sichtbarkeit_plz_ort', 'land|s', 'strasse2', 'adresszusatz2', 'plz2', 'ort2', 'land2', 'homepage', 'sprachen', 'hobbys', 'interessen', 'studienort|s', 'studienfach|s', 'unityp|s', 'schwerpunkt|s', 'nebenfach|s', 'abschluss|s', 'zweitstudium|s', 'hochschulaktivitaeten|s', 'stipendien|s', 'auslandsaufenthalte|s', 'praktika|s', 'beruf|s'];
 
+    #[Route('GET /(search|)?fullName={fullName}'), RequireLogin]
+    public function searchByName(string $fullName): Response {
+        return $this->search($fullName);
+    }
+
     #[Route('GET /(search|)?fullName={fullName}&location={location}&any={any}'), RequireLogin]
-    public function search(string $fullName, string $location, string $any): Response {
+    public function search(string $fullName, string $location = '', string $any = ''): Response {
         // handle the "any" filter
         $anyIds = null;
         if ($any) {
             $this->setTemplateVariable('any', $any);
 
+            $filters = [];
             foreach (preg_split('/[\.;, ]/', $any) as $k=>$part) {
                 if ($part === '') {
                     continue;
@@ -134,11 +140,9 @@ class SearchController extends Controller {
             }
         }
 
-        if (!$ids) {
-            return $this->form();
-        }
-
         // show a maximum of 50 results
+        $ids ??= [];
+        $this->setTemplateVariable('resultCount', count($ids));
         $ids = array_slice($ids, 0, 50);
 
         return $this->showResults($ids);
@@ -357,6 +361,8 @@ class SearchController extends Controller {
             $e = [
                 'id' => $user->get('id'),
                 'last_login' => $user->get('last_login'),
+                'vorname' => $user->get('vorname'),
+                'nachname' => $user->get('nachname'),
                 'fullName' => $user->get('fullName'),
                 'username' => $user->get('username'),
                 'orte' => implode(', ', $orte),
