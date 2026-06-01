@@ -1,0 +1,7 @@
+services:
+  app:
+    volumes:
+      - "./app/Classes:/var/www/Classes"
+      - "./app/templates:/var/www/templates"
+      - "./app/html:/var/www/html"
+      - "${VOLUMES_DIR}/profilbilder:/var/www/html/profilbilder"
