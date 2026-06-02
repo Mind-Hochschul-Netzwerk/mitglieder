@@ -4,29 +4,6 @@
 {block title}{$fullName}{/block}
 
 {block script}
-/*
-document.addEventListener('DOMContentLoaded', (function() {
-  // We can attach the fileselect event to all file inputs on the page
-  $(document).on('change', ':file', function() {
-    var input = $(this),
-        label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
-    input.trigger('fileselect', label);
-  });
-
-  // We can watch for our custom fileselect event like this
-  document.addEventListener('ready', function() {
-      $(':file').on('fileselect', function(event, label) {
-
-          var input = $(this).parents('.input-group').find(':text');
-
-          if( input.length ) {
-              input.val(label);
-          }
-      });
-  });
-});
-*/
-
 // vor dem Verlassen warnen, falls etwas geändert wurde
 let changes = {$changes ? 'true' : 'false'};
 let saving = false;
@@ -99,7 +76,7 @@ if (resignButton !== null) {
 {/define}
 
 {block header-image}<img n:if=$profilbild src="/profilbilder/{$profilbild}" alt="Profilbild von {$fullName}">{/block}
-{block page-label}<i class="ti ti-user" aria-hidden="true"></i> Mitglied {$aufnahmedatum ? "seit ". ($aufnahmedatum?|format:'Y')}{/block}
+{block page-label}<i class="ti ti-pencil" aria-hidden="true"></i> Profil bearbeiten{/block}
 {block page-header}
     <!--<div class="page-subtitle">Mitgliedsdaten bearbeiten</div>-->
     <div class="meta">
@@ -200,11 +177,16 @@ if (resignButton !== null) {
             <i class="label-icon ti ti-id-badge" aria-hidden="true"></i>Basisdaten
         </h2>
 
-        <p>Diese Basisdaten werden von allen Mitgliedern erhoben. Mit der Sichtbarkeits-Auswahl
-            (<span class="protected-value-icon ti ti-eye"></span> und <span class="protected-value-icon ti ti-eye-off"></span>)
-            neben den Einträgen  kannst du einstellen, welche Daten für alle Mitglieder oder nur für dich und die
-            Beauftragten der Mitgliederverwaltung sichtbar sind. Bei einigen Angaben kann die Sichtbarkeit nicht geändert werden. Weitere Informationen findest du in der Datenschutzerklärung (Link in der Navigation).
-        </p>
+        <p>Diese Basisdaten werden von allen Mitgliedern erhoben.</p>
+
+        <div class="info-box"><i class="ti ti-info-circle" aria-hidden="true"></i>
+            <p>
+                Mit der Sichtbarkeits-Auswahl <i class="protected-value-icon ti ti-eye"></i>/<i class="protected-value-icon ti ti-eye-off"></i>
+                neben den Einträgen kannst du einstellen, ob Daten für alle Mitglieder oder nur für dich und die
+                Beauftragten der Mitgliederverwaltung sichtbar sind. Einträge ohne diese Symbole sind für alle Mitglieder sichtbar.
+            </p>
+        </div>
+
         <div class="form-row">
             {include private-form-group, "Vorname", vorname, disabled: !$isAdmin}
             {include private-form-group, "Nachname", nachname, disabled: !$isAdmin}

@@ -1,5 +1,5 @@
 /* =========================================================
-   MHN Mitgliederverzeichnis – Gemeinsames Stylesheet
+   MHN Mitgliederverzeichnis - Gemeinsames Stylesheet
    ========================================================= */
 
 :root {
@@ -385,6 +385,8 @@ dialog:first-child {
   color: inherit;
   flex-shrink: 0;
   font-weight: normal;
+  margin-block: 0;
+  padding-block: 0.7rem;
 
   &:hover { text-decoration: none; }
 
@@ -458,10 +460,11 @@ dialog:first-child {
       "search-bar search-bar";
     grid-template-columns: 1fr auto;
   }
+  .brand { padding: 0 }
   .topbar-search-form {
     max-width: none;
     justify-self: stretch;
-    padding: 0 10px 0 0;
+    padding: 0 0.4rem 0 0;
   }
 }
 
@@ -608,8 +611,6 @@ dialog:first-child {
   margin-bottom: 1.5rem;
   overflow: hidden;
   container-type: inline-size;
-
-
 
   .meta {
     display: flex;
@@ -917,8 +918,8 @@ dl {
 
   font-size: 1em;
 
-  &.ti-eye-off { color: red; }
-  &.ti-eye { color: #00ff00; }
+  &.ti-eye-off { color: red !important; }
+  &.ti-eye { color: #00ff00 !important; }
 
   dd & {
     margin-left: 0.35em;
@@ -1043,7 +1044,6 @@ table {
   }
 }
 
-/* Tabellen-Zeilen die klickbar sind */
 table.clickable td { cursor: pointer; }
 
 /* ── Responsive ───────────────────────────────────────────── */
@@ -1051,8 +1051,6 @@ table.clickable td { cursor: pointer; }
   .nav-toggle { display: none; }
 
   body { margin-left: var(--sidebar-w); }
-
-  .topbar { margin-left: 0; }
 
   .sidebar {
     transform: translateX(0);

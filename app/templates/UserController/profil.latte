@@ -1,22 +1,4 @@
 {var $navId = suche}
-{block title}{$fullName}{/block}
-{block header-image}<img n:if=$profilbild src="/profilbilder/{$profilbild}" alt="Profilbild von {$fullName}">{/block}
-{block page-label}<i class="ti ti-user" aria-hidden="true"></i> Mitglied {$aufnahmedatum ? "seit ". ($aufnahmedatum?|format:'Y')}{/block}
-{block page-header}
-    <div class="meta">
-        <span n:if=$db_modified><strong>Stand:</strong> {$db_modified|format:'d.m.Y@local'}</span>
-        <span n:if=$ort><i class="ti ti-map-pin" aria-hidden="true"></i> {$ort}</span>
-    </div>
-    <div class="action-links">
-        <a n:if=$mayEdit href="{$bearbeitenUrl}">
-            <i class="ti ti-pencil" aria-hidden="true"></i> Profil bearbeiten
-        </a>
-        <button n:if="!$isSelf" onclick="document.getElementById('message_dialog').showModal()">
-            <i class="ti ti-message" aria-hidden="true"></i> Nachricht verfassen
-        </button>
-    </div>
-
-{/block}
 
 {block script}
     function sendMessage(form) {
@@ -43,6 +25,24 @@
         <dd><a n:tag-if="$href" href="{$href}">{$value}</a><i n:if="$sichtbarkeit === false" class="protected-value-icon ti ti-eye-off"></i></dd>
     </div>
 {/define}
+
+{block title}{$fullName}{/block}
+{block header-image}<img n:if=$profilbild src="/profilbilder/{$profilbild}" alt="Profilbild von {$fullName}">{/block}
+{block page-label}<i class="ti ti-user" aria-hidden="true"></i> Mitglied {$aufnahmedatum ? "seit ". ($aufnahmedatum?|format:'Y')}{/block}
+{block page-header}
+    <div class="meta">
+        <span n:if=$db_modified><strong>Stand:</strong> {$db_modified|format:'d.m.Y@local'}</span>
+        <span n:if=$ort><i class="ti ti-map-pin" aria-hidden="true"></i> {$ort}</span>
+    </div>
+    <div class="action-links">
+        <a n:if=$mayEdit href="{$bearbeitenUrl}">
+            <i class="ti ti-pencil" aria-hidden="true"></i> Bearbeiten
+        </a>
+        <button n:if="!$isSelf" onclick="document.getElementById('message_dialog').showModal()">
+            <i class="ti ti-message" aria-hidden="true"></i> Nachricht
+        </button>
+    </div>
+{/block}
 
 {block content}
 
@@ -167,7 +167,7 @@
 
 <dialog id="message_dialog" aria-labelledby="message_dialog_title" closedby="any">
     <span class="dialog-close" onclick="document.getElementById('message_dialog').close()">&times;</span>
-    <div class="page-label"><i class="ti ti-envelope" aria-hidden="true"></i> Kommunikation</div>
+    <div class="page-label"><i class="ti ti-message" aria-hidden="true"></i> Kommunikation</div>
     <h1 class="dialog-title" id="message_dialog_title">Nachricht verfassen</h1>
     <p class="dialog-subtitle">Sende eine Nachricht an {$vorname}.</p>
 
