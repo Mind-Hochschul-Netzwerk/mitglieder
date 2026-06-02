@@ -14,7 +14,7 @@
   </head>
   <body class="{$bodyClass}">
     {=debugger()}
-    <script src="/js/MHN.js"></script>
+    <script src="/js/MHN.js?{=md5((string)filemtime('/var/www/html/js/MHN.js'))}"></script>
     <script src="/js/marked.min.js"></script>
     <script>csrfToken = {csrfToken()};</script>
 
