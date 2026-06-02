@@ -309,7 +309,7 @@ dialog {
 body:has(dialog:first-child) {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 100dvh;
 
   main {
     flex: 1;
@@ -754,6 +754,21 @@ dialog, .page-header {
   p, li, dd { color: var(--muted); }
 }
 
+.cards-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  h2 { margin: 0; font-size: 1.15rem; }
+}
+
+.cards-header-info {
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
 .cards {
   display: grid;
   gap: 1rem;
@@ -910,22 +925,6 @@ dl {
   }
 }
 
-/* ── Results header ───────────────────────────────────────── */
-.results-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1rem;
-
-  h2 { margin: 0; font-size: 1.15rem; }
-}
-
-.results-count {
-  font-size: 0.88rem;
-  color: var(--muted);
-}
-
 /* ── Prose (Datenschutz etc.) ─────────────────────────────── */
 .prose {
   max-width: 72ch;
@@ -1058,7 +1057,7 @@ table.clickable td { cursor: pointer; }
   .sidebar {
     transform: translateX(0);
     position: fixed;
-    height: 100vh;
+    height: 100dvh;
     top: 0; left: 0; right: auto;
     width: var(--sidebar-w);
     max-width: none;
