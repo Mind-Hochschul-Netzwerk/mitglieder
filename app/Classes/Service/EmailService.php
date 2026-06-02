@@ -71,7 +71,6 @@ class EmailService
         }
 
         $mailer->setFrom($this->fromAddress, 'Mind-Hochschul-Netzwerk');
-        $mailer->addReplyTo('IT@' . $this->domain, 'IT-Team');
         $mailer->CharSet = 'utf-8';
 
         return $mailer;
