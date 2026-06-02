@@ -435,8 +435,8 @@ dialog:first-child {
   .topbar-search-form { max-width: 400px; }
 }
 
-@media (max-width: 600px) {
-  .topbar:has(.search-bar) {
+@media (max-width: 640px) {
+  .topbar:has(.topbar-search-form) {
     grid-template-areas:
       "brand nav-toggle"
       "search-bar search-bar";

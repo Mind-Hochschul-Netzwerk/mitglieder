@@ -9,7 +9,6 @@
     <title>{ifset htmlTitle}{include htmlTitle} – {elseifset title}{include title|striptags} – {/ifset}Mein MHN</title>
     <link rel="icon" href="/favicon.png">
     <link rel="stylesheet" href="/css/style.css?{=md5((string)filemtime('/var/www/html/css/style.css'))}">
-    <link rel="stylesheet" href="/css/MHN.css?{=md5((string)filemtime('/var/www/html/css/MHN.css'))}">
     <link rel="stylesheet" href="/css/tabler-icons.min.css"/>
     {ifset css}<style>{include css|noescape}</style>{/ifset}
   </head>

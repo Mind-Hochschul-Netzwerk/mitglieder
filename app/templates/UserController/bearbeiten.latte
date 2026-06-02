@@ -387,9 +387,8 @@ if (resignButton !== null) {
                 <div><dt>Datenschutzerklärungen</dt><dd><a href="/user/{$username}/agreements">Einwilligungen anzeigen / ändern</a></dd></div>
             </dl>
 
-            <div class="form-group">
-                <label for="resignPassword">Austritt erklären</label>
-                <div>
+            <div>
+                <h3>Vereinsaustritt</h3>
                     {if $isAdmin}
                         {include box, name: resign, label: 'Das Mitglied hat seinen Austritt erklärt.',
                             id: 'resignCheckbox',
@@ -400,7 +399,7 @@ if (resignButton !== null) {
                         {if $resignation}
                             <p>Deine Austrittserklärung wurde am {$resignation|format:'d.m.Y@local'} gespeichert. Wenn du deinen Austritt zurücknehmen möchtest, wende dich bitte an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>. Der Austritt wird gemäß unserer Satzung zum Ende des Kalenderjahres wirksam.</p>
                         {else}
-                            <p>Mit einer Erklärung an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>, kannst du deine MHN-Mitgliedschaft beenden. Mit dem Ende deiner Mitgliedschaft werden wir deine persönlichen Daten aus der Mitgliederdatenbank löschen.</p>
+                            <p>Hier kannst du gegenüber dem Vorstand deinen Austritt zum Ende des Kalenderjahres erklären. Mit dem Ende deiner Mitgliedschaft werden wir deine persönlichen Daten aus der Mitgliederdatenbank löschen.</p>
                             <p class="resign__button"><button type="button" id="resign" name="resign" class="danger">Austritt erklären</button></p>
                             <div class="resign__password hidden">
                                 <p>Gib hier dein Passwort ein, wenn du deine Mitgliedschaft wirklich beenden möchtest, und klicke dann auf speichern.</p>
@@ -408,7 +407,6 @@ if (resignButton !== null) {
                             </div>
                         {/if}
                     {/if}
-                </div>
             </div>
     </section>
 
