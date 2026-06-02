@@ -58,6 +58,7 @@ class UserController extends Controller {
             'uncoverAll' => $isAdmin,
             'bearbeitenUrl' => $user->get('bearbeitenUrl'),
             'mayEdit' => $this->currentUser->get('id') === $user->get('id') || $this->currentUser->hasRole('mvedit'),
+            'isSelf' => $this->currentUser->get('id') ===  $user->get('id'),
         ];
 
         // generell: alle Daten kopieren

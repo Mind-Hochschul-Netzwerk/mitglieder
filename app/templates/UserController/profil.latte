@@ -7,9 +7,32 @@
         <span n:if=$db_modified><strong>Stand:</strong> {$db_modified|format:'d.m.Y@local'}</span>
         <span n:if=$ort><i class="ti ti-map-pin" aria-hidden="true"></i> {$ort}</span>
     </div>
-    <a n:if=$mayEdit class="action-link" href="{$bearbeitenUrl}">
-        <i class="ti ti-pencil" aria-hidden="true"></i> Profil bearbeiten
-    </a>
+    <div class="action-links">
+        <a n:if=$mayEdit href="{$bearbeitenUrl}">
+            <i class="ti ti-pencil" aria-hidden="true"></i> Profil bearbeiten
+        </a>
+        <button n:if="!$isSelf" onclick="document.getElementById('message_dialog').showModal()">
+            <i class="ti ti-message" aria-hidden="true"></i> Nachricht verfassen
+        </button>
+    </div>
+
+{/block}
+
+{block script}
+    function sendMessage(form) {
+        const formData = new FormData(form);
+
+        try {
+            callApi("POST", form.action, formData).then(response => {
+                alert('Nachricht erfolgreich gesendet!');
+                form.reset();
+                document.getElementById('message_dialog').close();
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Fehler beim Senden der Nachricht. Bitte versuche es später erneut.');
+        }
+    }
 {/block}
 
 {define row, $label, $name, $value, $sichtbarkeit, $href}
@@ -22,121 +45,142 @@
 {/define}
 
 {block content}
-    <section class="panel" aria-labelledby="contact-heading">
-      <h2 id="contact-heading">
-        <i class="label-icon ti ti-at" aria-hidden="true"></i>Kontakt &amp; Ort
-      </h2>
-      <dl n:ifcontent>
-        {include row, 'E-Mail', name: email, href: ("mailto:" . $email)}
-        {include row, 'Webseite', name: homepage, value: preg_replace('/(^https?:\/*(www\.)?|\/$)/', '', $homepage), href: ($homepage)}
-        {include row, 'Adresse',
-            value: implode(', ', array_filter([
-                $strasse,
-                $adresszusatz,
-                trim("$plz $ort"),
-                $land !== 'Deutschland' ? $land
-            ])),
-            sichtbarkeit: $uncoverAll ? ($sichtbarkeit_strasse && $sichtbarkeit_adresszusatz && $sichtbarkeit_plz_ort && $sichtbarkeit_land) : true,
-        }
-        {include row, 'Zweitwohnsitz',
-            value: implode(', ', array_filter([
-                $strasse2,
-                $adresszusatz2,
-                trim("$plz2 $ort2"),
-                $land2 !== 'Deutschland' ? $land2
-            ]))
-        }
-        {include row, 'Telefon', name: telefon, href: ("tel:" . preg_replace('/(,.*$|\s)/', '', $telefon ?? ''))}
-      </dl>
-      <p n:else>{$vorname} hat keine Kontaktinformationen freigegeben.</p>
-    </section>
 
-    <section class="panel" aria-labelledby="career-heading">
-      <h2 id="career-heading">
-        <i class="label-icon ti ti-school" aria-hidden="true"></i>Ausbildung &amp; Beruf
-      </h2>
-      <dl n:ifcontent>
-        {include row, 'Beschäftigung', name: beschaeftigung, value: match($beschaeftigung) {
-            'Schueler' => 'Schüler:in',
-            'Hochschulstudent' => 'Hochschulstudent:in',
-            'Doktorand' => 'Doktorand:in',
-            'Berufstaetig' => 'berufstätig',
-            'Sonstiges' => 'sonstiges',
-            default => null,
-        }}
-        {include row, 'Beruf', name: beruf}
-        {include row, 'Hochschultyp', name: unityp}
-        {include row, 'Studienort', name: studienort}
-        {include row, 'Studiengang, Ausbildung', name: studienfach}
-        {include row, 'Schwerpunkt', name: schwerpunkt}
-        {include row, 'Nebenfach', name: nebenfach}
-        {include row, 'Abschluss', name: abschluss}
-        {include row, 'Zweitstudium', name: zweitstudium}
-        {include row, 'Ehrenamtliches Engagement', name: hochschulaktivitaeten}
-        {include row, 'Stipendien', name: stipendien}
-        {include row, 'Auslandsaufenthalte', name: auslandsaufenthalte}
-        {include row, 'Praktika, Fort- und Weiterbildung', name. praktika}
-      </dl>
-      <p n:else>{$vorname} hat keine Angaben zu Ausbildung oder Beruf freigegeben.</p>
-    </section>
+<section class="panel" aria-labelledby="contact-heading">
+    <h2 id="contact-heading">
+    <i class="label-icon ti ti-at" aria-hidden="true"></i>Kontakt &amp; Ort
+    </h2>
+    <dl n:ifcontent>
+    {include row, 'E-Mail', name: email, href: ("mailto:" . $email)}
+    {include row, 'Webseite', name: homepage, value: preg_replace('/(^https?:\/*(www\.)?|\/$)/', '', $homepage), href: ($homepage)}
+    {include row, 'Adresse',
+        value: implode(', ', array_filter([
+            $strasse,
+            $adresszusatz,
+            trim("$plz $ort"),
+            $land !== 'Deutschland' ? $land
+        ])),
+        sichtbarkeit: $uncoverAll ? ($sichtbarkeit_strasse && $sichtbarkeit_adresszusatz && $sichtbarkeit_plz_ort && $sichtbarkeit_land) : true,
+    }
+    {include row, 'Zweitwohnsitz',
+        value: implode(', ', array_filter([
+            $strasse2,
+            $adresszusatz2,
+            trim("$plz2 $ort2"),
+            $land2 !== 'Deutschland' ? $land2
+        ]))
+    }
+    {include row, 'Telefon', name: telefon, href: ("tel:" . preg_replace('/(,.*$|\s)/', '', $telefon ?? ''))}
+    </dl>
+    <p n:else>{$vorname} hat keine Kontaktinformationen freigegeben.</p>
+</section>
 
-    <section class="panel" aria-labelledby="activity-heading">
-      <h2 id="activity-heading">
-        <span class="label-icon" aria-hidden="true"><i class="ti ti-affiliate"></i></span> Netzwerk
-      </h2>
+<section class="panel" aria-labelledby="career-heading">
+    <h2 id="career-heading">
+    <i class="label-icon ti ti-school" aria-hidden="true"></i>Ausbildung &amp; Beruf
+    </h2>
+    <dl n:ifcontent>
+    {include row, 'Beschäftigung', name: beschaeftigung, value: match($beschaeftigung) {
+        'Schueler' => 'Schüler:in',
+        'Hochschulstudent' => 'Hochschulstudent:in',
+        'Doktorand' => 'Doktorand:in',
+        'Berufstaetig' => 'berufstätig',
+        'Sonstiges' => 'sonstiges',
+        default => null,
+    }}
+    {include row, 'Beruf', name: beruf}
+    {include row, 'Hochschultyp', name: unityp}
+    {include row, 'Studienort', name: studienort}
+    {include row, 'Studiengang, Ausbildung', name: studienfach}
+    {include row, 'Schwerpunkt', name: schwerpunkt}
+    {include row, 'Nebenfach', name: nebenfach}
+    {include row, 'Abschluss', name: abschluss}
+    {include row, 'Zweitstudium', name: zweitstudium}
+    {include row, 'Ehrenamtliches Engagement', name: hochschulaktivitaeten}
+    {include row, 'Stipendien', name: stipendien}
+    {include row, 'Auslandsaufenthalte', name: auslandsaufenthalte}
+    {include row, 'Praktika, Fort- und Weiterbildung', name. praktika}
+    </dl>
+    <p n:else>{$vorname} hat keine Angaben zu Ausbildung oder Beruf freigegeben.</p>
+</section>
 
-      <h3>Angebote für andere Mitglieder</h3>
+<section class="panel" aria-labelledby="activity-heading">
+    <h2 id="activity-heading">
+    <span class="label-icon" aria-hidden="true"><i class="ti ti-affiliate"></i></span> Netzwerk
+    </h2>
 
-      <ul n:ifcontent class="feature-list">
-        <li n:if=$auskunft_studiengang>Auskunft über den Studiengang, Ausbildung</li>
-        <li n:if=$auskunft_stipendien>Auskunft über Stipendien</li>
-        <li n:if=$auskunft_auslandsaufenthalte>Auskunft über Auslandsaufenthalte</li>
-        <li n:if=$auskunft_praktika>Auskunft über Praktika, Fort- und Weiterbildung</li>
-        <li n:if=$auskunft_beruf>Auskunft über den Beruf</li>
-        <li n:if=$mentoring>berufliches Mentoring</li>
-      </ul>
-      <p n:else>{$vorname} hat keine Angebote für andere Mitglieder angegeben.</p>
+    <h3>Angebote für andere Mitglieder</h3>
 
-      <h3>Angebote für den Verein</h3>
-      <ul n:ifcontent class="feature-list">
-        <li n:if=$aufgabe_ma>Mithilfe bei der Organisation der Mind-Akademie</li>
-        <li n:if=$aufgabe_orte>Mithilfe bei der Suche nach Veranstaltungsorten</li>
-        <li n:if=$aufgabe_vortrag>einen Vortrag, ein Seminar oder einen Workshop anbieten</li>
-        <li n:if=$aufgabe_koord>eine Koordinations-Aufgabe, die man per Mail/Tel. von zu Hause erledigen kann</li>
-        <li n:if=$aufgabe_graphisch>eine graphisch-kreative Aufgabe</li>
-        <li n:if=$aufgabe_computer>eine Aufgabe, in der ich mein Computer-/IT-Wissen einbringen kann</li>
-        <li n:if=$aufgabe_texte_schreiben>Texte verfassen (z.B. für die Homepage oder den MHN-Newsletter)</li>
-        <li n:if=$aufgabe_texte_lesen>Texte durchlesen und kommentieren</li>
-        <li n:if=$aufgabe_vermittlung>Weitervermittlung von Kontakten</li>
-        <li n:if=$aufgabe_ansprechpartner>Ansprechpartner vor Ort (lokale Treffen organisieren, Plakate aufhängen)</li>
-        <li n:if=$aufgabe_hilfe>eine kleine, zeitlich begrenzte Aufgabe, wenn ihr dringend Hilfe braucht</li>
-        <li n:if=$aufgabe_sonstiges>Sonstiges, und zwar: „{$aufgabe_sonstiges_beschreibung}”</li>
-      </ul>
-      <p n:else>{$vorname} hat keine Angebote für den Verein angegeben.</p>
+    <ul n:ifcontent class="feature-list">
+    <li n:if=$auskunft_studiengang>Auskunft über den Studiengang, Ausbildung</li>
+    <li n:if=$auskunft_stipendien>Auskunft über Stipendien</li>
+    <li n:if=$auskunft_auslandsaufenthalte>Auskunft über Auslandsaufenthalte</li>
+    <li n:if=$auskunft_praktika>Auskunft über Praktika, Fort- und Weiterbildung</li>
+    <li n:if=$auskunft_beruf>Auskunft über den Beruf</li>
+    <li n:if=$mentoring>berufliches Mentoring</li>
+    </ul>
+    <p n:else>{$vorname} hat keine Angebote für andere Mitglieder angegeben.</p>
 
-    </section>
+    <h3>Angebote für den Verein</h3>
+    <ul n:ifcontent class="feature-list">
+    <li n:if=$aufgabe_ma>Mithilfe bei der Organisation der Mind-Akademie</li>
+    <li n:if=$aufgabe_orte>Mithilfe bei der Suche nach Veranstaltungsorten</li>
+    <li n:if=$aufgabe_vortrag>einen Vortrag, ein Seminar oder einen Workshop anbieten</li>
+    <li n:if=$aufgabe_koord>eine Koordinations-Aufgabe, die man per Mail/Tel. von zu Hause erledigen kann</li>
+    <li n:if=$aufgabe_graphisch>eine graphisch-kreative Aufgabe</li>
+    <li n:if=$aufgabe_computer>eine Aufgabe, in der ich mein Computer-/IT-Wissen einbringen kann</li>
+    <li n:if=$aufgabe_texte_schreiben>Texte verfassen (z.B. für die Homepage oder den MHN-Newsletter)</li>
+    <li n:if=$aufgabe_texte_lesen>Texte durchlesen und kommentieren</li>
+    <li n:if=$aufgabe_vermittlung>Weitervermittlung von Kontakten</li>
+    <li n:if=$aufgabe_ansprechpartner>Ansprechpartner vor Ort (lokale Treffen organisieren, Plakate aufhängen)</li>
+    <li n:if=$aufgabe_hilfe>eine kleine, zeitlich begrenzte Aufgabe, wenn ihr dringend Hilfe braucht</li>
+    <li n:if=$aufgabe_sonstiges>Sonstiges, und zwar: „{$aufgabe_sonstiges_beschreibung}”</li>
+    </ul>
+    <p n:else>{$vorname} hat keine Angebote für den Verein angegeben.</p>
 
-    <section class="panel" aria-labelledby="about-heading">
-      <h2 id="about-heading">
-        <span class="label-icon" aria-hidden="true"><i class="ti ti-mood-spark"></i></span>Persönliches
-      </h2>
-      <dl n:ifcontent>
-        {include row, 'Geburtsdatum', name: geburtstag, value: ($geburtstag|format:'d.m.Y')}
-        {include row, 'Sprachen', name: sprachen}
-        {include row, 'Hobbys', name: hobbys}
-        {include row, 'Interessen', name: interessen}
-      </dl>
-      <p n:else>{$vorname} hat keine persönlichen Angaben gemacht.</p>
-    </section>
+</section>
 
-    <section class="panel" aria-labelledby="membership-heading">
-      <h2 id="membership-heading">
-        <span class="label-icon" aria-hidden="true"><i class="ti ti-file-description"></i></span>Mitgliedschaft
-      </h2>
-      <dl>
-        {include row, 'Mitgliedsnummer', name: id}
-        {include row, 'Mitglied seit', value: ($aufnahmedatum|format:'d.m.Y') ?? 'unbekannt'}
-        {include row, 'Mensa-Mitgliedsnummer', name: mensa_nr}
-        {include row, 'Datenschutz', value: $datenschutzverpflichtung ? ("Verpflichtungserklärung abgegeben (Version " . $datenschutzverpflichtung->agreement->version . " vom " . ($datenschutzverpflichtung->agreement->timestamp|format:'d.m.Y@local') . ")") : "Verpflichtungserklärung nicht abgegeben"}
-      </dl>
-    </section>
+<section class="panel" aria-labelledby="about-heading">
+    <h2 id="about-heading">
+    <span class="label-icon" aria-hidden="true"><i class="ti ti-mood-spark"></i></span>Persönliches
+    </h2>
+    <dl n:ifcontent>
+    {include row, 'Geburtsdatum', name: geburtstag, value: ($geburtstag|format:'d.m.Y')}
+    {include row, 'Sprachen', name: sprachen}
+    {include row, 'Hobbys', name: hobbys}
+    {include row, 'Interessen', name: interessen}
+    </dl>
+    <p n:else>{$vorname} hat keine persönlichen Angaben gemacht.</p>
+</section>
+
+<section class="panel" aria-labelledby="membership-heading">
+    <h2 id="membership-heading">
+    <span class="label-icon" aria-hidden="true"><i class="ti ti-file-description"></i></span>Mitgliedschaft
+    </h2>
+    <dl>
+    {include row, 'Mitgliedsnummer', name: id}
+    {include row, 'Mitglied seit', value: ($aufnahmedatum|format:'d.m.Y') ?? 'unbekannt'}
+    {include row, 'Mensa-Mitgliedsnummer', name: mensa_nr}
+    {include row, 'Datenschutz', value: $datenschutzverpflichtung ? ("Verpflichtungserklärung abgegeben (Version " . $datenschutzverpflichtung->agreement->version . " vom " . ($datenschutzverpflichtung->agreement->timestamp|format:'d.m.Y@local') . ")") : "Verpflichtungserklärung nicht abgegeben"}
+    </dl>
+</section>
+
+<dialog id="message_dialog" aria-labelledby="message_dialog_title" closedby="any">
+    <span class="dialog-close" onclick="document.getElementById('message_dialog').close()">&times;</span>
+    <div class="page-label"><i class="ti ti-envelope" aria-hidden="true"></i> Kommunikation</div>
+    <h1 class="dialog-title" id="message_dialog_title">Nachricht verfassen</h1>
+    <p class="dialog-subtitle">Sende eine Nachricht an {$vorname}.</p>
+
+    <form method="post" action="/user/{$username}/message" onsubmit="sendMessage(this); return false;">
+        {=csrfTokenTag()}
+        {include input, message, placeholder: "Deine Nachricht", type: textarea, value: ""}
+
+        {if currentUser()->get('sichtbarkeit_email')}
+            <p>Da du deine E-Mail-Adresse für andere Mitglieder freigegeben hast, kann dir {$vorname} auf deine Nachricht direkt per E-Mail antworten.</p>
+        {else}
+            {include box, name: includeSenderAddress, type: checkbox, label: "Sende meine E-Mail-Adresse mit, damit {$vorname} mir direkt antworten kann."}
+        {/if}
+
+        <div class="form-actions"><button type="submit"><i class="ti ti-send" aria-hidden="true"></i> Nachricht senden</button></div>
+    </form>
+</dialog>

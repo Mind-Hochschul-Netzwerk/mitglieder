@@ -46,14 +46,14 @@ class AgreementController extends Controller {
      */
     #[Route('GET /agreements/api'), AllowIf(role: 'datenschutz')]
     public function index(): JsonResponse {
-        return new JsonResponse(array_map(fn($agreement) => [
+        return $this->json(array_map(fn($agreement) => [
             'id' => $agreement->id,
             'name' => $agreement->name,
             'version' => $agreement->version,
             'text' => $agreement->text,
             'timestamp' => $agreement->timestamp->format('c'),
             'count' => $this->userAgreementRepository->countUsersByAgreement($agreement),
-        ], $this->agreementRepository->findAll()), 200);
+        ], $this->agreementRepository->findAll()));
     }
 
     /**
@@ -93,7 +93,7 @@ class AgreementController extends Controller {
         if (!$agreement) {
             throw new \Hengeb\Router\Exception\NotFoundException();
         }
-        return new JsonResponse([
+        return $this->json([
             'text' => $agreement->text,
             'version' => $agreement->version,
         ]);

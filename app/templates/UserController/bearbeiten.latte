@@ -106,9 +106,11 @@ if (resignButton !== null) {
         <span n:if=$db_modified><strong>Stand:</strong> {$db_modified|format:'d.m.Y@local'}</span>
         <span n:if=$ort><i class="ti ti-map-pin" aria-hidden="true"></i> {$ort}</span>
     </div>
-    <a class="action-link" href="/user/{$username}">
-        <i class="ti ti-user" aria-hidden="true"></i> Profil ansehen
-    </a>
+    <div class="action-links">
+        <a href="/user/{$username}">
+            <i class="ti ti-user" aria-hidden="true"></i> Profil ansehen
+        </a>
+    </div>
 {/block}
 
 {block content}
@@ -449,5 +451,3 @@ if (resignButton !== null) {
     </div>
 
 </form>
-
-</div>

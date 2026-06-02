@@ -26,6 +26,11 @@ function callApi(method = "GET", url = "", data = {}, loader = undefined) {
     if (loader) {
         loader.classList.remove("hidden");
     }
+    if (data instanceof FormData && data.has("_csrfToken")) {
+        data.delete("_csrfToken");
+    } else if (data["_csrfToken"]) {
+        delete data["_csrfToken"];
+    }
     let options = {
         method: method,
         headers: {

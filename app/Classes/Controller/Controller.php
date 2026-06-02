@@ -68,6 +68,10 @@ class Controller {
         return new Response($this->renderToString($templateName, $data));
     }
 
+    protected function json(array $data, int $responseCode = 200): JsonResponse {
+        return new JsonResponse($data, $responseCode);
+    }
+
     public function showError(string $message, int $responseCode = 200): Response {
         $response = $this->render('errorpage', ['text' => $message]);
         $response->setStatusCode($responseCode);

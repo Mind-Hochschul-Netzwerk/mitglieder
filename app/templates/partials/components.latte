@@ -25,6 +25,16 @@
                     {/if}
                 {/foreach}
             </select>
+        {elseif $type === textarea}
+            <textarea n:attr="
+                id: $elementId,
+                name: $name,
+                class: $class,
+                placeholder: $placeholder ?: $label,
+                disabled: (bool) $disabled,
+                required: (bool) $required,
+                rows: 6
+            ">{$value}</textarea>
         {else}
             <input n:attr="
                 id: $elementId,

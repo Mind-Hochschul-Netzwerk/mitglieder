@@ -1,0 +1,16 @@
+{layout html-mail-layout.latte}
+{var $return->subject = 'Neue Nachricht von ' . $sender->get('fullName')}
+{block content}
+<p>Hallo {$user->get('vorname')},</p>
+<p>du hast eine neue Nachricht von {$sender->get('fullName')} über das MHN-Mitgliederportal erhalten. Hier ist die Nachricht:</p>
+<blockquote>{$message|breakLines}</blockquote>
+{if $includeSenderAddress}
+    <p>Du kannst auf diese Nachricht antworten, indem du auf diese E-Mail antwortest, da {$sender->get('vorname')} die eigene E-Mail-Adresse für andere Mitglieder freigegeben hat.</p>
+    <p>Alternativ kannst du auch direkt über das Mitgliederportal antworten, indem du auf den folgenden Link klickst:</p>
+{else}
+    <p>{$sender->get('vorname')} hat die eigene E-Mail-Adresse nicht für andere Mitglieder freigegeben. Gehe daher direkt über das Mitgliederportal, um zu antworten:</p>
+{/if}
+<p><a href="https://mitglieder.{=getenv('DOMAINNAME')}/user/{$sender->get('username')}">https://mitglieder.{=getenv('DOMAINNAME')}/user/{$sender->get('username')}</a></p>
+
+<p>Viele Grüße,<br>dein MHN-Mitgliederportal</p>
+{/block}

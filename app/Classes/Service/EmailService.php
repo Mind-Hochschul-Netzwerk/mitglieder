@@ -80,13 +80,21 @@ class EmailService
     /**
      * @throws \RuntimeException wenn eine E-Mail nicht versandt werden konnte.
      */
-    public function send(string|array $addresses, string $subject, string $body): bool
+    public function send(string|array $addresses, string $subject, string $body, array $headers = []): bool
     {
         if (!is_array($addresses)) {
             $addresses = [$addresses];
         }
 
+        $headers = array_filter($headers);
+
         $mailer = $this->getMailer();
+
+        $isHtml = false;
+        if (isset($headers['Content-Type']) && stripos($headers['Content-Type'], 'text/html') !== false) {
+            $isHtml = true;
+            unset($headers['Content-Type']);
+        }
 
         if (!$mailer) {
             error_log("
@@ -94,6 +102,7 @@ class EmailService
 SMTP_HOST is not set in .env
 Mail to: ".(implode(', ', $addresses))."
 Subject: $subject
+Headers: ".json_encode($headers)."
 
 $body
 --------------------------------------------------------------------------------
@@ -104,23 +113,43 @@ $body
         $mailer->Subject = $subject;
         $mailer->Body = $body;
 
+        if ($isHtml) {
+            $mailer->isHTML(true);
+            $mailer->AltBody = $this->htmlToPlainText($body);
+        }
+
+        foreach ($headers as $name => $value) {
+            $mailer->addCustomHeader($name, $value);
+        }
+
         try {
             foreach ($addresses as $address) {
                 $mailer->addAddress($address);
             }
             return $mailer->send();
         } catch (\Exception $e) {
-            throw new RuntimeException($e->getMessage());
+            throw new \RuntimeException($e->getMessage());
         }
+    }
+
+    private function htmlToPlainText(string $html): string
+    {
+        $text = preg_replace('~<(br|div|p|li|tr|h[1-6])\b[^>]*>~i', "\n", $html);
+        $text = preg_replace('~</(p|div|li|tr|h[1-6])>~i', "\n", $text);
+        $text = strip_tags($text);
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'utf-8');
+        $text = preg_replace("/\r\n|\r/", "\n", $text);
+        $text = preg_replace("/\n{3,}/", "\n\n", $text);
+        return trim($text);
     }
 
     /**
      * @throws \RuntimeException wenn eine E-Mail nicht versandt werden konnte.
      */
-    public function sendToUser(User $user, string $subject, string $body): void
+    public function sendToUser(User $user, string $subject, string $body, array $headers = []): void
     {
         try {
-            $this->send($user->get('email'), $subject, $body);
+            $this->send($user->get('email'), $subject, $body, $headers);
         } catch (\RuntimeException $e) {
             throw new \RuntimeException('Beim Versand der E-Mail an ' . $user->get('email') . ' (ID ' . $user->get('id') . ') ist ein Fehler aufgetreten.', 1522422201);
         }
@@ -129,7 +158,7 @@ $body
     /**
      * @throws \RuntimeException wenn eine E-Mail nicht versandt werden konnte.
      */
-    public function sendToGroup(string $groupname, string $subject, string $body): void
+    public function sendToGroup(string $groupname, string $subject, string $body, array $headers = []): void
     {
         if (!isset($this->ldap)) {
             throw new \LogicException('use EmailService::setLdap() before sendToGroup()');
@@ -141,7 +170,7 @@ $body
         foreach ($ids as $id) {
             $user = $this->userRepository->findOneById($id);
             if ($user !== null) {
-                $this->sendToUser($user, $subject, $body);
+                $this->sendToUser($user, $subject, $body, $headers);
             }
         }
     }
