@@ -20,10 +20,7 @@ form.addEventListener("submit", (e) => {
         name: name.value,
         text: text.value
     }, loader)
-    .then((data) => handleResponse(data))
-    .catch((error) => {
-        alert("Beim Speichern der Daten ist ein Fehler aufgetreten.");
-    });
+    .then(handleResponse).catch(showError);
 });
 
 text.addEventListener("input", (e) => {
@@ -61,7 +58,7 @@ function handleResponse(data) {
     table.querySelector("tr").classList.add("active");
 }
 
-callApi("GET", "/agreements/api", {}, loader).then((data) => handleResponse(data));
+callApi("GET", "/agreements/api", {}, loader).then(handleResponse).catch(showError);
 {/syntax}{/block}
 
 {block page-label}<i class="ti ti-settings" aria-hidden="true"></i> Administration{/block}

@@ -172,8 +172,6 @@ class SearchController extends Controller {
             }
         }
 
-        bdump($query);
-
         if (!$query) {
             return null;
         } else {
@@ -219,9 +217,6 @@ class SearchController extends Controller {
                 unset($values[$name]);
             }
         }
-        bdump($where);
-        bdump($values);
-
         return $this->db->query("SELECT id FROM mitglieder WHERE $where ORDER BY nachname, vorname", $values)->getColumn();
     }
 

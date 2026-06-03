@@ -187,11 +187,10 @@ main form {
 {/block}
 
 {block content}
-
 {if $ergebnisse !== null}
     <div class="cards-header" id="results-header">
         <h2>Suchergebnisse</h2>
-        <span class="cards-header-info">{$resultCount} Mitglieder gefunden</span>
+        <span class="cards-header-info">{$resultCount} Mitglied{=$resultCount!==1?er} gefunden</span>
     </div>
 
     {if !$ergebnisse}

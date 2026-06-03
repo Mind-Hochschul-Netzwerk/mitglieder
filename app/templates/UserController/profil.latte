@@ -1,20 +1,19 @@
 {var $navId = suche}
 
 {block script}
-    function sendMessage(form) {
-        const formData = new FormData(form);
 
-        try {
-            callApi("POST", form.action, formData).then(response => {
-                alert('Nachricht erfolgreich gesendet!');
-                form.reset();
-                document.getElementById('message_dialog').close();
-            });
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Fehler beim Senden der Nachricht. Bitte versuche es später erneut.');
-        }
-    }
+document.getElementById("message_form").addEventListener("submit", event => {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+
+    callApi("POST", form.action, formData).then(() => {
+        alert("Nachricht erfolgreich gesendet!");
+        form.reset();
+        document.getElementById("message_dialog").close();
+    }).catch(showError);
+});
 {/block}
 
 {define row, $label, $name, $value, $sichtbarkeit, $href}
@@ -171,9 +170,9 @@
     <h1 class="dialog-title" id="message_dialog_title">Nachricht verfassen</h1>
     <p class="dialog-subtitle">Sende eine Nachricht an {$vorname}.</p>
 
-    <form method="post" action="/user/{$username}/message" onsubmit="sendMessage(this); return false;">
+    <form method="post" action="/user/{$username}/message" id="message_form">
         {=csrfTokenTag()}
-        {include input, message, placeholder: "Deine Nachricht", type: textarea, value: ""}
+        {include input, message, placeholder: "Deine Nachricht", type: textarea, value: "", required: false}
 
         {if currentUser()->get('sichtbarkeit_email')}
             <p>Da du deine E-Mail-Adresse für andere Mitglieder freigegeben hast, kann dir {$vorname} auf deine Nachricht direkt per E-Mail antworten.</p>
@@ -184,3 +183,5 @@
         <div class="form-actions"><button type="submit"><i class="ti ti-send" aria-hidden="true"></i> Nachricht senden</button></div>
     </form>
 </dialog>
+
+

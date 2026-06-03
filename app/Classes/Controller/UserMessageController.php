@@ -46,9 +46,9 @@ class UserMessageController extends Controller {
                 ]
             );
         } catch (\RuntimeException $e) {
-            return $this->json(['success' => false], 500);
+            throw new \RuntimeException("Beim Versand der E-Mail ist ein Fehler aufgetreten. Bitte versuche es später erneut.");
         }
 
-        return $this->json(['success' => true]);
+        return $this->redirect('/user/' . $user->get('username'));
     }
 }

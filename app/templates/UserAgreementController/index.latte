@@ -57,7 +57,7 @@ datenschutzverpflichtung_dialog.querySelector("button[type=button]").addEventLis
     datenschutzverpflichtung_dialog.close();
 })
 
-function submit(event) {
+async function submit(event) {
     event.preventDefault();
     action = event.submitter.value;
     if (action === "revoke") {
@@ -68,17 +68,14 @@ function submit(event) {
 
     callApi("POST", {="`/user/{$user->get('username')}/agreements/\${event.target.elements.id.value}`"|noescape}, {
         action: action
-    }, loader).then(data => handleResponse(data))
-    .catch((error) => {
-        alert("Beim Speichern ist ein Fehler aufgetreten.");
-    });
+    }, loader).then(handleResponse).catch(showError);
 }
 
-datenschutzverpflichtung_form.addEventListener("submit", (e) => submit(e));
+datenschutzverpflichtung_form.addEventListener("submit", submit);
 
-datenschutzverpflichtung_dialog.querySelector("form").addEventListener("submit", (e) => {
+datenschutzverpflichtung_dialog.querySelector("form").addEventListener("submit", async function(event) {
     datenschutzverpflichtung_dialog.close();
-    submit(e);
+    submit(event);
 });
 
 function showAgreement(element, agreement) {
@@ -136,7 +133,10 @@ function handleResponse(data) {
     }
 }
 
-callApi("GET", "/user/{$user->get('username')}/agreements/index", {}, loader).then((data) => handleResponse(data));
+document.addEventListener("DOMContentLoaded", () => {
+    callApi("GET", "/user/{$user->get('username')}/agreements/index", {}, loader).then(handleResponse).catch(showError);
+});
+
 
 {/block}
 

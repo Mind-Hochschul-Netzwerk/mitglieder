@@ -22,36 +22,59 @@ function formatTime(timestamp, includeDate = true, includeTime = true) {
 }
 
 let csrfToken = "";
-function callApi(method = "GET", url = "", data = {}, loader = undefined) {
+async function callApi(method = "GET", url = "", data = {}, loader = undefined) {
     if (loader) {
         loader.classList.remove("hidden");
     }
-    if (data instanceof FormData && data.has("_csrfToken")) {
-        data.delete("_csrfToken");
-    } else if (data["_csrfToken"]) {
-        delete data["_csrfToken"];
-    }
-    let options = {
-        method: method,
-        headers: {
-            "X-CSRF-Token": csrfToken
-        },
-        body: (method !== "GET" && method !== "HEAD") ? (
-            (data instanceof FormData ? data : JSON.stringify(data))
-        ) : undefined
-    };
-    return fetch(url, options).then(response => {
-        if (loader) {
-            loader.classList.add("hidden");
+
+    try {
+        if (data instanceof FormData && data.has("_csrfToken")) {
+            data.delete("_csrfToken");
+        } else if (data && data["_csrfToken"]) {
+            delete data["_csrfToken"];
         }
 
+        const options = {
+            method,
+            headers: {
+                "X-CSRF-Token": csrfToken,
+                "Accept": "application/json"
+            },
+            body: (method !== "GET" && method !== "HEAD")
+                ? (data instanceof FormData ? data : JSON.stringify(data))
+                : undefined
+        };
+
+        const response = await fetch(url, options);
+
         const token = response.headers.get("x-csrf-token");
-        if (token) {
-            csrfToken = token;
-        }
+        if (token) csrfToken = token;
+
+        if (loader) loader.classList.add("hidden");
+
         if (!response.ok) {
-            throw new Error(JSON.stringify(response));
+            let message = `HTTP ${response.status}`;
+
+            try {
+                const errData = await response.json();
+                message = errData?.error || errData?.message || message;
+            } catch (_) {}
+
+            throw new Error(message);
         }
-        return response.json();
-    });
+
+        if (response.redirected) {
+            return [];
+        }
+        return await response.json();
+
+    } catch (err) {
+        if (loader) loader.classList.add("hidden");
+        throw err;
+    }
+}
+
+function showError(error) {
+    console.warn("API Fehler:", error);
+    alert(error.message);
 }
