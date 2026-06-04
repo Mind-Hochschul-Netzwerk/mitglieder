@@ -275,7 +275,7 @@ class SearchController extends Controller {
             'aufnahmedatum', 'resignation' => match ($op) {
                     FilterOp::Contains, FilterOp::ContainsWord, FilterOp::NotContains, FilterOp::StartsWith, FilterOp::EndsWith => $this->generateSingleFilterExpression("DATE_FORMAT($field, '%d.%m.%Y')", $op, $valueName),
                     FilterOp::Equal, FilterOp::GreaterOrEqual, FilterOp::LessOrEqual, FilterOp::Between, FilterOp::isTrue, FilterOp::isFalse => $this->generateSingleFilterExpression($field, $op, $valueName . '_date'),
-                    default => throw new \OutOfBoundsException('op implemented: ' . $op),
+                    default => throw new \OutOfBoundsException('op implemented: ' . $op->value),
                 },
             'datenschutzverpflichtung' => $this->generateSingleFilterExpression('(
                     SELECT IF(user_agreements.action != "accept", NULL, agreements.version)
@@ -311,7 +311,7 @@ class SearchController extends Controller {
         };
     }
 
-    function generateSingleFilterExpression(string $field, FilterOp $op, $valueName) {
+    function generateSingleFilterExpression(string $field, FilterOp $op, string $valueName) {
         $sql = "$field " . match ($op) {
             FilterOp::Contains => "LIKE :{$valueName}_like",
             FilterOp::ContainsWord => "REGEXP :{$valueName}_word",

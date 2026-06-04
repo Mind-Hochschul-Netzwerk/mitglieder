@@ -16,7 +16,7 @@ use Symfony\Component\Ldap\Entry;
  */
 class Ldap
 {
-    private $ldap;
+    private SymfonyLdap $ldap;
     private $isAdmin = false;
 
     public function __construct(
@@ -115,21 +115,6 @@ class Ldap
         return $list;
     }
 
-    public function getInvalidEmailsList(): array
-    {
-        $this->bind();
-        try {
-            $result = $this->ldap->query($this->peopleDn, '(&(objectclass=inetOrgPerson)(mail=*.invalid))')->execute();
-        } catch (\Exception $e) {
-            return [];
-        }
-        $list = [];
-        foreach ($result as $user) {
-            $list[] = (int) $user->getAttribute('employeeNumber')[0];
-        }
-        return $list;
-    }
-
     public function getEntryByEmail(string $email): ?Entry
     {
         $this->bind();
@@ -145,7 +130,7 @@ class Ldap
         }
     }
 
-    private function setAttributes($entry, array $data): void
+    private function setAttributes(Entry $entry, array $data): void
     {
         if (!empty($data['firstname'])) {
             $entry->setAttribute('givenName', [$data['firstname']]);
@@ -206,7 +191,7 @@ class Ldap
         }
     }
 
-    private function getDnByUsername($username)
+    private function getDnByUsername(string $username)
     {
         return 'cn=' . ldap_escape($username) . ',' . $this->peopleDn;
     }

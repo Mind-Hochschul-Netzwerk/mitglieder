@@ -3,14 +3,10 @@
 {block htmlTitle}Logout{/block}
 
 {block content}
-<dialog aria-label="Logout-Bestätigung" open>
-    <span class="page-label"><i class="ti ti-check" aria-hidden="true"></i> Erfolgreich ausgeloggt</span>
-    <h1 class="dialog-title">Logout</h1>
-    <p class="dialog-subtitle">Du wurdest erfolgreich aus dem Mitgliederverzeichnis abgemeldet.</p>
-
+{embed dialog, logout, labelIcon: check, label: "Erfolgreich ausgeloggt", title: "Logout", subtitle: "Du wurdest erfolgreich aus dem Mitgliederverzeichnis abgemeldet.", open: true}{block dialog-content}
     <div class="form-actions">
       <a class="button" href="/"><i class="ti ti-login" aria-hidden="true"></i> Erneut anmelden</a>
       <a class="button secondary" href="https://www.{=getenv('DOMAINNAME')}?>">Zur MHN-Webseite</a>
     </div>
-
-</dialog>
+{/block}{/embed}
+{/block}

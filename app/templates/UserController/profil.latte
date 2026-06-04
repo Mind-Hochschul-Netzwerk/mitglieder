@@ -1,20 +1,4 @@
-{var $navId = suche}
-
-{block script}
-
-document.getElementById("message_form").addEventListener("submit", event => {
-    event.preventDefault();
-
-    const form = event.target;
-    const formData = new FormData(form);
-
-    callApi("POST", form.action, formData).then(() => {
-        alert("Nachricht erfolgreich gesendet!");
-        form.reset();
-        document.getElementById("message_dialog").close();
-    }).catch(showError);
-});
-{/block}
+{var $navId = $isSelf ? bearbeiten : suche}
 
 {define row, $label, $name, $value, $sichtbarkeit, $href}
     {var $sichtbarkeit = $sichtbarkeit ?? get_defined_vars()["sichtbarkeit_" . $name]}
@@ -46,9 +30,7 @@ document.getElementById("message_form").addEventListener("submit", event => {
 {block content}
 
 <section class="panel" aria-labelledby="contact-heading">
-    <h2 id="contact-heading">
-    <i class="label-icon ti ti-at" aria-hidden="true"></i>Kontakt &amp; Ort
-    </h2>
+    <h2 id="contact-heading"><i class="label-icon ti ti-at" aria-hidden="true"></i>Kontakt &amp; Ort</h2>
     <dl n:ifcontent>
     {include row, 'E-Mail', name: email, href: ("mailto:" . $email)}
     {include row, 'Webseite', name: homepage, value: preg_replace('/(^https?:\/*(www\.)?|\/$)/', '', $homepage), href: ($homepage)}
@@ -163,25 +145,36 @@ document.getElementById("message_form").addEventListener("submit", event => {
     {include row, 'Datenschutz', value: $datenschutzverpflichtung ? ("Verpflichtungserklärung abgegeben (Version " . $datenschutzverpflichtung->agreement->version . " vom " . ($datenschutzverpflichtung->agreement->timestamp|format:'d.m.Y@local') . ")") : "Verpflichtungserklärung nicht abgegeben"}
     </dl>
 </section>
+{/block}
 
-<dialog id="message_dialog" aria-labelledby="message_dialog_title" closedby="any">
-    <span class="dialog-close" onclick="document.getElementById('message_dialog').close()">&times;</span>
-    <div class="page-label"><i class="ti ti-message" aria-hidden="true"></i> Kommunikation</div>
-    <h1 class="dialog-title" id="message_dialog_title">Nachricht verfassen</h1>
-    <p class="dialog-subtitle">Sende eine Nachricht an {$vorname}.</p>
+{block footer}
+    {embed dialog, message_dialog, labelIcon: message, label: Kommunikation, title: "Nachricht verfassen", subtitle: "Sende eine Nachricht an $vorname"}{block dialog-content}
+        <form method="post" action="/user/{$username}/message" id="message_form">
+            {=csrfTokenTag()}
+            {include input, message, placeholder: "Deine Nachricht", type: textarea, value: "", required: false}
 
-    <form method="post" action="/user/{$username}/message" id="message_form">
-        {=csrfTokenTag()}
-        {include input, message, placeholder: "Deine Nachricht", type: textarea, value: "", required: false}
+            {if currentUser()->get('sichtbarkeit_email')}
+                <p>Da du deine E-Mail-Adresse für andere Mitglieder freigegeben hast, kann dir {$vorname} auf deine Nachricht direkt per E-Mail antworten.</p>
+            {else}
+                {include box, name: includeSenderAddress, type: checkbox, label: "Sende meine E-Mail-Adresse mit, damit {$vorname} mir direkt antworten kann."}
+            {/if}
 
-        {if currentUser()->get('sichtbarkeit_email')}
-            <p>Da du deine E-Mail-Adresse für andere Mitglieder freigegeben hast, kann dir {$vorname} auf deine Nachricht direkt per E-Mail antworten.</p>
-        {else}
-            {include box, name: includeSenderAddress, type: checkbox, label: "Sende meine E-Mail-Adresse mit, damit {$vorname} mir direkt antworten kann."}
-        {/if}
+            <div class="form-actions"><button type="submit"><i class="ti ti-send" aria-hidden="true"></i> Nachricht senden</button></div>
+        </form>
+    {/block}{/embed}
 
-        <div class="form-actions"><button type="submit"><i class="ti ti-send" aria-hidden="true"></i> Nachricht senden</button></div>
-    </form>
-</dialog>
+    <script>
+    document.getElementById("message_form").addEventListener("submit", event => {
+        event.preventDefault();
 
+        const form = event.target;
+        const formData = new FormData(form);
 
+        callApi("POST", form.action, formData).then(() => {
+            alert("Nachricht erfolgreich gesendet!");
+            form.reset();
+            document.getElementById("message_dialog").close();
+        }).catch(showError);
+    });
+    </script>
+{/block}

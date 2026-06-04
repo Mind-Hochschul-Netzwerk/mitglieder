@@ -2,7 +2,50 @@
 
 {block title}Einwilligungstexte{/block}
 
-{block script}{syntax off}
+{block page-label}<i class="ti ti-settings" aria-hidden="true"></i> Administration{/block}
+
+{block page-header}<div class="page-subtitle">Einwilligungstexte verwalten</div>{/block}
+
+{block content}
+<section class="panel" aria-labelledby="agreement-heading">
+    <h2 id="agreement-heading" id="name">-</h2>
+    <div id="agreement-version" class="meta-note"></div>
+    <form id="agreement">
+    <input class="form__name" type="hidden">
+    <div class="form-group">
+        <label for="agreement-text">Text</label>
+        <textarea id="agreement-text" class="form__text" rows="10"></textarea>
+    </div>
+    <button type="submit"><i class="ti ti-device-floppy" aria-hidden="true"></i> Als neueste Version speichern</button>
+    </form>
+</section>
+
+<section class="panel" aria-labelledby="texts-heading">
+    <h2 id="texts-heading">Texte</h2>
+    <div class="table-wrapper">
+    <table id="agreements" class="clickable">
+        <thead>
+        <tr>
+            <th>Bezeichnung</th>
+            <th>Version</th>
+            <th>Datum</th>
+            <th>Zustimmungen<sup>1</sup></th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    </div>
+    <p class="small-note"><sup>1</sup> Jedes Mitglied wird pro Einwilligungstext nur bei der neusten zugestimmten Version gezählt.</p>
+</section>
+
+<div class="loader hidden"></div>
+
+<template id="rowTemplate">
+    <tr><td class="name"></td><td class="version"></td><td class="timestamp"></td><td class="count"></td></tr>
+</template>
+{/block}
+
+{block footer}<script>{syntax off}
 const table = document.querySelector('#agreements tbody');
 const form = document.getElementById('agreement');
 const name = form.querySelector(".form__name");
@@ -59,50 +102,4 @@ function handleResponse(data) {
 }
 
 callApi("GET", "/agreements/api", {}, loader).then(handleResponse).catch(showError);
-{/syntax}{/block}
-
-{block page-label}<i class="ti ti-settings" aria-hidden="true"></i> Administration{/block}
-
-{block page-header}
-    <div class="page-subtitle">Einwilligungstexte verwalten</div>
-{/block}
-
-
-{block content}
-<section class="panel" aria-labelledby="agreement-heading">
-    <h2 id="agreement-heading" id="name">-</h2>
-    <div id="agreement-version" class="meta-note"></div>
-    <form id="agreement">
-    <input class="form__name" type="hidden">
-    <div class="form-group">
-        <label for="agreement-text">Text</label>
-        <textarea id="agreement-text" class="form__text" rows="10"></textarea>
-    </div>
-    <button type="submit"><i class="ti ti-device-floppy" aria-hidden="true"></i> Als neueste Version speichern</button>
-    </form>
-</section>
-
-<section class="panel" aria-labelledby="texts-heading">
-    <h2 id="texts-heading">Texte</h2>
-    <div class="table-wrapper">
-    <table id="agreements" class="clickable">
-        <thead>
-        <tr>
-            <th>Bezeichnung</th>
-            <th>Version</th>
-            <th>Datum</th>
-            <th>Zustimmungen<sup>1</sup></th>
-        </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-    </div>
-    <p class="small-note"><sup>1</sup> Jedes Mitglied wird pro Einwilligungstext nur bei der neusten zugestimmten Version gezählt.</p>
-</section>
-
-<div class="loader hidden"></div>
-
-<template id="rowTemplate">
-    <tr><td class="name"></td><td class="version"></td><td class="timestamp"></td><td class="count"></td></tr>
-</template>
-
+{/syntax}</script>{/block}

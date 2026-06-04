@@ -78,3 +78,20 @@
         {/block}
     </div>
 {/define}
+
+{define dialog, $id, $ariaLabel = "", $labelIcon = "", $label = "", $title, $subtitle = "", $open = false}
+<dialog n:attr="
+    id: $id,
+    aria-label: $ariaLabel,
+    aria-labelledby: !$ariaLabel ? $id . _title,
+    closedby: $open ? none : any,
+    open: $open
+">
+    <span n:if=!$open class="dialog-close" onclick="document.getElementById({$id}).close()">&times;</span>
+    <div n:ifcontent class="page-label"><i n:if=$labelIcon class="ti ti-{$labelIcon}" aria-hidden="true"></i> {$label}</div>
+    <div n:ifcontent class="page-label">{block dialog-label}{/block}</div>
+    <h{$open?1:2} class="dialog-title" id="{$id}_title">{$title}</h{$open?1:2}>
+    <p n:if=$subtitle class="dialog-subtitle">{$subtitle}</p>
+    {block dialog-content}{/block}
+</dialog>
+{/define}

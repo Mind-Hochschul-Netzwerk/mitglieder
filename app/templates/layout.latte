@@ -10,7 +10,7 @@
     <link rel="icon" href="/favicon.png">
     <link rel="stylesheet" href="/css/style.css?{=md5((string)filemtime('/var/www/html/css/style.css'))}">
     <link rel="stylesheet" href="/css/tabler-icons.min.css"/>
-    {ifset css}<style>{include css|noescape}</style>{/ifset}
+    {block css}{/block}
   </head>
   <body class="{$bodyClass}">
     {=debugger()}
@@ -57,7 +57,6 @@
 {block content}{/block}
 
 </main>
-
-    {ifset script}<script>{include script|noescape}</script>{/ifset}
+    {block footer}{/block}
   </body>
 </html>

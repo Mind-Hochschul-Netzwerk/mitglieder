@@ -292,7 +292,7 @@ dialog {
 
   .dialog-close {
     position: absolute;
-    top: 0.75rem;
+    top: 1.25rem;
     right: 0.75rem;
     width: 32px; height: 32px;
     background: transparent;
@@ -321,7 +321,7 @@ body:has(dialog:first-child) {
 }
 
 dialog:first-child {
-  position: static;
+  position: relative;
   width: 100%;
   padding: 2.5rem 2rem;
   margin-top: 0;
@@ -839,6 +839,7 @@ dialog, .page-header {
   font-size: 1rem;
   font-weight: 600;
   margin: 0;
+  white-space: nowrap;
 }
 
 .card-info {

@@ -2,7 +2,7 @@
 
 {block title}Mitgliedersuche{/block}
 
-{block css}
+{block css}<style>
 details summary {
     display: block;
 }
@@ -69,7 +69,7 @@ main form {
 .topbar-search-form {
     display: none;
 }
-{/block css}
+</style>{/block css}
 
 {define filter, $number}
 <div data-number="{$number}" class="form-row">
@@ -156,36 +156,6 @@ main form {
     </form>
 {/block}
 
-{block script}
-    function ensureVisibleSelection(select) {
-        const current = select.selectedOptions[0];
-        if (!current || getComputedStyle(current).display !== 'none') {
-            return;
-        }
-
-        for (const opt of select.options) {
-            if (getComputedStyle(opt).display !== 'none' && !opt.disabled) {
-                select.value = opt.value;
-                select.dispatchEvent(new Event('change', { bubbles: true }));
-                return;
-            }
-        }
-    }
-
-    document.querySelectorAll(".filters > div").forEach((element) => {
-        const number = element.dataset.number;
-        const selectKey = document.querySelector("#input-key" + number);
-        const selectOp = document.querySelector("#input-op" + number);
-        selectKey.addEventListener("change", e => ensureVisibleSelection(selectOp));
-    });
-
-    {if $ergebnisse !== null}
-        window.addEventListener("load", (event) => {
-            document.getElementById("results-header").scrollIntoView();
-        });
-    {/if}
-{/block}
-
 {block content}
 {if $ergebnisse !== null}
     <div class="cards-header" id="results-header">
@@ -218,3 +188,33 @@ main form {
     {/if}
 {/if}
 {/block}
+
+{block footer}<script>
+    function ensureVisibleSelection(select) {
+        const current = select.selectedOptions[0];
+        if (!current || getComputedStyle(current).display !== 'none') {
+            return;
+        }
+
+        for (const opt of select.options) {
+            if (getComputedStyle(opt).display !== 'none' && !opt.disabled) {
+                select.value = opt.value;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                return;
+            }
+        }
+    }
+
+    document.querySelectorAll(".filters > div").forEach((element) => {
+        const number = element.dataset.number;
+        const selectKey = document.querySelector("#input-key" + number);
+        const selectOp = document.querySelector("#input-op" + number);
+        selectKey.addEventListener("change", e => ensureVisibleSelection(selectOp));
+    });
+
+    {if $ergebnisse !== null}
+        window.addEventListener("load", (event) => {
+            document.getElementById("results-header").scrollIntoView();
+        });
+    {/if}
+</script>{/block}

@@ -1,48 +1,7 @@
-{var $navId = bearbeiten}
+{var $navId = $isSelf ? bearbeiten : suche}
 
 {block htmlTitle}Profil bearbeiten{/block}
 {block title}{$fullName}{/block}
-
-{block script}
-// vor dem Verlassen warnen, falls etwas geändert wurde
-let changes = {$changes ? 'true' : 'false'};
-let saving = false;
-
-document.addEventListener('change', (e) => {
-    if (e.target.autocomplete != "current-password") {
-        changes = true;
-    }
-});
-document.getElementById("profile-form").addEventListener("submit", e => {
-    saving = true;
-});
-window.addEventListener("beforeunload", e => {
-    if (changes && !saving) {
-        e.preventDefault();
-        e.returnValue = "";
-    }
-});
-
-document.getElementById("profile-form").addEventListener("submit", e => {
-    let input1 = document.querySelector("[name=new_password]").value;
-    let input2 = document.querySelector("[name=new_password2]").value;
-    if (input1 !== input2) {
-        let alert = document.getElementById("AlertWiederholungFalsch");
-        alert.classList.remove("hidden");
-        alert.scrollIntoView();
-        e.preventDefault();
-    }
-});
-
-resignButton = document.querySelector("[type=button][name=resign]");
-if (resignButton !== null) {
-    resignButton.addEventListener("click", e => {
-        e.preventDefault();
-        document.querySelector(".resign__password").classList.remove("hidden");
-        document.querySelector(".resign__button").classList.add("hidden");
-    });
-}
-{/block}
 
 {define private-input, $label, $name, $type, $value, $class = "", $uncoverVariable, $type = 'text', $id, $placeholder, $autocomplete, $disabled, $required, $options = []}
     {var $uncoverVariable = $uncoverVariable ?? "sichtbarkeit_" . $name}
@@ -198,20 +157,6 @@ if (resignButton !== null) {
             {include private-form-group, "Ort", ort, uncoverVariable: sichtbarkeit_plz_ort}
         </div>
         {include private-form-group, "Land", land}
-
-        <script>
-            let sichtbarkeit_plz_ort_recursion = false;
-            document.querySelectorAll('[name=sichtbarkeit_plz_ort]').forEach(a => a.onchange = function () {
-                if (sichtbarkeit_plz_ort_recursion) return;
-                sichtbarkeit_plz_ort_recursion = true;
-                const check = this.checked;
-                document.querySelectorAll('[name=sichtbarkeit_plz_ort]').forEach(b => {
-                    if (a == b) return;
-                    $(b).bootstrapToggle(check ? 'on' : 'off');
-                });
-                sichtbarkeit_plz_ort_recursion = false;
-            });
-        </script>
 
         {default $geburtstag = \DateTimeImmutable::fromFormat('0000-00-00')}
 
@@ -433,3 +378,57 @@ if (resignButton !== null) {
     </div>
 
 </form>
+{/block}
+
+{block footer}<script>
+// vor dem Verlassen warnen, falls etwas geändert wurde
+let changes = {$changes ? 'true' : 'false'};
+let saving = false;
+
+document.addEventListener('change', (e) => {
+    if (e.target.autocomplete != "current-password") {
+        changes = true;
+    }
+});
+document.getElementById("profile-form").addEventListener("submit", e => {
+    saving = true;
+});
+window.addEventListener("beforeunload", e => {
+    if (changes && !saving) {
+        e.preventDefault();
+        e.returnValue = "";
+    }
+});
+
+document.getElementById("profile-form").addEventListener("submit", e => {
+    let input1 = document.querySelector("[name=new_password]").value;
+    let input2 = document.querySelector("[name=new_password2]").value;
+    if (input1 !== input2) {
+        let alert = document.getElementById("AlertWiederholungFalsch");
+        alert.classList.remove("hidden");
+        alert.scrollIntoView();
+        e.preventDefault();
+    }
+});
+
+resignButton = document.querySelector("[type=button][name=resign]");
+if (resignButton !== null) {
+    resignButton.addEventListener("click", e => {
+        e.preventDefault();
+        document.querySelector(".resign__password").classList.remove("hidden");
+        document.querySelector(".resign__button").classList.add("hidden");
+    });
+}
+
+let sichtbarkeit_plz_ort_recursion = false;
+document.querySelectorAll('[name=sichtbarkeit_plz_ort]').forEach(a => a.onchange = function () {
+    if (sichtbarkeit_plz_ort_recursion) return;
+    sichtbarkeit_plz_ort_recursion = true;
+    const check = this.checked;
+    document.querySelectorAll('[name=sichtbarkeit_plz_ort]').forEach(b => {
+        if (a == b) return;
+        $(b).bootstrapToggle(check ? 'on' : 'off');
+    });
+    sichtbarkeit_plz_ort_recursion = false;
+});
+</script>{/block}

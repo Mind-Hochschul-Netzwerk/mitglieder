@@ -15,47 +15,15 @@ use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 class StatisticsController extends Controller {
-    private array $invalidEmailsList;
-
     public function __construct(
         private Ldap $ldap,
         private UserRepository $userRepository,
-    ) {
-        $this->invalidEmailsList = $this->ldap->getInvalidEmailsList();
-    }
-
-    #[Route('GET /statistics/invalidEmails'), AllowIf(role: 'mvread')]
-    public function showInvalidEmails(): Response
-    {
-        $users = [];
-        foreach ($this->invalidEmailsList as $id) {
-            $user = $this->userRepository->findOneById($id);
-            if (!$user) {
-                error_log("$id");
-                continue;
-            }
-            $users[] = [
-                'id' => $user->get('id'),
-                'username' => $user->get('username'),
-                'fullName' => $user->get('fullName'),
-                'ort' => $user->get('ort'),
-                'email' => substr($user->get('email'), 0, -strlen('.invalid')),
-                'aufnahmedatum' => $user->get('aufnahmedatum') ? $user->get('aufnahmedatum')->format('d.m.Y') : 'unbekannt',
-                'lastLogin' => $user->get('last_login') ? $user->get('last_login')->format('d.m.Y') : 'vor 2014',
-                'moodle' => ($user->get('last_login') && $user->get('last_login') > new \DateTimeImmutable('2021-05-22')) ? 'ja' : 'nein',
-            ];
-        }
-
-        return $this->render('StatisticsController/invalidEmails', [
-            'invalidEmailsList' => $users,
-        ]);
-    }
+    ) {}
 
     #[Route('GET /statistics'), AllowIf(role: 'mvread')]
     public function show(Db $db): Response
     {
         return $this->render('StatisticsController/main', [
-            'countInvalidEmails' => count($this->invalidEmailsList),
             'countAllEntries' => $db->query('SELECT COUNT(id) FROM mitglieder')->get(),
             'countDeleted' => $db->query('SELECT COUNT(id) FROM deleted_usernames')->get(),
             'countAfterOct2018' => $db->query('SELECT COUNT(id) FROM mitglieder WHERE aufnahmedatum >= 20181005')->get(),
