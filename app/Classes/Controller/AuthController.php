@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Model\User;
+use App\Repository\AgreementRepository;
+use App\Repository\UserAgreementRepository;
 use App\Repository\UserRepository;
 use App\Service\EmailService;
 use Hengeb\Router\Attribute\AllowIf;
@@ -18,6 +20,8 @@ class AuthController extends Controller {
     public function __construct(
         private UserRepository $userRepository,
         private EmailService $emailService,
+        private AgreementRepository $agreementRepository,
+        private UserAgreementRepository $userAgreementRepository,
     ) {}
 
     #[Route('GET /login'), PublicAccess]
@@ -70,6 +74,11 @@ class AuthController extends Controller {
         $redirectUrl = preg_replace('/\s/', '', $redirect);
 
         $this->currentUser->logIn($user);
+
+        if ($redirectUrl === '/') {
+            $redirectUrl = $this->agreementsRedirectIfNeeded($user) ?? $redirectUrl;
+        }
+
         return $this->redirect($redirectUrl);
     }
 
@@ -77,6 +86,32 @@ class AuthController extends Controller {
     public function logout(): Response {
         $this->currentUser->logOut();
         return $this->render('AuthController/logout');
+    }
+
+    private function agreementsRedirectIfNeeded(User $user): ?string
+    {
+        // Kenntnisnahme und Einwilligung: Weiterleitung wenn noch nie zugestimmt oder neue Version vorliegt
+        foreach (['Kenntnisnahme', 'Einwilligung'] as $name) {
+            $latest = $this->agreementRepository->findLatestByName($name);
+            if ($latest === null) {
+                continue;
+            }
+            // findLatestByUserAndName gibt null zurück wenn nie zugestimmt oder widerrufen
+            $userAgreement = $this->userAgreementRepository->findLatestByUserAndName($user, $name);
+            if ($userAgreement === null || $userAgreement->agreement->version < $latest->version) {
+                return '/user/self/agreements';
+            }
+        }
+
+        // Datenschutzverpflichtung: nur Weiterleitung wenn bereits zugestimmt, aber eine neue Version vorliegt
+        // (nie zugestimmt wird separat über das inline-Formular auf der Seite behandelt)
+        $latest = $this->agreementRepository->findLatestByName('Datenschutzverpflichtung');
+        $userAgreement = $this->userAgreementRepository->findLatestByUserAndName($user, 'Datenschutzverpflichtung');
+        if ($latest !== null && $userAgreement !== null && $userAgreement->agreement->version < $latest->version) {
+            return '/user/self/agreements';
+        }
+
+        return null;
     }
 
     private function lostPassword(?User $user): Response {
