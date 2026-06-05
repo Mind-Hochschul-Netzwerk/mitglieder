@@ -38,14 +38,16 @@
     <p class="small-note"><sup>1</sup> Jedes Mitglied wird pro Einwilligungstext nur bei der neusten zugestimmten Version gezählt.</p>
 </section>
 
+{/block}
+
+{block footer}
 <div class="loader hidden"></div>
 
 <template id="rowTemplate">
     <tr><td class="name"></td><td class="version"></td><td class="timestamp"></td><td class="count"></td></tr>
 </template>
-{/block}
 
-{block footer}<script>{syntax off}
+<script>{syntax off}
 const table = document.querySelector('#agreements tbody');
 const form = document.getElementById('agreement');
 const name = form.querySelector(".form__name");
@@ -102,4 +104,5 @@ function handleResponse(data) {
 }
 
 callApi("GET", "/agreements/api", {}, loader).then(handleResponse).catch(showError);
-{/syntax}</script>{/block}
+{/syntax}</script>
+{/block}
