@@ -142,33 +142,38 @@ class UserController extends Controller {
         ]);
     }
 
-    private function updatePassword(User $user): void {
+    #[
+        Route('POST /user/{username=>user}/password'),
+        AllowIf(role: 'mvedit'),
+        AllowIf(id: '$user->get("id")'),
+    ]
+    public function updatePassword(User $user): Response {
         $input = $this->validatePayload([
             'new_password' => 'string untrimmed',
             'new_password2' => 'string untrimmed',
             'password' => 'string untrimmed',
         ]);
-        if ($input['new_password'] && !$input['new_password2'] && !$input['password'] && $this->currentUser->checkPassword($input['new_password'])) {
-            // nichts tun. Der Passwort-Manager des Users hat das Passwort eingefügt und autocomplete=new-password ignoriert
-            return;
-        }
         if (!$input['new_password']) {
-            return;
+            return $this->edit($user);
         }
 
-        $this->setTemplateVariable('set_new_password', true);
         if ($input['new_password'] !== $input['new_password2']) {
             $this->setTemplateVariable('new_password2_error', true);
         } else {
             // Admins dürfen Passwörter ohne Angabe des eigenen Passworts ändern, außer das eigene
-            if ($this->currentUser->hasRole('mvedit') && $this->currentUser->get('id') !==  $user->get('id')) {
+            if (($this->currentUser->hasRole('mvedit') && $this->currentUser->get('id') !==  $user->get('id'))
+                || $this->currentUser->checkPassword($input['password'])
+            ) {
+                $this->setTemplateVariable('set_new_password', true);
                 $user->setPassword($input['new_password']);
-            } elseif ($this->currentUser->checkPassword($input['password'])) {
-                $user->setPassword($input['new_password']);
+                $this->userRepository->save($user);
             } else {
                 $this->setTemplateVariable('old_password_error', true);
             }
         }
+
+        // TODO: redirect
+        return $this->edit($user);
     }
 
     private function updateEmail(User $user): void {
@@ -367,7 +372,6 @@ class UserController extends Controller {
         }
         $user->set('beschaeftigung', $beschaeftigung);
 
-        $this->updatePassword($user);
         $this->updateEmail($user);
         $this->updateProfilePicture($user);
 

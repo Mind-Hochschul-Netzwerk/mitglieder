@@ -46,13 +46,15 @@
         <a href="/user/{$username}">
             <i class="ti ti-user" aria-hidden="true"></i> Profil ansehen
         </a>
+        <button onclick="document.getElementById('password-change').showModal()">
+            <i class="ti ti-lock" aria-hidden="true"></i> Passwort ändern
+        </button>
     </div>
 {/block}
 
 {block content}
 {var $changes = false}
 {var $error = false}
-{var $password_error = false}
 
 {* Alerts generieren *}
 
@@ -86,19 +88,16 @@
     {include info-box, success, "Deine E-Mail-Adresse wurde erfolgreich geändert."}
 {/if}
 
-{include info-box, danger, "Die Wiederholung stimmt nicht mit dem neuen Passwort überein.", hide: !$new_password2_error, id: AlertWiederholungFalsch}
-
 {if $new_password2_error}
-    {var $password_error = true}
-    {var $changes = true}
-    {var $error = true}
+    {include info-box, danger, "Die neuen Passwörter stimmen nicht überein."}
 {/if}
 
 {if $old_password_error}
     {include info-box, danger, "Das alte Passwort ist falsch. Das Passwort wurde nicht geändert."}
-    {var $password_error = true}
-    {var $changes = true}
-    {var $error = true}
+{/if}
+
+{if $set_new_password}
+    {include info-box, success, "Dein Passwort wurde geändert."}
 {/if}
 
 {if $data_saved_info}
@@ -132,7 +131,7 @@
         {include private-form-group, "Straße + Hausnummer", strasse}
         {include private-form-group, "ggf. Adresszusatz", adresszusatz, placeholder: "Adresszusatz"}
         <div class="form-row">
-            {include private-form-group, "PLZ", plz}
+            {include private-form-group, "PLZ", plz, uncoverVariable: sichtbarkeit_plz_ort}
             {include private-form-group, "Ort", ort, uncoverVariable: sichtbarkeit_plz_ort}
         </div>
         {include private-form-group, "Land", land}
@@ -326,17 +325,6 @@
             </div>
     </section>
 
-    <section class="panel" aria-labelledby="password-heading">
-        <h2 id="password-heading">
-            <i class="label-icon ti ti-lock" aria-hidden="true"></i>Passwort ändern
-        </h2>
-        {if !$isAdmin || $isSelf}
-            {include private-form-group, 'Altes Passwort', password, type: password, value: null, autocomplete: 'current-password'}
-        {/if}
-        {include private-form-group, 'Neues Passwort', new_password, type: password, value: null, autocomplete: 'new-password'}
-        {include private-form-group, 'Passwort wiederholen', new_password2, type: password, value: null}
-    </section>
-
     <section class="panel" aria-labelledby="membership-heading" n:if=$isAdmin>
         <h2 id="membership-heading">
             <span class="label-icon ti ti-settings" aria-hidden="true"></span>Mitgliedsverwaltung
@@ -368,19 +356,33 @@
 {/block}
 
 {block footer}
+{embed dialog, 'password-change', label: 'Zugangsdaten', labelIcon: 'key', title: 'Passwort ändern'}{block dialog-content}
+    {include info-box, danger, "Die Wiederholung stimmt nicht mit dem neuen Passwort überein.", hide: !$new_password2_error, id: AlertWiederholungFalsch}
+
+    <form action="/user/{$username}/password" method="post" id="passwordForm">
+        {=csrfTokenTag()}
+
+        {if !$isAdmin || $isSelf}
+            {include private-form-group, 'Altes Passwort', password, type: password, value: null, autocomplete: 'current-password', required: true}
+        {/if}
+        {include private-form-group, 'Neues Passwort', new_password, type: password, value: null, autocomplete: 'new-password', required: true}
+        {include private-form-group, 'Passwort wiederholen', new_password2, type: password, value: null, autocomplete: 'new-password', required: true}
+        <div class="form-actions"><button type="submit"><i class="ti ti-device-floppy" aria-hidden="true"></i> Speichern</button></div>
+    </form>
+{/block}{/embed}
+
 <script>
 // vor dem Verlassen warnen, falls etwas geändert wurde
-let changes = {$changes ? 'true' : 'false'};
+let changes = {$changes ? true : false};
 let saving = false;
 
-document.addEventListener('change', (e) => {
-    if (e.target.autocomplete != "current-password") {
-        changes = true;
-    }
+document.getElementById("profile-form").addEventListener('change', (e) => {
+    changes = true;
 });
 document.getElementById("profile-form").addEventListener("submit", e => {
     saving = true;
 });
+
 window.addEventListener("beforeunload", e => {
     if (changes && !saving) {
         e.preventDefault();
@@ -388,7 +390,7 @@ window.addEventListener("beforeunload", e => {
     }
 });
 
-document.getElementById("profile-form").addEventListener("submit", e => {
+document.getElementById("passwordForm").addEventListener("submit", e => {
     let input1 = document.querySelector("[name=new_password]").value;
     let input2 = document.querySelector("[name=new_password2]").value;
     if (input1 !== input2) {
@@ -399,14 +401,11 @@ document.getElementById("profile-form").addEventListener("submit", e => {
     }
 });
 
-resignButton = document.querySelector("[type=button][name=resign]");
-if (resignButton !== null) {
-    resignButton.addEventListener("click", e => {
-        e.preventDefault();
-        document.querySelector(".resign__password").classList.remove("hidden");
-        document.querySelector(".resign__button").classList.add("hidden");
-    });
-}
+document.querySelector("[type=button][name=resign]")?.addEventListener("click", e => {
+    e.preventDefault();
+    document.querySelector(".resign__password").classList.remove("hidden");
+    document.querySelector(".resign__button").classList.add("hidden");
+});
 
 let sichtbarkeit_plz_ort_recursion = false;
 document.querySelectorAll('[name=sichtbarkeit_plz_ort]').forEach(a => a.onchange = function () {
@@ -415,7 +414,7 @@ document.querySelectorAll('[name=sichtbarkeit_plz_ort]').forEach(a => a.onchange
     const check = this.checked;
     document.querySelectorAll('[name=sichtbarkeit_plz_ort]').forEach(b => {
         if (a == b) return;
-        $(b).bootstrapToggle(check ? 'on' : 'off');
+        b.checked = check;
     });
     sichtbarkeit_plz_ort_recursion = false;
 });
