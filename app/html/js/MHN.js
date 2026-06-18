@@ -23,9 +23,11 @@ function formatTime(timestamp, includeDate = true, includeTime = true) {
 
 let csrfToken = "";
 async function callApi(method = "GET", url = "", data = {}, loader = undefined) {
-    if (loader) {
-        loader.classList.remove("hidden");
+    if (!loader) {
+        loader = document.querySelector(".loader");
     }
+
+    loader.classList.remove("hidden");
 
     try {
         if (data instanceof FormData && data.has("_csrfToken")) {
@@ -50,7 +52,7 @@ async function callApi(method = "GET", url = "", data = {}, loader = undefined) 
         const token = response.headers.get("x-csrf-token");
         if (token) csrfToken = token;
 
-        if (loader) loader.classList.add("hidden");
+        loader.classList.add("hidden");
 
         if (!response.ok) {
             let message = `HTTP ${response.status}`;
@@ -69,7 +71,7 @@ async function callApi(method = "GET", url = "", data = {}, loader = undefined) 
         return await response.json();
 
     } catch (err) {
-        if (loader) loader.classList.add("hidden");
+        loader.classList.add("hidden");
         throw err;
     }
 }

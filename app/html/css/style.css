@@ -629,6 +629,10 @@ dialog:first-child {
     strong { color: var(--text); }
   }
 
+  .summary {
+    container-type: inline-size;
+  }
+
   /* ── With image: two-column layout ───────────────────────── */
   &:has(.page-header-image) {
     grid-template-columns: auto 1fr;
@@ -717,9 +721,15 @@ dialog, .page-header {
   display: flex;
   gap: 0.75rem;
 
+  @container (width < 350px) {
+    gap: 0.5rem;
+    flex-direction: column;
+  }
+
   a, button {
-    display: inline-flex;
+    display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     margin-top: 0.5rem;
     padding: 0.75rem 1rem;

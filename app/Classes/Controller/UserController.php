@@ -11,11 +11,13 @@ use App\Service\ImageResizer;
 use App\Service\Ldap;
 use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\PublicAccess;
+use Hengeb\Router\Attribute\RequestValue;
 use Hengeb\Router\Attribute\RequireLogin;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\AccessDeniedException;
 use Hengeb\Router\Exception\InvalidUserDataException;
 use Hengeb\Token\Token;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller {
@@ -107,11 +109,6 @@ class UserController extends Controller {
     ]
     public function edit(User $user): Response {
         $templateVars = [];
-
-        $tab = $this->request->query->getString('tab');
-        if (in_array($tab, ['basisdaten', 'uebermich', 'ausbildungberuf', 'profilbild', 'settings', 'account'])) {
-            $templateVars['active_pane'] = $tab;
-        }
 
         if ($this->currentUser->get('id') !==  $user->get('id') && !$this->currentUser->hasRole('mvedit')) {
             throw new AccessDeniedException();
@@ -218,13 +215,26 @@ class UserController extends Controller {
         }
     }
 
-    private function updateProfilePicture(User $user): void {
-        $file = $this->request->files->get('profilbild');
-        if (!$file || $file->getError() === UPLOAD_ERR_NO_FILE) {
-            return;
+    #[
+        Route('POST /user/{username=>user}/profile-picture'),
+        AllowIf(role: 'mvedit'),
+        AllowIf(id: '$user->get("id")'),
+    ]
+    public function updateProfilePicture(User $user, ?UploadedFile $profilbild = null, #[RequestValue] bool $bildLoeschen = false): Response {
+        if ($bildLoeschen) {
+            if ($user->get('profilbild') && is_file('profilbilder/' . $user->get('profilbild'))) {
+                unlink('profilbilder/' . $user->get('profilbild'));
+                unlink('profilbilder/thumbnail-' . $user->get('profilbild'));
+            }
+            $user->set('profilbild', '');
+            $this->userRepository->save($user);
+            return $this->isJsonResponse ? $this->json(["src" => ""]) : $this->redirect('/user/' . $user->get('username') . '/edit');
         }
-        if (!$file->isValid()) {
-            $this->setTemplateVariable('profilbild_uploadfehler', true);
+
+        $file = $profilbild;
+
+        if (!$file || $file->getError() === UPLOAD_ERR_NO_FILE || !$file->isValid()) {
+            throw new \RuntimeException('Das Profilbild konnte nicht hochgeladen werden.');
         }
 
         $type = null;
@@ -236,8 +246,12 @@ class UserController extends Controller {
                 $type = 'png';
                 break;
             default:
-                $this->setTemplateVariable('profilbild_format_unbekannt', true);
-                return;
+                if ($this->isJsonResponse) {
+                    throw new \RuntimeException('Das Profilbild konnte nicht hochgeladen werden. Unbekanntes Format.');
+                } else {
+                    $this->setTemplateVariable('profilbild_format_unbekannt', true);
+                    return $this->edit($user);
+                }
         }
 
         // Dateiname zufällig wählen
@@ -256,14 +270,9 @@ class UserController extends Controller {
         $user->set('profilbild', $fileName);
         $user->set('profilbild_x', $size_x);
         $user->set('profilbild_y', $size_y);
-    }
+        $this->userRepository->save($user);
 
-    private function removeProfilePicture(User $user): void {
-        if ($user->get('profilbild') && is_file('profilbilder/' . $user->get('profilbild'))) {
-            unlink('profilbilder/' . $user->get('profilbild'));
-            unlink('profilbilder/thumbnail-' . $user->get('profilbild'));
-        }
-        $user->set('profilbild', '');
+        return $this->isJsonResponse ? $this->json(["src" => "/profilbilder/$fileName"]) : $this->redirect('/user/' . $user->get('username') . '/edit');
     }
 
     private function updateGroups(User $user): void {
@@ -373,11 +382,6 @@ class UserController extends Controller {
         $user->set('beschaeftigung', $beschaeftigung);
 
         $this->updateEmail($user);
-        $this->updateProfilePicture($user);
-
-        if ($this->request->getPayload()->getBoolean('bildLoeschen')) {
-            $this->removeProfilePicture($user);
-        }
 
         // nur für die Mitgliederverwaltung
         if ($this->currentUser->hasRole('mvedit')) {

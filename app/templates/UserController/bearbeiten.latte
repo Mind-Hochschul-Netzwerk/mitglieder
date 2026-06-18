@@ -3,6 +3,66 @@
 {block htmlTitle}Profil bearbeiten{/block}
 {block title}{$fullName}{/block}
 
+{block css}
+<style>
+.page-header-image {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+
+    #profile-picture + .profile-picture-button > div::after {
+        display: inline-block;
+        content: "ändern";
+    }
+
+    #profile-picture[src=""] {
+        display: none;
+        & + .profile-picture-button {
+            opacity: 1;
+            &::after { opacity: 0; }
+            &:hover::after { opacity: 1; }
+        }
+        & + .profile-picture-button > div::after {
+            content: "hochladen";
+        }
+    }
+}
+
+.profile-picture-button {
+    position: absolute;
+    top: 0;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    width: 100%; height: 100%;
+    color: var(--accent);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.5s;
+
+    & > i { font-size: 4rem; z-index: 1; }
+    & > div { margin-top: 0.5rem; z-index: 1; }
+
+    &::after {
+        content: "";
+        display: block;
+        position: absolute;
+        inset: 0;
+        background: #c7d9ff;
+        z-index: 0;
+    }
+
+    &:hover {
+        opacity: 0.8;
+        &::after { opacity: 1; }
+    }
+}
+
+</style>
+{/block}
+
 {define private-input, $label, $name, $type, $value, $class = "", $uncoverVariable, $type = 'text', $id, $placeholder, $autocomplete, $disabled, $required, $options = []}
     {var $uncoverVariable = $uncoverVariable ?? "sichtbarkeit_" . $name}
     {var $show_toggle = isset(get_defined_vars()[$uncoverVariable])}
@@ -34,7 +94,13 @@
     </div>
 {/define}
 
-{block header-image}<img n:if=$profilbild src="/profilbilder/{$profilbild}" alt="Profilbild von {$fullName}">{/block}
+{block header-image}
+    <img src="{$profilbild ? "/profilbilder/$profilbild"}" alt="Profilbild von {$fullName}" id="profile-picture">
+    <div class="profile-picture-button">
+        <i class="ti ti-camera" aria-hidden="true"></i>
+        <div>Profilbild </div>
+    </div>
+{/block}
 {block page-label}<i class="ti ti-pencil" aria-hidden="true"></i> Profil bearbeiten{/block}
 {block page-header}
     <!--<div class="page-subtitle">Mitgliedsdaten bearbeiten</div>-->
@@ -60,18 +126,6 @@
 
 {if $db_modified->diff(new \DateTimeImmutable('now - 1 year'))->invert === 0}
     {include info-box, warning, "Deine Daten wurden seit mindestens einem Jahr nicht geändert. Bitte prüfe, ob alles aktuell ist und klicke auf „Speichern“."}
-{/if}
-
-{if $profilbild_format_unbekannt}
-    {include info-box, danger, "Das Dateiformat des Profilbilds wurde nicht erkannt oder wird nicht unterstützt. Unterstützte Formate: JPEG, PNG."}
-    {var $changes = true}
-    {var $error = true}
-{/if}
-
-{if $profilbild_uploadfehler}
-    {include info-box, danger, "Beim Upload des Profilbilds ist es leider zu einem unbekannten Fehler gekommen. Bitte wende dich an die Mitgliederbetreuung."}
-    {var $changes = true}
-    {var $error = true}
 {/if}
 
 {if $email_error}
@@ -108,7 +162,7 @@
     {include info-box, warning, $errorMessage}
 {/if}
 
-<form enctype="multipart/form-data" method="post" id="profile-form">
+<form method="post" id="profile-form">
     {=csrfTokenTag()}
 
     <section class="panel" aria-labelledby="basisdaten-heading">
@@ -213,36 +267,6 @@
         {include private-form-group, "Auslandsaufenthalte", auslandsaufenthalte}
         {include private-form-group, "Praktika, Fort- und Weiterbildungen", praktika}
         {include private-form-group, "Beruf", beruf}
-
-    </section>
-
-    <section class="panel" aria-labelledby="profile-picture-heading">
-        <h2 id="profile-picture-heading">
-            <i class="label-icon ti ti-camera" aria-hidden="true"></i>Profilbild
-        </h2>
-        <p>Lade ein Profilbild hoch, damit andere eine Vorstellung haben, mit wem sie es zu tun haben. Das Profilbild ist für alle Mitglieder sichtbar.</p>
-        <div class="form-group">
-            <label>Aktuelles Bild</label>
-            <img id="aktuellesBild" src="{$profilbild ? '/profilbilder/'.$profilbild : '/img/profilbild-default.png'}" style="max-width: 180px; border-radius: var(--radius-btn);">
-        </div>
-
-        <div class="form-group">
-            <label for="profilbild">Bild ändern</label>
-            <div>
-                <div class="input-group">
-                    <label for="profilbild" class="button">
-                        <span class="button">
-                            Datei auswählen &hellip;
-                        </span>
-                    </label>
-                    <input name="profilbild" id="profilbild" type="file" accept="image/*">
-                </div>
-            </div>
-        </div>
-
-        <div class="form-group" n:if=$profilbild>
-            {include box, name: bildLoeschen, label: 'Bild löschen'}
-        </div>
 
     </section>
 
@@ -371,6 +395,41 @@
     </form>
 {/block}{/embed}
 
+{embed dialog, 'profile-picture-dialog', labelIcon: camera, label: "Profilbild", title: "Profilbild ändern"}{block dialog-content}
+    <p>Lade ein Profilbild hoch, damit andere eine Vorstellung haben, mit wem sie es zu tun haben. Das Profilbild ist für alle Mitglieder sichtbar.</p>
+
+    <div class="form-group">
+        <label>Aktuelles Bild</label>
+        <img id="aktuellesBild" src="" alt="aktuelles Profilbild" style="max-width: 180px; border-radius: var(--radius-btn); margin: auto;">
+    </div>
+
+    <form enctype="multipart/form-data" action="/user/{$username}/profile-picture" method="post" id="profile-picture-form">
+        {=csrfTokenTag()}
+
+        <div class="form-group">
+            <label for="profilbild">Bild ändern</label>
+            <div>
+                <div class="input-group">
+                    <label for="profilbild" class="button">
+                        <span class="button">
+                            Datei auswählen &hellip;
+                        </span>
+                    </label>
+                    <input name="profilbild" id="profilbild" type="file" accept="image/*">
+                </div>
+            </div>
+        </div>
+
+        <div id="delete-profile-picture" class="form-group">
+            {include box, name: bildLoeschen, label: 'Bild löschen'}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit"><i class="ti ti-device-floppy" aria-hidden="true"></i> Speichern</button>
+        </div>
+    </form>
+{/block}{/embed}
+
 <script>
 // vor dem Verlassen warnen, falls etwas geändert wurde
 let changes = {$changes ? true : false};
@@ -417,6 +476,28 @@ document.querySelectorAll('[name=sichtbarkeit_plz_ort]').forEach(a => a.onchange
         b.checked = check;
     });
     sichtbarkeit_plz_ort_recursion = false;
+});
+
+document.querySelector(".page-header-image").addEventListener("click", () => {
+    const src = document.getElementById("profile-picture").attributes.src.value;
+    document.getElementById("input-bildLoeschen").checked = false;
+    if (src) {
+        document.getElementById("aktuellesBild").src = src;
+        document.getElementById("delete-profile-picture").classList.remove("hidden");
+    } else {
+        document.getElementById("aktuellesBild").src = '/img/profilbild-default.png';
+        document.getElementById("delete-profile-picture").classList.add("hidden");
+    }
+    document.getElementById("profile-picture-dialog").showModal();
+});
+
+document.getElementById("profile-picture-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    callApi("POST", e.target.action, formData).then(response => {
+        document.getElementById("profile-picture").src = response.src;
+        document.getElementById("profile-picture-dialog").close();
+    }).catch(() => alert("Beim Ändern des Profilbildes ist ein Fehler aufgetreten."));
 });
 </script>
 {/block}

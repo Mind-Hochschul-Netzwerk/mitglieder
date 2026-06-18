@@ -32,6 +32,16 @@ class Controller {
     #[Inject]
     public CurrentUser $currentUser;
 
+    #[Inject]
+    public Router $router;
+
+    public ResponseType $responseType {
+        get => $this->router->responseType;
+    }
+    public bool $isJsonResponse {
+        get => $this->responseType === ResponseType::Json;
+    }
+
     protected function setTemplateVariable(string $key, mixed $value): void {
         $this->templateVariables[$key] = $value;
     }
