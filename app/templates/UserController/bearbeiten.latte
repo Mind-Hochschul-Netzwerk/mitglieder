@@ -103,7 +103,6 @@
 {/block}
 {block page-label}<i class="ti ti-pencil" aria-hidden="true"></i> Profil bearbeiten{/block}
 {block page-header}
-    <!--<div class="page-subtitle">Mitgliedsdaten bearbeiten</div>-->
     <div class="meta">
         <span n:if=$db_modified><strong>Stand:</strong> {$db_modified|format:'d.m.Y@local'}</span>
         <span n:if=$ort><i class="ti ti-map-pin" aria-hidden="true"></i> {$ort}</span>
@@ -182,13 +181,15 @@
             {include private-form-group, "Vorname", vorname, disabled: !$isAdmin}
             {include private-form-group, "Nachname", nachname, disabled: !$isAdmin}
         </div>
-        {include private-form-group, "Straße + Hausnummer", strasse}
-        {include private-form-group, "ggf. Adresszusatz", adresszusatz, placeholder: "Adresszusatz"}
+        <div class="form-row">
+            {include private-form-group, "Straße + Hausnummer", strasse}
+            {include private-form-group, "ggf. Adresszusatz", adresszusatz, placeholder: "Adresszusatz"}
+        </div>
         <div class="form-row">
             {include private-form-group, "PLZ", plz, uncoverVariable: sichtbarkeit_plz_ort}
             {include private-form-group, "Ort", ort, uncoverVariable: sichtbarkeit_plz_ort}
+            {include private-form-group, "Land", land}
         </div>
-        {include private-form-group, "Land", land}
 
         {default $geburtstag = \DateTimeImmutable::fromFormat('0000-00-00')}
 
@@ -328,10 +329,10 @@
 
             <div>
                 <h3>Vereinsaustritt</h3>
-                    {if $isAdmin}
+                    {if $isAdmin && !$isSelf}
                         {include box, name: resign, label: 'Das Mitglied hat seinen Austritt erklärt.',
                             id: 'resignCheckbox',
-                            onclick: 'return confirm("Bist du ganz sicher, dass dieses Häkchen " + (!$("#resignCheckbox").get(0).checked ? "entfernt" : "gesetzt") + " werden soll?")'
+                            onclick: 'return confirm("Bist du ganz sicher, dass dieses Häkchen " + (!document.getElementById("resignCheckbox").checked ? "entfernt" : "gesetzt") + " werden soll?")'
                         }
                         <p n:if=$resignation>Die Austrittserklärung wurde am {$resignation|format:'d.m.Y@local'} gespeichert.</p>
                     {else}
