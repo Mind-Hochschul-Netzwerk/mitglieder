@@ -78,9 +78,8 @@
     {var $error = true}
 {/if}
 
-{if str_ends_with(strtolower($email), '.invalid')}
+{if str_ends_with(strtolower($email), '.invalid') && !$email_auth_info}
     {include info-box, danger, "E-Mails an dich kamen als unzustellbar zurück. Bitte aktualisiere deine E-Mail-Adresse."}
-    {var $error = true}
 {/if}
 
 {if $email_changed}
@@ -147,7 +146,7 @@
             {if str_ends_with(strtolower($email), '.invalid')}
                 {include info-box, info, "Die Endung .invalid wurde angefügt, weil E-Mails an diese Adresse nicht zugestellt werden konnten."}
             {/if}
-            {include private-form-group, label: "", name: email, placeholder: "E-Mail", type: email}
+            {include private-input, label: "", name: email, placeholder: "E-Mail", type: email}
         </div>
 
         {include private-form-group, "Telefon", telefon, type: tel}

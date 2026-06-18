@@ -178,7 +178,7 @@ class UserController extends Controller {
             return;
         }
 
-        if (!preg_match('/^[a-zA-Z0-9_+&*-]+(?:\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,50}$/', $email)) { // siehe https://www.owasp.org/index.php/OWASP_Validation_Regex_Repository
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->setTemplateVariable('email_error', true);
             return;
         }
