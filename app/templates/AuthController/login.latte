@@ -5,27 +5,12 @@
 {block content}
     {embed dialog, login, ariaLabel: "Login-Formular", labelIcon: login, label: Anmelden, title: Willkommen, open: true}{block dialog-content}
         {if $lost_password}
-            {include alert,
-                type: success,
-                text: "Falls ein entsprechendes Benutzerkonto gefunden wurde, wurde eine E-Mail an deine E-Mail-Adresse gesendet.",
-            }
+            {include info-box, success, "Falls ein entsprechendes Benutzerkonto gefunden wurde, wurde eine E-Mail an deine E-Mail-Adresse gesendet."}
         {/if}
         {if $error_passwort_falsch}
-            {include alert,
-                type: danger,
-                text: "Die Benutzerkennung oder das Passwort ist falsch.",
-            }
+            {include info-box, danger, "Die Benutzerkennung oder das Passwort ist falsch."}
         {/if}
-
-        {include alert,
-            alertId: 'alertBenutzerkennung',
-            type: danger,
-            text: "Gib deinen Benutzernamen oder deine E-Mail-Adresse an.",
-            hide: !$error_username_leer,
-        }
-        <div id="alertBenutzerkennung" n:class="alert, alert--danger, !$error_username_leer ? hidden" role="alert">
-            <div>Gib deinen Benutzernamen oder deine E-Mail-Adresse an.</div>
-        </div>
+        {include info-box, danger, "Gib deinen Benutzernamen oder deine E-Mail-Adresse an.", hide: !$error_username_leer, id: 'alertBenutzerkennung'}
 
         <form method="post" action="/login">
         {=csrfTokenTag()}

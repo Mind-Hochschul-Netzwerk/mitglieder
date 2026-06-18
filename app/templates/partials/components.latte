@@ -1,9 +1,15 @@
-{define alert, $alertId, $type, $hide, $text}
-<div
-    n:attr="id: $alertId ?: null"
-    n:class="alert, 'alert--' . $type, $hide ? hidden" role="alert">
-    <div>{$text}</div>
-    <button type="button" class="secondary" onclick="this.parentElement.classList.add('hidden')" aria-label="Close">
+{define info-box, $type, $text, $hide = false, $id, $showCloseButton = true}
+<div id={$id} n:class="info-box, 'info-box--' . $type, $hide ? hidden" role="alert">
+    <i n:class="ti, match ($type) {
+        'info' => ti-info-circle,
+        'success' => ti-check,
+        'warning' => ti-alert-triangle,
+        'danger' => ti-alert-triangle,
+        default => ti-info-circle,
+    }" aria-hidden="true"></i>
+    <p>{block info-box-text}{$text}{/block}</p>
+    <div n:ifcontent>{block info-box-button}{/block}</div>
+    <button n:if=$showCloseButton type="button" class="secondary close" onclick="this.parentElement.classList.add('hidden')" aria-label="Close">
         <span aria-hidden="true">&times;</span>
     </button>
 </div>

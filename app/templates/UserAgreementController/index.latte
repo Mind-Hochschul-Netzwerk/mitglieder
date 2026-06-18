@@ -35,8 +35,12 @@
 }
 
 #datenschutzverpflichtung div:has(> .timestamp) {
-    display: flex;
-    justify-content: space-between;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  @media (width < 640px) {
+    display: block;
+  }
 }
 
 </style>{/block}
@@ -44,21 +48,18 @@
 {block page-label}<i class="ti ti-shield-lock" aria-hidden="true"></i> Rechtliches{/block}
 {block page-header}
     <p class="page-subtitle">Hier kannst du deine Einwilligungen und Kenntnisnahmen bezüglich der Datenverarbeitung einsehen und verwalten.</p>
-    <div id="Kenntnisnahme_update" class="info-box info-box--warning hidden">
-        <i class="ti ti-alert-triangle" aria-hidden="true"></i>
-        <p>Für die Kenntnisnahme der Datenverarbeitung liegt ein neuer Text vom <span></span> vor. Bitte aktualisiere deine Kenntnisnahme.</p>
-        <div><button class="secondary" type="button">Anzeigen</button></div>
-    </div>
-    <div id="Einwilligung_update" class="info-box info-box--warning hidden">
-        <i class="ti ti-alert-triangle" aria-hidden="true"></i>
-        <p>Für die Einwilligung zur Datenverarbeitung liegt ein neuer Text vom <span></span> vor. Bitte aktualisiere deine Einwilligung.</p>
-        <div><button class="secondary" type="button">Anzeigen</button></div>
-    </div>
-    <div id="Datenschutzverpflichtung_update" class="info-box info-box--warning hidden">
-        <i class="ti ti-alert-triangle" aria-hidden="true"></i>
-        <p>Für die Verpflichtung zum Datenschutz liegt ein neuer Text vom <span></span> vor. Bitte aktualisiere deine Einwilligung. Andernfalls können dir Berechtigungen entzogen werden.</p>
-        <div><button class="secondary" type="button">Anzeigen</button></div>
-    </div>
+    {embed info-box, warning, hide: true, id: Kenntnisnahme_update}
+        {block info-box-text}Für die Kenntnisnahme der Datenverarbeitung liegt ein neuer Text vom <span></span> vor. Bitte aktualisiere deine Kenntnisnahme.{/block}
+        {block info-box-button}<button class="secondary" type="button">Anzeigen</button>{/block}
+    {/embed}
+    {embed info-box, warning, hide: true, id: Einwilligung_update}
+        {block info-box-text}Für die Einwilligung zur Datenverarbeitung liegt ein neuer Text vom <span></span> vor. Bitte aktualisiere deine Einwilligung.{/block}
+        {block info-box-button}<button class="secondary" type="button">Anzeigen</button>{/block}
+    {/embed}
+    {embed info-box, warning, hide: true, id: Datenschutzverpflichtung_update}
+        {block info-box-text}Für die Verpflichtung zum Datenschutz liegt ein neuer Text vom <span></span> vor. Bitte aktualisiere deine Einwilligung. Andernfalls können dir Berechtigungen entzogen werden.{/block}
+        {block info-box-button}<button class="secondary" type="button">Anzeigen</button>{/block}
+    {/embed}
 {/block}
 
 {block content}
@@ -99,7 +100,9 @@
         <div id="datenschutzverpflichtung_accept" class="hidden">
             <p class="timestamp">Du hast noch nicht eingewilligt. Du kannst deine Einwilligung jederzeit widerrufen.</p>
             <div class="form-actions">
-                <button type="submit" name="action" value="accept"><i class="ti ti-check" aria-hidden="true"></i> Ja, ich stimme zu.</button>
+                <button type="submit" name="action" value="accept">
+                    <i class="ti ti-check" aria-hidden="true"></i> Ja, ich stimme zu.
+                </button>
             </div>
         </div>
     </form>

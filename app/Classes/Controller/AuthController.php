@@ -75,8 +75,18 @@ class AuthController extends Controller {
 
         $this->currentUser->logIn($user);
 
+        // ggf. nach dem Login umleiten
         if ($redirectUrl === '/') {
-            $redirectUrl = $this->agreementsRedirectIfNeeded($user) ?? $redirectUrl;
+            // 1. Priorität: E-Mail-Adresse als ungültig markiert
+            if (str_ends_with(strtolower($user->get('email')), '.invalid')) {
+                $redirectUrl = '/user/self/edit';
+            // 2. Priorätit: neue Version der Datenschutztexte
+            } elseif ($this->isAgreementsRedirectNeeded($user)) {
+                $redirectUrl = '/user/self/agreements';
+            // 3. Priorität: Profil wurde seit einem Jahr nicht aktualisiert
+            } elseif ($user->get('db_modified')->diff(new \DateTimeImmutable('now - 1 year'))->invert === 0) {
+                $redirectUrl = '/user/self/edit';
+            }
         }
 
         return $this->redirect($redirectUrl);
@@ -88,7 +98,7 @@ class AuthController extends Controller {
         return $this->render('AuthController/logout');
     }
 
-    private function agreementsRedirectIfNeeded(User $user): ?string
+    private function isAgreementsRedirectNeeded(User $user): bool
     {
         // Kenntnisnahme und Einwilligung: Weiterleitung wenn noch nie zugestimmt oder neue Version vorliegt
         foreach (['Kenntnisnahme', 'Einwilligung'] as $name) {
@@ -99,7 +109,7 @@ class AuthController extends Controller {
             // findLatestByUserAndName gibt null zurück wenn nie zugestimmt oder widerrufen
             $userAgreement = $this->userAgreementRepository->findLatestByUserAndName($user, $name);
             if ($userAgreement === null || $userAgreement->agreement->version < $latest->version) {
-                return '/user/self/agreements';
+                return true;
             }
         }
 
@@ -108,10 +118,10 @@ class AuthController extends Controller {
         $latest = $this->agreementRepository->findLatestByName('Datenschutzverpflichtung');
         $userAgreement = $this->userAgreementRepository->findLatestByUserAndName($user, 'Datenschutzverpflichtung');
         if ($latest !== null && $userAgreement !== null && $userAgreement->agreement->version < $latest->version) {
-            return '/user/self/agreements';
+            return true;
         }
 
-        return null;
+        return false;
     }
 
     private function lostPassword(?User $user): Response {
@@ -144,7 +154,7 @@ class AuthController extends Controller {
                 if (time() - $data[0] > 24*60*60) {
                     throw new \Exception('token expired');
                 }
-                $user = $this->userRepository->findOneById($data[1], true);
+                $user = $this->userRepository->findOneById($data[1]);
                 return $user->get('hashedPassword');
             }, getenv('TOKEN_KEY'));
         } catch (\Exception $e) {

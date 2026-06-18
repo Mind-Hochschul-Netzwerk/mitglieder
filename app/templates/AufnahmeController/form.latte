@@ -24,7 +24,7 @@
 
 {foreach $alerts as $name=>$text}
     {if get_defined_vars()[$name]}
-        <div>{include alert, type: danger, text: $text}</div>
+        <div>{include info-box, danger, $text}</div>
     {/if}
 {/foreach}
 
@@ -47,14 +47,12 @@
         miteinander in Kontakt treten können. Lege fest, welche Daten du im Netzwerk
         freigibst.
     </p>
-    <div class="info-box"><i class="ti ti-info-circle" aria-hidden="true"></i>
-        <p>
-            Was du nicht freigibst, ist nur für bestimme Personen wie
-            Administrator:innen und die Mitgliederbetreuung sichtbar. Freigegebene Daten sind
-            nur für Mitglieder sichtbar. Außerdem können Mitglieder dich über freigegebene
-            Daten in der Mitgliedersuche finden. Deine angegeben Daten und die Freigabeeinstellungen kannst du jederzeit in deinem Mitgliedsprofil anpassen.
-        </p>
-    </div>
+    {include info-box, showCloseButton: false, text: "
+        Was du nicht freigibst, ist nur für bestimme Personen wie Administrator:innen und die Mitgliederbetreuung
+        sichtbar. Freigegebene Daten sind nur für Mitglieder sichtbar. Außerdem können Mitglieder
+        dich über freigegebene Daten in der Mitgliedersuche finden. Deine angegeben Daten und die
+        Freigabeeinstellungen kannst du jederzeit in deinem Mitgliedsprofil anpassen.
+    "}
 
     {embed form-group, "Meine Adresse (Hauptwohnsitz)"}{block inputs}
         {include box, name: sichtbarkeit_adresse, type: radio, value: 1, required: true, label: "für Mitglieder freigeben"}
@@ -62,15 +60,13 @@
         {include box, name: sichtbarkeit_adresse, type: radio, value: 0, required: true, label: "nicht freigeben"}
     {/block}{/embed}
 
-    <div class="info-box"><i class="ti ti-info-circle" aria-hidden="true"></i>
-        <p>
-            Über unsere Webseite können sich alle Mitglieder gegenseitig
-            Direktnachrichten schicken, die per E-Mail zugestellt werden. Die E-Mail-Adressen werden dabei
-            nicht preisgegeben.
+    {include info-box, showCloseButton: false, text: "
+        Über unsere Webseite können sich alle Mitglieder gegenseitig
+        Direktnachrichten schicken, die per E-Mail zugestellt werden. Die E-Mail-Adressen werden dabei
+        nicht preisgegeben.
 
-            Darüber hinaus kannst du deine E-Mail-Adresse freigeben, sodass Mitglieder dich auch direkt per E-Mail anschreiben können.
-        </p>
-    </div>
+        Darüber hinaus kannst du deine E-Mail-Adresse freigeben, sodass Mitglieder dich auch direkt per E-Mail anschreiben können.
+    "}
 
     {embed form-group, "E-Mail-Adresse"}{block inputs}
 
@@ -134,10 +130,11 @@
     {/block}{/embed}
 </section>
 
-<div class="info-box">
-  <i class="ti ti-info-circle" aria-hidden="true"></i>
-  <p>Für alle Mitglieder immer sichtbar: dein Name, deine Mitgliedsnummer, dein Aufnahmedatum sowie deine Angaben zu Auskunft und Mitarbeit. Ein Profilbild kannst du nach der Registrierung hinzufügen.</p>
-</div>
+{include info-box, showCloseButton: false, text: "
+    Für alle Mitglieder immer sichtbar: dein Name, deine Mitgliedsnummer, dein
+    Aufnahmedatum sowie deine Angaben zu Auskunft und Mitarbeit. Ein Profilbild
+    kannst du nach der Registrierung hinzufügen.
+"}
 
 <div class="form-actions">
     <button type="submit"><i class="ti ti-check" aria-hidden="true"></i> Speichern und dem Verein beitreten</button>

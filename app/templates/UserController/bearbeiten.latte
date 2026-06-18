@@ -56,46 +56,38 @@
 
 {* Alerts generieren *}
 
+{if $db_modified->diff(new \DateTimeImmutable('now - 1 year'))->invert === 0}
+    {include info-box, warning, "Deine Daten wurden seit mindestens einem Jahr nicht geändert. Bitte prüfe, ob alles aktuell ist und klicke auf „Speichern“."}
+{/if}
+
 {if $profilbild_format_unbekannt}
-    {include alert,
-        type: danger,
-        text: "Das Dateiformat des Profilbilds wurde nicht erkannt oder wird nicht unterstützt. Unterstützte Formate: JPEG, PNG.",
-    }
+    {include info-box, danger, "Das Dateiformat des Profilbilds wurde nicht erkannt oder wird nicht unterstützt. Unterstützte Formate: JPEG, PNG."}
     {var $changes = true}
     {var $error = true}
 {/if}
 
 {if $profilbild_uploadfehler}
-    {include alert,
-        type: danger,
-        text: "Beim Upload des Profilbilds ist es leider zu einem unbekannten Fehler gekommen. Bitte wende dich an die Mitgliederbetreuung.",
-    }
+    {include info-box, danger, "Beim Upload des Profilbilds ist es leider zu einem unbekannten Fehler gekommen. Bitte wende dich an die Mitgliederbetreuung."}
     {var $changes = true}
     {var $error = true}
 {/if}
 
 {if $email_error}
-    {include alert,
-        type: danger,
-        text: "Die eigegebene E-Mail-Adresse ist ungültig. Die E-Mail-Adresse und wurde nicht gespeichert.",
-    }
+    {include info-box, danger, "Die einegebene E-Mail-Adresse ist ungültig. Die E-Mail-Adresse und wurde nicht gespeichert."}
     {var $changes = true}
     {var $error = true}
 {/if}
 
-{if $email_changed}
-    {include alert,
-        type: success,
-        text: "Deine E-Mail-Adresse wurde erfolgreich geändert.",
-    }
+{if str_ends_with(strtolower($email), '.invalid')}
+    {include info-box, danger, "E-Mails an dich kamen als unzustellbar zurück. Bitte aktualisiere deine E-Mail-Adresse."}
+    {var $error = true}
 {/if}
 
-{include alert,
-    alertId: AlertWiederholungFalsch,
-    type: danger,
-    hide: !$new_password2_error,
-    text: "Die Wiederholung stimmt nicht mit dem neuen Passwort überein.",
-}
+{if $email_changed}
+    {include info-box, success, "Deine E-Mail-Adresse wurde erfolgreich geändert."}
+{/if}
+
+{include info-box, danger, "Die Wiederholung stimmt nicht mit dem neuen Passwort überein.", hide: !$new_password2_error, id: AlertWiederholungFalsch}
 
 {if $new_password2_error}
     {var $password_error = true}
@@ -104,32 +96,22 @@
 {/if}
 
 {if $old_password_error}
-    {include alert,
-        type: danger,
-        text: "Das alte Passwort ist falsch. Das Passwort wurde nicht geändert.",
-    }
+    {include info-box, danger, "Das alte Passwort ist falsch. Das Passwort wurde nicht geändert."}
     {var $password_error = true}
     {var $changes = true}
     {var $error = true}
 {/if}
 
 {if $data_saved_info}
-    {include alert,
-        type: success,
-        text: (!$error ? 'Deine Daten wurden geändert.' : 'Die anderen Änderungen wurden gespeichert.') . ($email_auth_info ? ' Bitte schau in dein E-Mail-Postfach, um die Änderung deiner E-Mail-Adresse abzuschließen.'),
-    }
+    {include info-box, success, (!$error ? 'Deine Daten wurden geändert.' : 'Die anderen Änderungen wurden gespeichert.') . ($email_auth_info ? ' Bitte schau in dein E-Mail-Postfach, um die Änderung deiner E-Mail-Adresse abzuschließen.')}
 {/if}
 
 {if $errorMessage}
-    {include alert,
-        type: warning,
-        text: $errorMessage,
-    }
+    {include info-box, warning, $errorMessage}
 {/if}
 
 <form enctype="multipart/form-data" method="post" id="profile-form">
     {=csrfTokenTag()}
-
 
     <section class="panel" aria-labelledby="basisdaten-heading">
         <h2 id="basisdaten-heading">
@@ -138,13 +120,11 @@
 
         <p>Diese Basisdaten werden von allen Mitgliedern erhoben.</p>
 
-        <div class="info-box"><i class="ti ti-info-circle" aria-hidden="true"></i>
-            <p>
-                Mit der Sichtbarkeits-Auswahl <i class="protected-value-icon ti ti-eye"></i>/<i class="protected-value-icon ti ti-eye-off"></i>
-                neben den Einträgen kannst du einstellen, ob Daten für alle Mitglieder oder nur für dich und die
-                Beauftragten der Mitgliederverwaltung sichtbar sind. Einträge ohne diese Symbole sind für alle Mitglieder sichtbar.
-            </p>
-        </div>
+        {embed info-box, showCloseButton: false}{block info-box-text}
+            Mit der Sichtbarkeits-Auswahl <i class="protected-value-icon ti ti-eye"></i>/<i class="protected-value-icon ti ti-eye-off"></i>
+            neben den Einträgen kannst du einstellen, ob Daten für alle Mitglieder oder nur für dich und die
+            Beauftragten der Mitgliederverwaltung sichtbar sind. Einträge ohne diese Symbole sind für alle Mitglieder sichtbar.
+        {/block}{/embed}
 
         <div class="form-row">
             {include private-form-group, "Vorname", vorname, disabled: !$isAdmin}
@@ -161,7 +141,15 @@
         {default $geburtstag = \DateTimeImmutable::fromFormat('0000-00-00')}
 
         {include private-form-group, "Geburtsdatum", geburtstag, type: date, disabled: !$isAdmin}
-        {include private-form-group, "E-Mail" . ($email_auth_info ? " (wird geändert)"), email, placeholder: "E-Mail", type: email}
+
+        <div class="form-group">
+            <label for="input-email">E-Mail{if $email_auth_info} (wird geändert){/if}</label>
+            {if str_ends_with(strtolower($email), '.invalid')}
+                {include info-box, info, "Die Endung .invalid wurde angefügt, weil E-Mails an diese Adresse nicht zugestellt werden konnten."}
+            {/if}
+            {include private-form-group, label: "", name: email, placeholder: "E-Mail", type: email}
+        </div>
+
         {include private-form-group, "Telefon", telefon, type: tel}
 
         {include private-form-group, "Beschäftigung", beschaeftigung, type: select, options: [
@@ -380,7 +368,8 @@
 </form>
 {/block}
 
-{block footer}<script>
+{block footer}
+<script>
 // vor dem Verlassen warnen, falls etwas geändert wurde
 let changes = {$changes ? 'true' : 'false'};
 let saving = false;
@@ -431,4 +420,5 @@ document.querySelectorAll('[name=sichtbarkeit_plz_ort]').forEach(a => a.onchange
     });
     sichtbarkeit_plz_ort_recursion = false;
 });
-</script>{/block}
+</script>
+{/block}

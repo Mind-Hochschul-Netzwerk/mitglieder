@@ -110,6 +110,7 @@ input[type="button"] {
   cursor: pointer;
   font-weight: 600;
   transition: background 0.15s;
+  white-space: nowrap;
 
   &:hover { background: var(--accent-dark); }
   &:focus-visible {
@@ -225,6 +226,12 @@ fieldset {
   display: flex;
   gap: 0.75rem;
   justify-content: flex-end;
+  @media (width < 640px) {
+    flex-direction: column;
+    & > * {
+        width: 100%;
+    }
+  }
 }
 
 .uncover-toggle {
@@ -723,6 +730,7 @@ dialog, .page-header {
     font-size: 0.93rem;
     font-weight: 500;
     transition: background 0.15s;
+    white-space: nowrap;
 
     &:hover,
     &:focus-visible {
@@ -968,40 +976,57 @@ dl {
   border-radius: 0 var(--radius-btn) var(--radius-btn) 0;
   margin: 1.5rem 0;
 
-  .ti { font-size: 1.25rem; color: var(--accent); flex-shrink: 0; margin-top: 0.1rem; }
-  p   { margin: 0; color: var(--accent-dark); font-size: 0.93rem; }
-}
-
-.info-box--warning {
-  background: #fef9c3;
-  border-color: #ca8a04;
-
-  .ti { color: #ca8a04; }
-  p   { color: #713f12; }
-}
-
-.alert {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.85rem 1.25rem;
-  border-radius: var(--radius-btn);
-  margin-bottom: 1.5rem;
-  font-size: 0.95rem;
-
-  button { background: transparent; color: inherit; padding: 0.25rem 0.5rem; }
-
-  &.alert--danger {
-    background: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #fca5a5;
+  .form-group & {
+    margin: 0;
   }
 
-  &.alert--success {
-    background: #dcfce7;
-    color: #166534;
-    border: 1px solid #86efac;
+  align-items: center;
+
+  p {
+    flex: 1;
+  }
+
+  button.close {
+    background: transparent;
+    color: inherit;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  .ti {
+    font-size: 1.25rem;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  p {
+    margin: 0;
+    color: var(--accent-dark);
+    font-size: 0.93rem;
+  }
+
+  &.info-box--success {
+    background: #f0fdf4;
+    border-color: #16a34a;
+
+    .ti { color: #16a34a; }
+    p   { color: #14532d; }
+  }
+
+  &.info-box--danger {
+    background: #fee2e2;
+    border-color: #b91c1c;
+
+    .ti { color: #b91c1c; }
+    p   { color: #7f1d1d; }
+  }
+
+  &.info-box--warning {
+    background: #fef9c3;
+    border-color: #ca8a04;
+
+    .ti { color: #ca8a04; }
+    p   { color: #713f12; }
   }
 }
 
