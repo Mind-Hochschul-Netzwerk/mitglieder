@@ -361,7 +361,7 @@ class SearchController extends Controller {
                 'fullName' => $user->get('fullName'),
                 'username' => $user->get('username'),
                 'orte' => implode(', ', $orte),
-                'profilbild' => $user->get('profilbild') ? ('thumbnail-' . $user->get('profilbild')) : null,
+                'thumbnail' => $user->thumbnailUrl,
             ];
 
             $ergebnisse[] = $e;

@@ -10,7 +10,7 @@
 {/define}
 
 {block title}{$fullName}{/block}
-{block header-image}<img n:if=$profilbild src="/user/{$username}/profile-picture" alt="Profilbild von {$fullName}">{/block}
+{block header-image}<img n:if=$profilbild src="{$user->profilePictureUrl}" alt="Profilbild von {$fullName}">{/block}
 {block page-label}<i class="ti ti-user" aria-hidden="true"></i> Mitglied {$aufnahmedatum ? "seit ". ($aufnahmedatum?|format:'Y')}{/block}
 {block page-header}
     <div class="meta">

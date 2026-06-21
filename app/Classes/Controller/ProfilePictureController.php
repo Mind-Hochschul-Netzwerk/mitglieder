@@ -21,13 +21,9 @@ class ProfilePictureController extends Controller {
     const thumbnailMaxWidth = 200;
     const thumbnailMaxHeight = 200;
 
-    public function __construct(
-        private UserRepository $userRepository,
-    ) {}
-
     #[Route('GET /user/{username=>user}/profile-picture'), RequireLogin]
     public function show(User $user, #[QueryValue] string $size = 'full'): Response {
-        if (!$user->get('profilbild') || !is_file(User::PROFILE_PICUTRE_DIRECTORY . '/' . $user->get('profilbild'))) {
+        if (!$user->get('profilbild') || !is_file($user->profilePicturePath)) {
             return $this->redirect('/img/profilbild-default.png');
         }
 
@@ -38,7 +34,10 @@ class ProfilePictureController extends Controller {
 
         return new Response(
             file_get_contents(User::PROFILE_PICUTRE_DIRECTORY . '/' . $prefix . $user->get('profilbild')),
-            headers: ['Content-Type' => 'image/' . $type]
+            headers: [
+                'Content-Type' => 'image/' . $type,
+                'Cache-Control' => 'max-age=3600, private',
+            ]
         );
     }
 
@@ -47,11 +46,11 @@ class ProfilePictureController extends Controller {
         AllowIf(role: 'mvedit'),
         AllowIf(id: '$user->get("id")'),
     ]
-    public function update(User $user, ?UploadedFile $profilbild = null, #[RequestValue] bool $bildLoeschen = false): Response
+    public function update(User $user, UserRepository $userRepository, ?UploadedFile $profilbild = null, #[RequestValue] bool $bildLoeschen = false): Response
     {
         if ($bildLoeschen) {
             $user->deleteProfilePicture();
-            $this->userRepository->save($user);
+            $userRepository->save($user);
             return $this->isJsonResponse ? $this->json(["src" => ""]) : $this->redirect('/user/' . $user->get('username') . '/edit');
         }
 
@@ -89,8 +88,8 @@ class ProfilePictureController extends Controller {
         $user->deleteProfilePicture();
         $user->set('profilbild', $fileName);
 
-        $this->userRepository->save($user);
+        $userRepository->save($user);
 
-        return $this->isJsonResponse ? $this->json(["src" => "/user/" . $user->get('username') . "/profile-picture?" . time()]) : $this->redirect('/user/' . $user->get('username') . '/edit');
+        return $this->isJsonResponse ? $this->json(["src" => $user->profilePictureUrl]) : $this->redirect('/user/' . $user->get('username') . '/edit');
     }
 }

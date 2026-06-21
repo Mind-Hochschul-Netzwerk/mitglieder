@@ -38,6 +38,22 @@ class User
     private $newPassword = '';
     private string $email = '';
 
+    public string $profilePicturePath {
+        get => User::PROFILE_PICUTRE_DIRECTORY . '/' . $this->get('profilbild');
+    }
+
+    public string $thumbnailPath {
+        get => User::PROFILE_PICUTRE_DIRECTORY . '/thumbnail-' . $this->get('profilbild');
+    }
+
+    public string $profilePictureUrl {
+        get => $this->get('profilbild') ? '/user/' . $this->get('username') . '/profile-picture?' . filemtime($this->profilePicturePath) : '';
+    }
+
+    public string $thumbnailUrl {
+        get => $this->get('profilbild') ? '/user/' . $this->get('username') . '/profile-picture?size=thumbnail&' . filemtime($this->thumbnailPath) : '';
+    }
+
     public function __construct(
         private Ldap $ldap,
         private UserRepository $userRepository,

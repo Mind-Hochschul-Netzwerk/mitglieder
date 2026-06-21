@@ -89,6 +89,7 @@ class UserController extends Controller {
 
         return $this->render('UserController/profil', [
             ...$templateVars,
+            'user' => $user,
             'datenschutzverpflichtung' => $userAgreementRepository->findLatestByUserAndName($user, 'datenschutzverpflichtung'),
         ]);
     }
@@ -100,15 +101,12 @@ class UserController extends Controller {
     ]
     public function edit(User $user): Response {
         $templateVars = [];
-
-        if ($this->currentUser->get('id') !==  $user->get('id') && !$this->currentUser->hasRole('mvedit')) {
-            throw new AccessDeniedException();
-        }
-
         foreach (array_keys(User::felder) as $feld) {
             $templateVars[$feld] = $user->get($feld);
         }
-        $templateVars += [
+
+        return $this->render('UserController/bearbeiten', [
+            ...$templateVars,
             'fullName' => $user->get('fullName'),
             'dateOfJoining' => $user->get('dateOfJoining'),
             'groups' => implode(', ', $user->getGroups()),
@@ -116,10 +114,7 @@ class UserController extends Controller {
             'isAdmin' => $this->currentUser->hasRole('mvedit'),
             'isSuperAdmin' => $this->currentUser->hasRole('rechte'),
             'isSelf' => $this->currentUser->get('id') ===  $user->get('id'),
-        ];
-
-        return $this->render('UserController/bearbeiten', [
-            ...$templateVars,
+            'user' => $user,
             'email' => $user->get('email'),
             'delete' => false,
             'resign' => (bool)$user->get('resignation'),

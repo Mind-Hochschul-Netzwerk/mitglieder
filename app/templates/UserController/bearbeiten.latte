@@ -95,7 +95,7 @@
 {/define}
 
 {block header-image}
-    <img src="{$profilbild ? "/user/{$username}/profile-picture"}" alt="Profilbild von {$fullName}" id="profile-picture">
+    <img src="{$user->profilePictureUrl}" alt="Profilbild von {$fullName}" id="profile-picture">
     <div class="profile-picture-button">
         <i class="ti ti-camera" aria-hidden="true"></i>
         <div>Profilbild </div>
