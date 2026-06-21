@@ -9,7 +9,6 @@ namespace App\Controller;
 
 use App\Service\Ldap;
 use Hengeb\Db\Db;
-use App\Repository\UserRepository;
 use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,7 +16,6 @@ use Symfony\Component\HttpFoundation\Response;
 class StatisticsController extends Controller {
     public function __construct(
         private Ldap $ldap,
-        private UserRepository $userRepository,
     ) {}
 
     #[Route('GET /statistics'), AllowIf(role: 'mvread')]
@@ -29,6 +27,8 @@ class StatisticsController extends Controller {
             'countAfterOct2018' => $db->query('SELECT COUNT(id) FROM mitglieder WHERE aufnahmedatum >= 20181005')->get(),
             'countConfirmedMembership' => $db->query('SELECT COUNT(id) FROM mitglieder WHERE (aufnahmedatum < 20181005 OR aufnahmedatum IS NULL) AND membership_confirmation IS NOT NULL')->get(),
             'countResignations' => $db->query('SELECT COUNT(id) FROM mitglieder WHERE (aufnahmedatum >= 20181005 OR membership_confirmation IS NOT NULL) AND resignation IS NOT NULL')->get(),
+            'countInvalidEmails' => count($this->ldap->getUserIdsByQuery('(mail=*.invalid)')),
+            'countOldProfiles' => $db->query('SELECT COUNT(id) FROM mitglieder WHERE db_modified < DATE_SUB(NOW(), INTERVAL 1 YEAR)')->get(),
             'eintritte' => $db->query('SELECT COUNT(id) AS anzahl, MAX(id) as max_id, YEAR(aufnahmedatum + INTERVAL 89 DAY) AS eintrittsjahr FROM mitglieder WHERE aufnahmedatum IS NOT NULL GROUP BY eintrittsjahr ORDER BY eintrittsjahr')->getAll(),
         ]);
     }

@@ -16,8 +16,9 @@ zusätzlich {$countDeleted} gesperrte Benutzernamen (= gelöschte Mitglieder)
 Von den {$countAllEntries} Mitgliedern:
 ... {$countAfterOct2018} erst nach der Vereinsgründung eingetreten
 ... {$countConfirmedMembership} haben ihre Mitgliedschaft bestätigt
-... {$countResignations} haben ihren Austritt zum Ende des Jahres erklärt. (<a href="/search?fullName=&key0=resignation&op0=true">Liste</a>)
-... {$countInvalidEmails} haben keine erreichbare E-Mail-Adresse: (<a href="https://mitglieder.docker.localhost/?fullName=&location=&any=&key0=emailInvalid&op0=true">Liste</a>)
+... {$countResignations} haben ihren Austritt zum Ende des Jahres erklärt. (<a href="/search?key0=resignation&op0=true">Liste</a>)
+... {$countInvalidEmails} haben keine erreichbare E-Mail-Adresse: (<a href="/search?key0=emailInvalid&op0=true">Liste</a>)
+... {$countOldProfiles} haben ihr Profil seit mindestens einem Jahr nicht aktualisiert. (<a href="/search?key0=db_modified&op0=le&value0={=strtotime('-1 year')|format:'d.m.Y@local'}">Liste</a>)
 </pre>
 
 <table class="table">

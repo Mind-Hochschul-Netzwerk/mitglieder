@@ -6,6 +6,7 @@ namespace App\Controller;
 use App\Repository\UserRepository;
 use App\Service\Ldap;
 use Hengeb\Db\Db;
+use Hengeb\Router\Attribute\QueryValue;
 use Hengeb\Router\Attribute\RequireLogin;
 use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,23 +32,21 @@ class SearchController extends Controller {
         private Ldap $ldap,
     ) {}
 
-    #[Route('GET /(search|)'), RequireLogin]
-    public function form(): Response {
-        return $this->render('SearchController/search');
-    }
-
     private array $filterValues = [];
 
     // Felder mit |s bzw |s* nur mit sichtbarkeit
     const felder = ['username', 'id', 'vorname', 'nachname', 'mensa_nr|s', 'strasse|s', 'adresszusatz|s', 'plz|sichtbarkeit_plz_ort', 'ort|sichtbarkeit_plz_ort', 'land|s', 'strasse2', 'adresszusatz2', 'plz2', 'ort2', 'land2', 'homepage', 'sprachen', 'hobbys', 'interessen', 'studienort|s', 'studienfach|s', 'unityp|s', 'schwerpunkt|s', 'nebenfach|s', 'abschluss|s', 'zweitstudium|s', 'hochschulaktivitaeten|s', 'stipendien|s', 'auslandsaufenthalte|s', 'praktika|s', 'beruf|s'];
 
-    #[Route('GET /(search|)?fullName={fullName}'), RequireLogin]
-    public function searchByName(string $fullName): Response {
-        return $this->search($fullName);
-    }
+    #[
+        Route('GET /'),
+        Route('GET /search'),
+        RequireLogin
+    ]
+    public function search(#[QueryValue] string $fullName = '', #[QueryValue] string $location = '', #[QueryValue] string $any = ''): Response {
+        if ($this->request->query->count() === 0) {
+            return $this->render('SearchController/search');
+        }
 
-    #[Route('GET /(search|)?fullName={fullName}&location={location}&any={any}'), RequireLogin]
-    public function search(string $fullName, string $location = '', string $any = ''): Response {
         // handle the "any" filter
         $anyIds = null;
         if ($any) {
@@ -107,7 +106,7 @@ class SearchController extends Controller {
             if ($key === 'none' || !$key) {
                 break;
             }
-            if (in_array($key, ['rolle', 'resigned', 'emailInvalid'], true) && !$this->currentUser->hasRole('mvread')) {
+            if (in_array($key, ['rolle', 'resignation', 'emailInvalid', 'db_modified'], true) && !$this->currentUser->hasRole('mvread')) {
                 throw new \Hengeb\Router\Exception\AccessDeniedException();
             }
             // TODO
@@ -235,17 +234,17 @@ class SearchController extends Controller {
             $this->filterValues[$name . '_min'] = $value;
             $this->filterValues[$name . '_max'] = $value;
         }
-        if (preg_match('/^(\d\d?)\.(\d\d?)\.((19|20)\d\d)$/', $value, $matches)) {
+        if (preg_match('/^(\d\d?)\.(\d\d?)\.((19|20)?\d\d)$/', $value, $matches)) {
             $this->filterValues[$name . '_date'] = $this->filterValues[$name . '_date_min'] = $this->filterValues[$name . '_date_max']
-                = sprintf('%04d-%02d-%02d', $matches[3], $matches[2], $matches[1]);
+                = sprintf('%04d-%02d-%02d', self::fixYear($matches[3]), $matches[2], $matches[1]);
         } elseif (preg_match('/^((19|20)\d\d)$/', $value)) {
             $this->filterValues[$name . '_date'] = "$value-01-01";
             $this->filterValues[$name . '_date_min'] = "$value-01-01";
             $this->filterValues[$name . '_date_max'] = "$value-12-31";
-        } elseif (preg_match('/^(\d\d?)\.(\d\d?)\.((19|20)\d\d)\s*\-\s*(\d\d?)\.(\d\d?)\.((19|20)\d\d)$/', $value, $matches)) {
+        } elseif (preg_match('/^(\d\d?)\.(\d\d?)\.((19|20)?\d\d)\s*\-\s*(\d\d?)\.(\d\d?)\.((19|20)?\d\d)$/', $value, $matches)) {
             $this->filterValues[$name . '_date'] = 'invalid';
-            $this->filterValues[$name . '_date_min'] = sprintf('%04d-%02d-%02d', $matches[3], $matches[2], $matches[1]);
-            $this->filterValues[$name . '_date_max'] = sprintf('%04d-%02d-%02d', $matches[7], $matches[6], $matches[5]);
+            $this->filterValues[$name . '_date_min'] = sprintf('%04d-%02d-%02d', self::fixYear($matches[3]), $matches[2], $matches[1]);
+            $this->filterValues[$name . '_date_max'] = sprintf('%04d-%02d-%02d', self::fixYear($matches[7]), $matches[6], $matches[5]);
         } elseif (preg_match('/^((19|20)\d\d)\s*\-\s*((19|20)\d\d)$/', $value, $matches)) {
             $this->filterValues[$name . '_date'] = 'invalid';
             $this->filterValues[$name . '_date_min'] = "{$matches[1]}-01-01";
@@ -253,6 +252,21 @@ class SearchController extends Controller {
         } else {
             $this->filterValues[$name . '_date'] = $this->filterValues[$name . '_date_min'] = $this->filterValues[$name . '_date_max'] = $value;
         }
+    }
+
+    /**
+     * fix two digit years to four digit years
+     */
+    private static function fixYear(int|string $year): int
+    {
+        $year = (int)$year;
+        if ($year < 100) {
+            $year = 2000 + $year;
+            if ($year > date('Y')) {
+                $year -= 100;
+            }
+        }
+        return $year;
     }
 
     private function generateFilterSql(array $fields, FilterOp $op, string $valueName): string
@@ -272,7 +286,7 @@ class SearchController extends Controller {
             'email' => !$this->currentUser->hasRole('mvread') ? '(sichtbarkeit_email = true)' : '',
             'studienfach' => '(' . $this->generateSingleFilterExpression($field, $op, $valueName)
                     . $combinationLogic . $this->generateSingleFilterExpression('nebenfach', $op, $valueName) . ')',
-            'aufnahmedatum', 'resignation' => match ($op) {
+            'aufnahmedatum', 'resignation', 'db_modified' => match ($op) {
                     FilterOp::Contains, FilterOp::ContainsWord, FilterOp::NotContains, FilterOp::StartsWith, FilterOp::EndsWith => $this->generateSingleFilterExpression("DATE_FORMAT($field, '%d.%m.%Y')", $op, $valueName),
                     FilterOp::Equal, FilterOp::GreaterOrEqual, FilterOp::LessOrEqual, FilterOp::Between, FilterOp::isTrue, FilterOp::isFalse => $this->generateSingleFilterExpression($field, $op, $valueName . '_date'),
                     default => throw new \OutOfBoundsException('op implemented: ' . $op->value),
@@ -355,7 +369,6 @@ class SearchController extends Controller {
             // auszugebende Daten speichern und an Template übergeben
             $e = [
                 'id' => $user->get('id'),
-                'last_login' => $user->get('last_login'),
                 'vorname' => $user->get('vorname'),
                 'nachname' => $user->get('nachname'),
                 'fullName' => $user->get('fullName'),
