@@ -15,7 +15,7 @@
         {include nav-link, 'Einwilligungstexte', '/agreements', 'file-text-shield', datenschutz, currentUser()->hasRole('datenschutz')}
 
         <p class="sidebar-section-label">MHN-Tools</p>
-        {include nav-link, 'Aufnahmetool', 'https://aufnahme.' . getenv('DOMAINNAME'), 'user-check', currentUser()->hasRole('aufnahme')}
+        {include nav-link, 'Aufnahmetool', 'https://aufnahme.' . getenv('DOMAINNAME'), 'user-check', aufnahme, currentUser()->hasRole('aufnahme')}
         {include nav-link, 'Diskussionslisten', 'https://www.mind-hochschul-netzwerk.de/listen', 'message-circle'}
         {include nav-link, 'Wiki', 'https://wiki.mind-hochschul-netzwerk.de/', 'book'}
         {include nav-link, 'Nextcloud', 'https://cloud.mind-hochschul-netzwerk.de/', 'cloud'}
