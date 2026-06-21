@@ -365,7 +365,7 @@
         {/if}
 
         <div class="form-group">
-            <label for="delete">Austritt erklären</label>
+            <label for="delete">Mitglied löschen</label>
             {include box, delete, 'Die Daten werden SOFORT endgültig und unwiederbringlich gelöscht! Die Mitglieder der Mitgliederbetreuung werden informiert.',
                 id: delete,
                 onclick: 'return confirm("Bist du ganz sicher?" + (!document.getElementById("delete").checked ? "" : " Daten werden unwiederbringlich gelöscht!"))'
@@ -373,7 +373,7 @@
         </div>
     </section>
 
-    <div class="form-actions">
+    <div class="form-actions sticky">
         <button type="submit"><i class="ti ti-device-floppy" aria-hidden="true"></i> Speichern</button>
     </div>
 
