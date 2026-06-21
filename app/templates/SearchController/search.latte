@@ -170,7 +170,7 @@ main form {
             <li n:foreach="$ergebnisse as $e"><a class="card" href="/user/{$e[username]}">
                 <div class="card-image">
                     {if $e[profilbild]}
-                        <img src="/profilbilder/{$e[profilbild]}" alt="Profilbild von {$e[fullName]}">
+                        <img src="/user/{$e[username]}/profile-picture?size=thumbnail" alt="Profilbild von {$e[fullName]}">
                     {else}
                         <div class="card-image-placeholder" aria-hidden="true">{$e[vorname][0].$e[nachname][0]|upper}</div>
                     {/if}

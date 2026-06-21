@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
     container_name: ${SERVICENAME}
     volumes:
-      - "${VOLUMES_DIR}/profilbilder:/var/www/html/profilbilder"
+      - "${VOLUMES_DIR}/profilbilder:/var/www/profilbilder"
     environment:
       - DOMAINNAME
       - MYSQL_HOST=db

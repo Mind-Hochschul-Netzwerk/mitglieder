@@ -12,16 +12,12 @@ class ImageResizer {
     /**
      * Ändert die Größe eines Bildes unter Beibehaltung des Seitenverhältnisses
      *
-     * @param string $sourcePath Quell-Pfad
-     * @param string $destinationPath Ziel-Pfad
      * @param string $sourceType Dateityp ("png" oder "jpeg")
      * @param string $destinationType Dateityp ("png" oder "jpeg")
-     * @param int $maxWidth
-     * @param int $maxHeight
-     * @return array(int, int) Breite und Höhe des Bildes
      * @throws \OutOfBoundsException wenn $sourceType oder $destinationType ungültige Werte haben
      */
-    static function resize(string $sourcePath, string $destinationPath, string $sourceType, $destinationType, int $maxWidth, int $maxHeight) {
+    static function resize(string $sourcePath, string $destinationPath, string $sourceType, $destinationType, int $maxWidth, int $maxHeight): void
+    {
         switch ($sourceType) {
             case 'png':
                 $im = imageCreateFromPng($sourcePath);
@@ -57,7 +53,5 @@ class ImageResizer {
             default:
                 throw new \OutOfBoundsException('Unknown image type: ' . $destinationType, 1506377417);
         }
-
-        return [$width, $height];
     }
 }

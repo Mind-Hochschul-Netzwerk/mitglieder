@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d0e8c7c6cec3c811da64f96354673102",
+    "content-hash": "0f55261c93f9bee1b0f64fc34119d3d1",
     "packages": [
         {
             "name": "hengeb/db",
@@ -51,16 +51,16 @@
         },
         {
             "name": "hengeb/router",
-            "version": "v0.9",
+            "version": "v0.11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/hengeb/router.git",
-                "reference": "6021219b2b5398cce0e2a27fa1c1d5c18ba497d7"
+                "reference": "3fc75306ed2e77a109146b3699e157594c14a041"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hengeb/router/zipball/6021219b2b5398cce0e2a27fa1c1d5c18ba497d7",
-                "reference": "6021219b2b5398cce0e2a27fa1c1d5c18ba497d7",
+                "url": "https://api.github.com/repos/hengeb/router/zipball/3fc75306ed2e77a109146b3699e157594c14a041",
+                "reference": "3fc75306ed2e77a109146b3699e157594c14a041",
                 "shasum": ""
             },
             "require": {
@@ -88,9 +88,9 @@
             "description": "a PHP router that makes use of attributes",
             "support": {
                 "issues": "https://github.com/hengeb/router/issues",
-                "source": "https://github.com/hengeb/router/tree/v0.9"
+                "source": "https://github.com/hengeb/router/tree/v0.11"
             },
-            "time": "2026-06-21T07:54:58+00:00"
+            "time": "2026-06-21T21:59:32+00:00"
         },
         {
             "name": "hengeb/token",

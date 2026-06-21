@@ -10,7 +10,7 @@
         "hengeb/token": ">=0.0",
         "symfony/http-foundation": ">=7.0",
         "symfony/mime": ">=7.1",
-        "hengeb/router": ">=0.9",
+        "hengeb/router": ">=0.11",
         "latte/latte": "^3.0",
         "tracy/tracy": "^2.10"
     },

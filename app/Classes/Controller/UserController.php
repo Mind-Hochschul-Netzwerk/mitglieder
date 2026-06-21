@@ -7,26 +7,17 @@ use App\Model\User;
 use App\Repository\UserAgreementRepository;
 use App\Repository\UserRepository;
 use App\Service\EmailService;
-use App\Service\ImageResizer;
 use App\Service\Ldap;
 use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\PublicAccess;
-use Hengeb\Router\Attribute\RequestValue;
 use Hengeb\Router\Attribute\RequireLogin;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\AccessDeniedException;
 use Hengeb\Router\Exception\InvalidUserDataException;
 use Hengeb\Token\Token;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller {
-    // Maximale Größe von Profilbildern
-    const profilbildMaxWidth = 800;
-    const profilbildMaxHeight = 800;
-    const thumbnailMaxWidth = 300;
-    const thumbnailMaxHeight = 300;
-
     // Liste der vom Mitglied änderbaren Strings, deren Werte nicht geprüft werden
     const bearbeiten_strings_ungeprueft = ['titel', 'mensa_nr', 'strasse', 'adresszusatz', 'plz', 'ort', 'land', 'strasse2', 'adresszusatz2', 'plz2', 'ort2', 'land2', 'telefon', 'homepage', 'sprachen', 'hobbys', 'interessen', 'studienort', 'studienfach', 'unityp', 'schwerpunkt', 'nebenfach', 'abschluss', 'zweitstudium', 'hochschulaktivitaeten', 'stipendien', 'auslandsaufenthalte', 'praktika', 'beruf', 'aufgabe_sonstiges_beschreibung'];
 
@@ -130,7 +121,6 @@ class UserController extends Controller {
         return $this->render('UserController/bearbeiten', [
             ...$templateVars,
             'email' => $user->get('email'),
-            'bildLoeschen' => false,
             'delete' => false,
             'resign' => (bool)$user->get('resignation'),
             'password' => '',
@@ -213,66 +203,6 @@ class UserController extends Controller {
             }
             $user->set($key, $value);
         }
-    }
-
-    #[
-        Route('POST /user/{username=>user}/profile-picture'),
-        AllowIf(role: 'mvedit'),
-        AllowIf(id: '$user->get("id")'),
-    ]
-    public function updateProfilePicture(User $user, ?UploadedFile $profilbild = null, #[RequestValue] bool $bildLoeschen = false): Response {
-        if ($bildLoeschen) {
-            if ($user->get('profilbild') && is_file('profilbilder/' . $user->get('profilbild'))) {
-                unlink('profilbilder/' . $user->get('profilbild'));
-                unlink('profilbilder/thumbnail-' . $user->get('profilbild'));
-            }
-            $user->set('profilbild', '');
-            $this->userRepository->save($user);
-            return $this->isJsonResponse ? $this->json(["src" => ""]) : $this->redirect('/user/' . $user->get('username') . '/edit');
-        }
-
-        $file = $profilbild;
-
-        if (!$file || $file->getError() === UPLOAD_ERR_NO_FILE || !$file->isValid()) {
-            throw new \RuntimeException('Das Profilbild konnte nicht hochgeladen werden.');
-        }
-
-        $type = null;
-        switch ($file->getMimeType()) {
-            case 'image/jpeg':
-                $type = 'jpeg';
-                break;
-            case 'image/png':
-                $type = 'png';
-                break;
-            default:
-                if ($this->isJsonResponse) {
-                    throw new \RuntimeException('Das Profilbild konnte nicht hochgeladen werden. Unbekanntes Format.');
-                } else {
-                    $this->setTemplateVariable('profilbild_format_unbekannt', true);
-                    return $this->edit($user);
-                }
-        }
-
-        // Dateiname zufällig wählen
-        $fileName = $user->get('id') . '-' . md5_file($file->getPathname()) . '.' . $type;
-
-        // Datei und Thumbnail erstellen
-        list($size_x, $size_y) = ImageResizer::resize($file->getPathname(), 'profilbilder/' . $fileName, $type, $type, self::profilbildMaxWidth, self::profilbildMaxHeight);
-        ImageResizer::resize($file->getPathname(), 'profilbilder/thumbnail-' . $fileName, $type, $type, self::thumbnailMaxWidth, self::thumbnailMaxHeight);
-
-        // altes Profilbild löschen
-        if ($user->get('profilbild') && is_file('profilbilder/' . $user->get('profilbild'))) {
-            unlink('profilbilder/' . $user->get('profilbild'));
-            unlink('profilbilder/thumbnail-' . $user->get('profilbild'));
-        }
-
-        $user->set('profilbild', $fileName);
-        $user->set('profilbild_x', $size_x);
-        $user->set('profilbild_y', $size_y);
-        $this->userRepository->save($user);
-
-        return $this->isJsonResponse ? $this->json(["src" => "/profilbilder/$fileName"]) : $this->redirect('/user/' . $user->get('username') . '/edit');
     }
 
     private function updateGroups(User $user): void {
