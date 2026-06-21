@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "83eef296bcbfdb7eed93e9212bb2a686",
+    "content-hash": "d0e8c7c6cec3c811da64f96354673102",
     "packages": [
         {
             "name": "hengeb/db",
@@ -51,16 +51,16 @@
         },
         {
             "name": "hengeb/router",
-            "version": "v0.8",
+            "version": "v0.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/hengeb/router.git",
-                "reference": "f0f36e124f1499d6bcf4b027b26b6b164e115751"
+                "reference": "6021219b2b5398cce0e2a27fa1c1d5c18ba497d7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hengeb/router/zipball/f0f36e124f1499d6bcf4b027b26b6b164e115751",
-                "reference": "f0f36e124f1499d6bcf4b027b26b6b164e115751",
+                "url": "https://api.github.com/repos/hengeb/router/zipball/6021219b2b5398cce0e2a27fa1c1d5c18ba497d7",
+                "reference": "6021219b2b5398cce0e2a27fa1c1d5c18ba497d7",
                 "shasum": ""
             },
             "require": {
@@ -88,9 +88,9 @@
             "description": "a PHP router that makes use of attributes",
             "support": {
                 "issues": "https://github.com/hengeb/router/issues",
-                "source": "https://github.com/hengeb/router/tree/v0.8"
+                "source": "https://github.com/hengeb/router/tree/v0.9"
             },
-            "time": "2026-06-03T16:02:36+00:00"
+            "time": "2026-06-21T07:54:58+00:00"
         },
         {
             "name": "hengeb/token",
@@ -868,16 +868,16 @@
         },
         {
             "name": "symfony/polyfill-mbstring",
-            "version": "v1.38.1",
+            "version": "v1.38.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
-                "reference": "14c5439eec4ccff081ac14eca2dc57feb2a66d92"
+                "reference": "d3d318bad5e7a1bfbd026009c8bfb8d8f99ae6b6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/14c5439eec4ccff081ac14eca2dc57feb2a66d92",
-                "reference": "14c5439eec4ccff081ac14eca2dc57feb2a66d92",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/d3d318bad5e7a1bfbd026009c8bfb8d8f99ae6b6",
+                "reference": "d3d318bad5e7a1bfbd026009c8bfb8d8f99ae6b6",
                 "shasum": ""
             },
             "require": {
@@ -929,7 +929,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.38.1"
+                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.38.2"
             },
             "funding": [
                 {
@@ -949,7 +949,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-05-26T12:51:13+00:00"
+            "time": "2026-05-27T06:59:30+00:00"
         },
         {
             "name": "tracy/tracy",
@@ -1039,7 +1039,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=8.0"
+        "php": ">=8.4"
     },
     "platform-dev": {},
     "plugin-api-version": "2.6.0"

@@ -3,14 +3,14 @@
     "description": "Mitgliederverwaltung",
     "type": "project",
     "require": {
-        "php": ">=8.0",
+        "php": ">=8.4",
         "symfony/ldap": ">=5.2",
         "phpmailer/phpmailer": ">=6.3",
         "hengeb/db": ">=0.4",
         "hengeb/token": ">=0.0",
         "symfony/http-foundation": ">=7.0",
         "symfony/mime": ">=7.1",
-        "hengeb/router": ">=0.1",
+        "hengeb/router": ">=0.9",
         "latte/latte": "^3.0",
         "tracy/tracy": "^2.10"
     },
