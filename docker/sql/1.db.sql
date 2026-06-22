@@ -36,8 +36,6 @@ CREATE TABLE `mitglieder` (
   `aufnahmedatum` date DEFAULT NULL,
   `sichtbarkeit_geburtstag` tinyint(1) NOT NULL DEFAULT 1,
   `profilbild` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL DEFAULT '',
-  `profilbild_x` int(5) unsigned NOT NULL DEFAULT 0,
-  `profilbild_y` int(5) unsigned NOT NULL DEFAULT 0,
   `mensa_nr` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL DEFAULT '',
   `sichtbarkeit_mensa_nr` tinyint(1) NOT NULL DEFAULT 1,
   `strasse` varchar(511) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL DEFAULT '',
