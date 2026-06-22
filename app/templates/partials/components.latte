@@ -57,7 +57,7 @@
     </div>
 {/define}
 
-{define box, $name, $label, $type = checkbox, $id, $state, $value, $onclick, $disabled, $required}
+{define box, $name, $label, $type = checkbox, $id, $state, $value, $class, $onclick, $disabled, $required}
     {var $type = $type ?? checkbox}
     {var $label = $label ?? $name}
     {var $state = $state ?? get_defined_vars()[$name]}
@@ -72,7 +72,7 @@
         onclick: $onclick ?: null,
         disabled: (bool) $disabled,
         required: (bool) $required
-    "> {$label}</label>
+    "> {block box-label}{$label}{/block}</label>
 {/define}
 
 {define form-group, $label, $name, $type, $value, $class = "", $type = 'text', $id, $placeholder, $autocomplete, $disabled, $required, $options = []}

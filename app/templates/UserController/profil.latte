@@ -1,11 +1,15 @@
 {var $navId = $isSelf ? bearbeiten : suche}
 
+{define protected-value-icon, $sichtbarkeit}
+<i n:if="$sichtbarkeit === false" class="protected-value-icon ti ti-eye-off"></i>
+{/define}
+
 {define row, $label, $name, $value, $sichtbarkeit, $href}
     {var $sichtbarkeit = $sichtbarkeit ?? get_defined_vars()["sichtbarkeit_" . $name]}
     {var $value = $value ?? get_defined_vars()[$name]}
     <div n:if=$value>
         <dt>{$label}</dt>
-        <dd><a n:tag-if="$href" href="{$href}">{$value}</a><i n:if="$sichtbarkeit === false" class="protected-value-icon ti ti-eye-off"></i></dd>
+        <dd><a n:tag-if="$href" href="{$href}">{$value}</a>{include protected-value-icon, $sichtbarkeit}</dd>
     </div>
 {/define}
 
@@ -15,7 +19,7 @@
 {block page-header}
     <div class="meta">
         <span n:if=$db_modified><strong>Stand:</strong> {$db_modified|format:'d.m.Y@local'}</span>
-        <span n:if=$ort><i class="ti ti-map-pin" aria-hidden="true"></i> {$ort}</span>
+        <span n:if=$ort><i class="ti ti-map-pin" aria-hidden="true"></i> {$ort}{include protected-value-icon, $sichtbarkeit_plz_ort}</span>
     </div>
     <div class="action-links">
         <a n:if=$mayEdit href="{$bearbeitenUrl}">
@@ -115,7 +119,7 @@
     <li n:if=$aufgabe_vermittlung>Weitervermittlung von Kontakten</li>
     <li n:if=$aufgabe_ansprechpartner>Ansprechpartner vor Ort (lokale Treffen organisieren, Plakate aufhängen)</li>
     <li n:if=$aufgabe_hilfe>eine kleine, zeitlich begrenzte Aufgabe, wenn ihr dringend Hilfe braucht</li>
-    <li n:if=$aufgabe_sonstiges>Sonstiges, und zwar: „{$aufgabe_sonstiges_beschreibung}”</li>
+    <li n:if=$aufgabe_sonstiges>Sonstiges und zwar: „{$aufgabe_sonstiges_beschreibung}”</li>
     </ul>
     <p n:else>{$vorname} hat keine Angebote für den Verein angegeben.</p>
 

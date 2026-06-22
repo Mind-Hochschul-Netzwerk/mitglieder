@@ -13,6 +13,7 @@
   --accent-dark: #1d4ed8;
   --accent-soft: #dbeafe;
   --border:      #e2e8f0;
+  --placeholder: #9ca3af;
   --shadow:      0 12px 30px rgba(15, 23, 42, 0.08);
   --radius-panel: 1.5rem;
   --radius-card: 0.75rem;
@@ -74,7 +75,7 @@ textarea,
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 
-  &::placeholder, ::placeholder { color: var(--muted); }
+  &::placeholder, ::placeholder { color: var(--placeholder); }
 
   &:focus-visible, &:focus-within {
     border-color: var(--accent);
@@ -249,7 +250,7 @@ fieldset {
   inset: 0;
   display: grid;
 
-  input { display: none; width: auto; }
+  input { display: none; }
 
   input:checked + label i:nth-child(2) { display: none; }
   input:not(:checked) + label i:first-child { display: none; }
@@ -260,17 +261,10 @@ fieldset {
     inset: 0;
     cursor: pointer;
     margin: 0;
-    color: var(--muted);
     font-weight: normal;
     font-size: 1rem;
     padding: 0.8rem;
-    border-radius: var(--radius-btn);
-    transition: color 0.12s, background 0.15s;
-
-    &:hover { color: var(--accent); background: var(--accent-soft); }
   }
-
-  input:checked + label { color: var(--accent); }
 }
 
 /* ── Dialog ───────────────────────────────────────────────── */
@@ -444,7 +438,7 @@ dialog:first-child {
     border: none; background: transparent;
     font: inherit; color: var(--text); outline: none;
 
-    &::placeholder { color: var(--muted); }
+    &::placeholder { color: var(--placeholder); }
 
     &:focus-visible { box-shadow: none; }
   }

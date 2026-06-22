@@ -60,6 +60,27 @@
     }
 }
 
+.sonstiges-wrapper {
+    display: inline-flex;
+    width: 100%;
+    margin-left: 0rem;
+    text-indent: 0rem;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    span {
+        white-space: nowrap;
+    }
+    @media (width < 500px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        span {
+            white-space: normal;
+        }
+    }
+}
+
 </style>
 {/block}
 
@@ -219,7 +240,7 @@
         </h2>
 
         <p>Teile mehr von dir mit, damit du im Netzwerk leichter gefunden wirst.</p>
-        {include private-form-group, "ggf. Mensa-Mitgliedsnummer.", mensa_nr, placeholder: "Mensa-Mitgliedsnummer"}
+        {include private-form-group, "ggf. Mensa-Mitgliedsnummer", mensa_nr, placeholder: "Mensa-Mitgliedsnummer"}
         {include private-form-group, "Titel", titel}
 
         <h3>Kontaktdaten</h3>
@@ -263,7 +284,7 @@
         {include private-form-group, "ggf. Nebenfach", nebenfach, placeholder: 'Nebenfach'}
         {include private-form-group, "Abschluss", abschluss}
         {include private-form-group, "ggf. Zweitstudium", zweitstudium, placeholder: 'Zweitstudium'}
-        {include private-form-group, "Hochschulaktivitäten", hochschulaktivitaeten, placeholder: 'Hochschulaktivitäten (Fachschaftsarbeit, ...)'}
+        {include private-form-group, "Ehrenamtliches Engagement", hochschulaktivitaeten, placeholder: 'Ehrenamtliches Engagement (Fachschaftsarbeit, ...)'}
         {include private-form-group, "Stipendien", stipendien}
         {include private-form-group, "Auslandsaufenthalte", auslandsaufenthalte}
         {include private-form-group, "Praktika, Fort- und Weiterbildungen", praktika}
@@ -304,8 +325,12 @@
             {include box, aufgabe_vermittlung, "Weitervermittlung von Kontakten"}
             {include box, aufgabe_ansprechpartner, "Ansprechpartner vor Ort (lokale Treffen organisieren, Plakate aufhängen)"}
             {include box, aufgabe_hilfe, "eine kleine, zeitlich begrenzte Aufgabe, wenn ihr dringend Hilfe braucht"}
-            {include box, aufgabe_sonstiges, "Sonstiges:"}
-            {include input, name: aufgabe_sonstiges_beschreibung, placeholder: "Bitte spezifizieren"}
+            {embed box, aufgabe_sonstiges}{block box-label}
+                <div class="sonstiges-wrapper">
+                    <span>Sonstiges und zwar:</span>
+                    {include input, name: aufgabe_sonstiges_beschreibung, placeholder: "Bitte spezifizieren"}
+                </div>
+            {/block}{/embed}
         </div>
 
     </section>

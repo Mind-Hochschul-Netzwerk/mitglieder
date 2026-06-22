@@ -78,8 +78,7 @@ class ProfilePictureController extends Controller {
                 }
         }
 
-        // Dateiname zufällig wählen
-        $fileName = sprintf("%s-%s.%s", $user->get('id'), uniqid(), $type);
+        $fileName = sprintf("%s-%s.%s", $user->get('id'), $user->get('username'), $type);
 
         // Datei und Thumbnail erstellen
         ImageResizer::resize($file->getPathname(), User::PROFILE_PICUTRE_DIRECTORY . '/' . $fileName, $type, $type, self::profilbildMaxWidth, self::profilbildMaxHeight);
