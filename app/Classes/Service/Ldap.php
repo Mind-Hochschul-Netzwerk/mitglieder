@@ -44,7 +44,7 @@ class Ldap
         $this->isAdmin = false;
         try {
             $this->ldap->bind($this->getDnByUsername($username), $password);
-        } catch (InvalidCredentialsException $e) {
+        } catch (InvalidCredentialsException) {
             return false;
         }
         return true;
@@ -55,7 +55,7 @@ class Ldap
         $this->bind();
         try {
             $result = $this->ldap->query($this->peopleDn, '(objectClass=inetOrgPerson)')->execute();
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return [];
         }
         $list = [];
@@ -76,7 +76,7 @@ class Ldap
         $this->bind();
         try {
             $result = $this->ldap->query($this->peopleDn, '(&(objectclass=inetOrgPerson)' . $query . ')')->execute();
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return [];
         }
         return array_map(fn($userEntry) => $userEntry->getAttribute('employeeNumber')[0], $result->toArray());
@@ -87,7 +87,7 @@ class Ldap
         $this->bind();
         try {
             $result = $this->ldap->query($this->peopleDn, '(&(objectclass=inetOrgPerson)(cn=' . ldap_escape($username) . '))')->execute();
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return null;
         }
         if ($result) {
@@ -105,7 +105,7 @@ class Ldap
         $this->bind();
         try {
             $result = $this->ldap->query($this->peopleDn, '(&(objectClass=inetOrgPerson)(!(mail=*.invalid)))')->execute();
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return [];
         }
         $list = [];
@@ -120,7 +120,7 @@ class Ldap
         $this->bind();
         try {
             $result = $this->ldap->query($this->peopleDn, '(&(objectclass=inetOrgPerson)(mail=' . ldap_escape($email) . '))')->execute();
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return null;
         }
         if ($result) {
@@ -186,14 +186,77 @@ class Ldap
         $this->bind();
         try {
             $this->ldap->getEntryManager()->remove(new Entry($this->getDnByUsername($username)));
-        } catch (\Exception $e) {
+        } catch (\Exception) {
 
         }
     }
 
-    private function getDnByUsername(string $username)
+    public function getBindDn(): string { return $this->bindDn; }
+
+    public function getDnByUsername(string $username): string
     {
         return 'cn=' . ldap_escape($username) . ',' . $this->peopleDn;
+    }
+
+    public function getDnByGroupName(string $name): string
+    {
+        return 'cn=' . ldap_escape($name) . ',' . $this->groupsDn;
+    }
+
+    public function getUsernameFromDn(string $dn): ?string
+    {
+        $prefix = 'cn=';
+        $suffix = ',' . $this->peopleDn;
+        if (!str_starts_with($dn, $prefix) || !str_ends_with($dn, $suffix)) {
+            return null;
+        }
+        return substr($dn, strlen($prefix), -strlen($suffix));
+    }
+
+    public function getGroupEntry(string $name): ?Entry
+    {
+        $this->bind();
+        try {
+            $result = $this->ldap->query(
+                $this->groupsDn,
+                '(&(objectClass=groupOfNames)(cn=' . ldap_escape($name) . '))'
+            )->execute();
+        } catch (\Exception) {
+            return null;
+        }
+        return $result[0] ?? null;
+    }
+
+    /** @return Entry[] */
+    public function getAllGroupEntries(): array
+    {
+        $this->bind();
+        try {
+            $result = $this->ldap->query($this->groupsDn, '(objectClass=groupOfNames)')->execute();
+        } catch (\Exception) {
+            return [];
+        }
+        return $result->toArray();
+    }
+
+    public function addGroupEntry(Entry $entry): void
+    {
+        $this->bind();
+        $this->ldap->getEntryManager()->add($entry);
+    }
+
+    public function updateGroupEntry(Entry $entry): void
+    {
+        $this->bind();
+        $this->ldap->getEntryManager()->update($entry);
+    }
+
+    public function deleteGroup(string $name): void
+    {
+        $this->bind();
+        try {
+            $this->ldap->getEntryManager()->remove(new Entry($this->getDnByGroupName($name)));
+        } catch (\Exception) {}
     }
 
     public function isUserMemberOfGroup(string $username, string $group): bool

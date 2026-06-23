@@ -9,8 +9,10 @@ namespace App;
 
 use App\Controller\Controller;
 use App\Model\Agreement;
+use App\Model\Group;
 use App\Model\User;
 use App\Repository\AgreementRepository;
+use App\Repository\GroupRepository;
 use App\Repository\UserAgreementRepository;
 use App\Repository\UserRepository;
 use App\Service\CurrentUser;
@@ -39,7 +41,8 @@ class Bootstrap extends ServiceContainer {
                 default => $this->getUserRepository()->findOneByUsername($name)
             }, 'username')
             ->addType(User::class, fn($id) => $this->getUserRepository()->findOneById((int) $id), 'id')
-            ->addType(Agreement::class, fn($id) => $this->getAgreementRepository()->findOneById((int) $id));
+            ->addType(Agreement::class, fn($id) => $this->getAgreementRepository()->findOneById((int) $id))
+            ->addType(Group::class, fn($name) => $this->getGroupRepository()->findOneByName($name), 'name');
     }
 
     public function getCurrentUser(): CurrentUser
@@ -89,6 +92,13 @@ class Bootstrap extends ServiceContainer {
             $this->getService(\Hengeb\Db\Db::class),
             $this->getUserRepository(),
             $this->getAgreementRepository()
+        ));
+    }
+
+    public function getGroupRepository(): GroupRepository
+    {
+        return $this->createService(GroupRepository::class, fn() => new GroupRepository(
+            $this->getLdap()
         ));
     }
 
