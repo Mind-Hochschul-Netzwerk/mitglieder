@@ -16,6 +16,7 @@ use App\Repository\UserRepository;
 use App\Service\CurrentUser;
 use App\Service\EmailService;
 use App\Service\Ldap;
+use App\Service\RateLimiter;
 use Hengeb\Router\Exception\InvalidRouteException;
 use Hengeb\Router\Interface\CurrentUserInterface;
 use Hengeb\Router\LatteExtension;
@@ -88,6 +89,13 @@ class Bootstrap extends ServiceContainer {
             $this->getService(\Hengeb\Db\Db::class),
             $this->getUserRepository(),
             $this->getAgreementRepository()
+        ));
+    }
+
+    public function getRateLimiter(): RateLimiter
+    {
+        return $this->createService(RateLimiter::class, fn() => new RateLimiter(
+            $this->getService(\Hengeb\Db\Db::class)
         ));
     }
 

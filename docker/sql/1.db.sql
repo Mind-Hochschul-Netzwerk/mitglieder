@@ -127,4 +127,14 @@ CREATE TABLE `user_agreements` (
   CONSTRAINT `user_agreements_ibfk_2` FOREIGN KEY (`agreement_id`) REFERENCES `agreements` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+DROP TABLE IF EXISTS `rate_limit`;
+CREATE TABLE `rate_limit` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `action` varchar(64) NOT NULL,
+  `identifier` varchar(255) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_lookup` (`action`, `identifier`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- 2025-08-31 22:12:36
