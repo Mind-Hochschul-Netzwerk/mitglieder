@@ -38,6 +38,11 @@ services:
       - SMTP_USER
       - SMTP_PASSWORD
       - FROM_ADDRESS
+      - LISTMONK_URL
+      - LISTMONK_USER
+      - LISTMONK_TOKEN
+      - LISTMONK_LIST_ID
+      - LISTMONK_SYNC_TOKEN
     labels:
       - traefik.enable=true
       - traefik.http.routers.${SERVICENAME}.middlewares=secheader@file

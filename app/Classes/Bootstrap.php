@@ -16,6 +16,7 @@ use App\Repository\UserRepository;
 use App\Service\CurrentUser;
 use App\Service\EmailService;
 use App\Service\Ldap;
+use App\Service\Listmonk;
 use Hengeb\Router\Exception\InvalidRouteException;
 use Hengeb\Router\Interface\CurrentUserInterface;
 use Hengeb\Router\LatteExtension;
@@ -79,6 +80,16 @@ class Bootstrap extends ServiceContainer {
             bindPassword: getenv('LDAP_BIND_PASSWORD'),
             peopleDn: getenv('LDAP_PEOPLE_DN'),
             groupsDn: getenv('LDAP_GROUPS_DN'),
+        ));
+    }
+
+    public function getListmonk(): Listmonk
+    {
+        return $this->createService(Listmonk::class, fn() => new Listmonk(
+            baseUrl: getenv('LISTMONK_URL') ?: '',
+            apiUser: getenv('LISTMONK_USER') ?: '',
+            apiToken: getenv('LISTMONK_TOKEN') ?: '',
+            listId: (int) (getenv('LISTMONK_LIST_ID') ?: 0),
         ));
     }
 

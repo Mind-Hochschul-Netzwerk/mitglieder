@@ -14,6 +14,15 @@
 <p>Zeige die <a href="/search?fullName=&key0=resignation&op0=true">Liste der ausgetretenen Mitglieder</a> und klicke im Profil auf "Daten bearbeiten".</p>
 </section>
 
+<section n:if="currentUser()->hasRole('newsletter-export')" class="panel">
+<h2>ListMonk-Synchronisation</h2>
+<p>Gleicht Namen und E-Mail-Adressen aller Mitglieder mit der ListMonk-Liste ab. Ausgetretene oder gelöschte Mitglieder werden aus der Liste entfernt, Adressen mit <code>.invalid</code> übersprungen.</p>
+<form action="/admin/listmonk-sync" method="post">
+    {=csrfTokenTag()}
+    <button type="submit"><i class="ti ti-refresh" aria-hidden="true"></i> Jetzt synchronisieren</button>
+</form>
+</section>
+
 {if $groups}
     <section class="panel">
     <h2>Gruppenzuordnungen verwalten</h2>
