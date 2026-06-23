@@ -30,4 +30,4 @@ COPY --chown=nobody app/ /var/www
 
 RUN composer install -d "/var/www/" --optimize-autoloader --no-dev --no-interaction --no-progress --no-cache
 
-VOLUME /var/www/html/profilbilder
+VOLUME /var/www/profilbilder
