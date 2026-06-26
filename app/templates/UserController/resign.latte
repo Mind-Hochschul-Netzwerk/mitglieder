@@ -1,0 +1,19 @@
+{var $navId = bearbeiten}
+
+{block htmlTitle}Austritt erklären{/block}
+
+{block content}
+{embed dialog, resign, labelIcon: logout, label: "Vereinsaustritt", title: "Austritt erklären", open: true}{block dialog-content}
+    {include info-box, warning, "Mit dem Ende deiner Mitgliedschaft werden wir deine persönlichen Daten aus der Mitgliederdatenbank löschen. Der Austritt wird gemäß unserer Satzung zum Ende des Kalenderjahres wirksam.", showCloseButton: false}
+
+    <p>Möchtest du gegenüber dem Vorstand verbindlich deinen Austritt zum Ende des Kalenderjahres erklären?</p>
+
+    <form method="post" action="/user/{$username}/resign">
+        {=csrfTokenTag()}
+        <div class="form-actions">
+            <button type="submit" class="danger"><i class="ti ti-logout" aria-hidden="true"></i> Austritt verbindlich erklären</button>
+            <a class="button secondary" href="/user/{$username}/edit"><i class="ti ti-arrow-left" aria-hidden="true"></i> Abbrechen</a>
+        </div>
+    </form>
+{/block}{/embed}
+{/block}

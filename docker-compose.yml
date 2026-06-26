@@ -27,6 +27,9 @@ services:
       - MYSQL_PASSWORD
       - MYSQL_DATABASE=database
       - TOKEN_KEY
+      - OIDC_PROVIDER_URL
+      - OIDC_CLIENT_ID
+      - OIDC_CLIENT_SECRET
       - LDAP_HOST=ldap://ldap:389/
       - LDAP_GROUPS_DN=ou=groups,dc=mind-hochschul-netzwerk,dc=de
       - LDAP_PEOPLE_DN=ou=people,dc=mind-hochschul-netzwerk,dc=de
