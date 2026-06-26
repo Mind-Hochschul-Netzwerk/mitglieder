@@ -9,7 +9,6 @@ namespace App\Controller;
 use App\Service\Ldap;
 use App\Service\Listmonk;
 use Hengeb\Router\Attribute\AllowIf;
-use Hengeb\Router\Attribute\CheckCsrfToken;
 use Hengeb\Router\Attribute\PublicAccess;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\AccessDeniedException;
@@ -31,7 +30,7 @@ class ListmonkController extends Controller {
     /**
      * Synchronisation per token-geschütztem Endpoint für einen externen Cronjob.
      */
-    #[Route('GET /cron/listmonk-sync'), PublicAccess, CheckCsrfToken(false)]
+    #[Route('GET /cron/listmonk-sync'), PublicAccess]
     public function syncFromCron(Ldap $ldap, Listmonk $listmonk): Response {
         $expected = getenv('LISTMONK_SYNC_TOKEN') ?: '';
         $given = (string) $this->request->query->get('token', '');
