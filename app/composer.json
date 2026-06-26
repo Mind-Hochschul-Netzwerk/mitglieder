@@ -12,7 +12,8 @@
         "symfony/mime": ">=7.1",
         "hengeb/router": ">=0.11",
         "latte/latte": "^3.0",
-        "tracy/tracy": "^2.10"
+        "tracy/tracy": "^2.10",
+        "jumbojett/openid-connect-php": "^1.0"
     },
     "autoload": {
         "psr-4": {

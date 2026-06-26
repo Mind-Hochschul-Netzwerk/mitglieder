@@ -365,11 +365,7 @@
                             <p>Deine Austrittserklärung wurde am {$resignation|format:'d.m.Y@local'} gespeichert. Wenn du deinen Austritt zurücknehmen möchtest, wende dich bitte an den <a href="mailto:vorstand@mind-hochschul-netzwerk.de">Vorstand</a>. Der Austritt wird gemäß unserer Satzung zum Ende des Kalenderjahres wirksam.</p>
                         {else}
                             <p>Hier kannst du gegenüber dem Vorstand deinen Austritt zum Ende des Kalenderjahres erklären. Mit dem Ende deiner Mitgliedschaft werden wir deine persönlichen Daten aus der Mitgliederdatenbank löschen.</p>
-                            <p class="resign__button"><button type="button" id="resign" name="resign" class="danger">Austritt erklären</button></p>
-                            <div class="resign__password hidden">
-                                <p>Gib hier dein Passwort ein, wenn du deine Mitgliedschaft wirklich beenden möchtest, und klicke dann auf speichern.</p>
-                                <div><input id="resignPassword" name="resignPassword" type="password" autocomplete="new-password" placeholder="Passwort"></div>
-                            </div>
+                            <p class="resign__button"><a href="/user/{$username}/resign" class="button danger"><i class="ti ti-logout" aria-hidden="true"></i> Austritt erklären</a></p>
                         {/if}
                     {/if}
             </div>
@@ -484,12 +480,6 @@ document.getElementById("passwordForm").addEventListener("submit", e => {
         alert.scrollIntoView();
         e.preventDefault();
     }
-});
-
-document.querySelector("[type=button][name=resign]")?.addEventListener("click", e => {
-    e.preventDefault();
-    document.querySelector(".resign__password").classList.remove("hidden");
-    document.querySelector(".resign__button").classList.add("hidden");
 });
 
 let sichtbarkeit_plz_ort_recursion = false;

@@ -93,7 +93,25 @@ class CurrentUser implements CurrentUserInterface {
     public function logOut(): void
     {
         $this->request->getSession()->remove('id');
+        $this->request->getSession()->remove('oidc_stepup_at');
         $this->user = null;
+    }
+
+    /**
+     * Records that the user just freshly re-authenticated at the IdP (step-up).
+     */
+    public function recordStepUp(): void
+    {
+        $this->request->getSession()->set('oidc_stepup_at', time());
+    }
+
+    /**
+     * Whether the user re-authenticated at the IdP within the given number of seconds.
+     */
+    public function hasRecentStepUp(int $maxAge = 300): bool
+    {
+        $at = (int) $this->request->getSession()->get('oidc_stepup_at', 0);
+        return $at > 0 && (time() - $at) <= $maxAge;
     }
 
     public function getWrappedUser(): ?User

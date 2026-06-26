@@ -20,6 +20,8 @@ RUN set -x \
        php84-zip \
        php84-pdo_mysql \
        php84-iconv \
+       php84-curl \
+       php84-openssl \
   && chown nobody:nobody /var/www
 
 USER nobody
