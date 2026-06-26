@@ -215,50 +215,93 @@ class UserController extends Controller {
         }
     }
 
+    /**
+     * Admin-initiated resignation toggling via the edit form. Self-service resignation goes
+     * through the dedicated step-up flow (resignForm()/resign()).
+     */
     private function handleResign(User $user) {
-        $password = $this->request->getPayload()->getString('resignPassword');
-        if ($password) {
-            if (!$this->currentUser->checkPassword($password)) {
-                $this->setTemplateVariable('errorMessage', 'Das eingegebene Passwort ist nicht korrekt.');
-            } else {
-                $user->set('resignation', 'now');
-                $text = $this->renderToString('mails/resignation', [
-                    'fullName' => $user->get('fullName'),
-                    'id' => $user->get('id'),
-                    'return' => $return = new \stdclass(),
-                ]);
-                $this->emailService->send('vorstand@mind-hochschul-netzwerk.de', $return->subject, $text);
-                $this->emailService->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', $return->subject, $text);
-                $text = $this->renderToString('mails/resignationConfirmation', [
-                    'fullName' => $user->get('fullName'),
-                    'id' => $user->get('id'),
-                    'return' => $return = new \stdclass(),
-                ]);
-                $this->emailService->sendToUser($user, $return->subject, $text);
-            }
-        } elseif ($this->currentUser->hasRole('mvedit')) {
-            $resignOld = $user->get('resignation') !== null;
-            $resignNew = $this->request->getPayload()->getBoolean('resign');
-            if ($resignOld && !$resignNew) {
-                $user->set('resignation', null);
-            } elseif (!$resignOld && $resignNew) {
-                $user->set('resignation', 'now');
-                $text = $this->renderToString('mails/resignation', [
-                    'adminFullName' => $this->currentUser->get('fullName'),
-                    'fullName' => $user->get('fullName'),
-                    'id' => $user->get('id'),
-                    'return' => $return = new \stdclass(),
-                ]);
-                $this->emailService->send('vorstand@mind-hochschul-netzwerk.de', $return->subject, $text);
-                $this->emailService->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', $return->subject, $text);
-                $text = $this->renderToString('mails/resignationConfirmation', [
-                    'fullName' => $user->get('fullName'),
-                    'id' => $user->get('id'),
-                    'return' => $return = new \stdclass(),
-                ]);
-                $this->emailService->sendToUser($user, $return->subject, $text);
-            }
+        if (!$this->currentUser->hasRole('mvedit')) {
+            return;
         }
+        $resignOld = $user->get('resignation') !== null;
+        $resignNew = $this->request->getPayload()->getBoolean('resign');
+        if ($resignOld && !$resignNew) {
+            $user->set('resignation', null);
+        } elseif (!$resignOld && $resignNew) {
+            $this->applyResignation($user, $this->currentUser->get('fullName'));
+        }
+    }
+
+    /**
+     * Sets the resignation date and notifies the board, the membership team and the member.
+     */
+    private function applyResignation(User $user, ?string $adminFullName = null): void {
+        $user->set('resignation', 'now');
+
+        $vars = [
+            'fullName' => $user->get('fullName'),
+            'id' => $user->get('id'),
+            'return' => $return = new \stdclass(),
+        ];
+        if ($adminFullName !== null) {
+            $vars['adminFullName'] = $adminFullName;
+        }
+        $text = $this->renderToString('mails/resignation', $vars);
+        $this->emailService->send('vorstand@mind-hochschul-netzwerk.de', $return->subject, $text);
+        $this->emailService->send('mitgliederbetreuung@mind-hochschul-netzwerk.de', $return->subject, $text);
+
+        $text = $this->renderToString('mails/resignationConfirmation', [
+            'fullName' => $user->get('fullName'),
+            'id' => $user->get('id'),
+            'return' => $return = new \stdclass(),
+        ]);
+        $this->emailService->sendToUser($user, $return->subject, $text);
+    }
+
+    /**
+     * self-service resignation requires a fresh IdP re-authentication (step-up)
+     */
+    private function needsResignStepUp(User $user): bool {
+        return $this->currentUser->get('id') === $user->get('id') && !$this->currentUser->hasRecentStepUp();
+    }
+
+    private function redirectToResignStepUp(User $user): Response {
+        return $this->redirect('/login?stepup=1&redirect=' . rawurlencode('/user/' . $user->get('username') . '/resign'));
+    }
+
+    #[
+        Route('GET /user/{username=>user}/resign'),
+        AllowIf(role: 'mvedit'),
+        AllowIf(id: '$user->get("id")'),
+    ]
+    public function resignForm(User $user): Response {
+        if ($this->needsResignStepUp($user)) {
+            return $this->redirectToResignStepUp($user);
+        }
+        return $this->render('UserController/resign', [
+            'user' => $user,
+            'fullName' => $user->get('fullName'),
+            'username' => $user->get('username'),
+            'resignation' => $user->get('resignation'),
+        ]);
+    }
+
+    #[
+        Route('POST /user/{username=>user}/resign'),
+        AllowIf(role: 'mvedit'),
+        AllowIf(id: '$user->get("id")'),
+    ]
+    public function resign(User $user): Response {
+        if ($this->needsResignStepUp($user)) {
+            return $this->redirectToResignStepUp($user);
+        }
+        if (!$user->get('resignation')) {
+            $this->applyResignation($user);
+            $user->set('db_modified', 'now');
+            $user->set('db_modified_user_id', $this->currentUser->get('id'));
+            $this->userRepository->save($user);
+        }
+        return $this->redirect('/user/' . $user->get('username') . '/edit');
     }
 
     private function delete(User $user): Response {

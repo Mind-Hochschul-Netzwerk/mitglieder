@@ -17,6 +17,7 @@ use App\Service\CurrentUser;
 use App\Service\EmailService;
 use App\Service\Ldap;
 use App\Service\Listmonk;
+use App\Service\OpenIdConnect;
 use Hengeb\Router\Exception\InvalidRouteException;
 use Hengeb\Router\Interface\CurrentUserInterface;
 use Hengeb\Router\LatteExtension;
@@ -80,6 +81,17 @@ class Bootstrap extends ServiceContainer {
             bindPassword: getenv('LDAP_BIND_PASSWORD'),
             peopleDn: getenv('LDAP_PEOPLE_DN'),
             groupsDn: getenv('LDAP_GROUPS_DN'),
+        ));
+    }
+
+    public function getOpenIdConnect(): OpenIdConnect
+    {
+        return $this->createService(OpenIdConnect::class, fn() => new OpenIdConnect(
+            providerUrl: getenv('OIDC_PROVIDER_URL') ?: '',
+            clientId: getenv('OIDC_CLIENT_ID') ?: '',
+            clientSecret: getenv('OIDC_CLIENT_SECRET') ?: '',
+            redirectUrl: 'https://mitglieder.' . getenv('DOMAINNAME') . '/login',
+            request: $this->getRequest(),
         ));
     }
 

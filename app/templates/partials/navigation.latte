@@ -34,7 +34,7 @@
     </nav>
     <nav n:else>
         <p class="sidebar-section-label">Mitgliederverzeichnis</p>
-        {include nav-link, 'Login', '/', 'login', login}
+        {include nav-link, 'Login', '/login', 'login', login}
 
         <p class="sidebar-section-label">MHN</p>
         {include nav-link, 'Startseite', 'https://www.' . getenv('DOMAINNAME'), 'home'}

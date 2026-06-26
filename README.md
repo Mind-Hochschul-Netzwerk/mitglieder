@@ -10,10 +10,24 @@ Die MHN-Mitgliederverwaltung (http://mitglieder.mind-hochschul-netzwerk.de)
     $ make rebuild
     $ make dev
 
-Der Login ist dann im Browser unter [https://mitglieder.docker.localhost/](https://mitglieder.docker.localhost/) erreichbar. Die Sicherheitswarnung wegen des Zertifikates kann weggeklickt werden.
+Die Anwendung ist dann im Browser unter [https://mitglieder.docker.localhost/](https://mitglieder.docker.localhost/) erreichbar. Die Sicherheitswarnung wegen des Zertifikates kann weggeklickt werden.
 
-* Benutzername: Webteam
-* Passwort: webteam1
+### Login (OpenID Connect)
+
+Die Anmeldung erfolgt über einen externen OpenID-Connect-Provider (Identity Provider).
+Dazu müssen in der `.env` folgende Werte gesetzt sein (siehe `env.sample`):
+
+* `OIDC_PROVIDER_URL` – Issuer-URL des IdP (muss `/.well-known/openid-configuration` bereitstellen)
+* `OIDC_CLIENT_ID`
+* `OIDC_CLIENT_SECRET`
+
+Die beim IdP zu registrierende Redirect-URI lautet `https://mitglieder.<DOMAINNAME>/login`.
+Mitglieder werden über den Claim `preferred_username` (= LDAP-`cn` = Benutzername) dem
+lokalen Konto zugeordnet.
+
+Für die lokale Entwicklung ohne produktiven IdP empfiehlt es sich, einen Test-IdP
+(z.B. Keycloak/Authentik) zu konfigurieren, dessen `preferred_username` zu einem
+LDAP-Benutzernamen passt.
 
 ### Target "prod" (Production)
 
