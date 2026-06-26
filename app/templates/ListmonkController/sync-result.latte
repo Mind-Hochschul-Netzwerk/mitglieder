@@ -22,7 +22,7 @@
         <li><strong>{$result['skipped']}</strong> übersprungen (ungültige <code>.invalid</code>-Adresse)</li>
     </ul>
 
-    <p n:if=$result['errors']>Fehler:</p>
+    <p n:if="$result['errors']">Fehler:</p>
     <ol n:ifcontent n:inner-foreach="$result['errors'] as $error">
         <li>{$error}</li>
     </ol>
