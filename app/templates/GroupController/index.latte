@@ -1,0 +1,223 @@
+{var $navId = gruppen}
+
+{block title}Gruppen{/block}
+{block page-label}<i class="ti ti-users-group" aria-hidden="true"></i> Gruppen{/block}
+
+{block page-header}
+<div class="summary">
+Hier findest du die Teams und anderen Gruppen im MHN. Um Ansprechpartner*innen zu finden, kannst du auf das jeweilige Team klicken. Außerdem kannst du hier deine Mitgliedschaft in Gruppen verwalten.
+</div>
+<div class="action-links" n:ifcontent>
+    <button n:if=$isGroupAdmin onclick="document.getElementById('group-create-dialog').showModal()">
+        <i class="ti ti-plus" aria-hidden="true"></i> Neue Gruppe
+    </button>
+</div>
+{/block}
+
+{block css}
+<style>
+.groups-panel {
+    background: var(--panel-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-panel);
+    box-shadow: var(--shadow);
+    padding: 1.75rem;
+}
+.groups-category { margin-top: 1.5rem; }
+.groups-category:first-child { margin-top: 0; }
+.groups-category-head {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    margin-bottom: .6rem;
+}
+.groups-category-head h2 {
+    margin: 0;
+    font-size: .75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--muted);
+}
+.groups-category-count {
+    font-size: .72rem;
+    color: var(--muted);
+    background: var(--panel);
+    padding: .1em .6em;
+    border-radius: 99px;
+}
+.groups-category-divider { flex: 1; height: 1px; background: var(--border); }
+.group-list { display: flex; flex-direction: column; gap: .5rem; }
+.group-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: .75rem .95rem;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+}
+.group-card-info { display: flex; flex-direction: column; gap: .2rem; flex: 1; min-width: 0; }
+.group-card-name { font-weight: 600; font-size: .9rem; }
+.group-card-description {
+    font-size: .8rem;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.group-card-meta {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    flex-wrap: wrap;
+    font-size: .8rem;
+    color: var(--muted);
+}
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    font-size: .72rem;
+    font-weight: 600;
+    padding: .2em .6em;
+    border-radius: 99px;
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+.badge.owner { background: #fef9c3; color: #713f12; }
+.group-card-actions { flex-shrink: 0; }
+.group-card-actions button {
+    padding: .45rem .85rem;
+    font-size: .8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.group-card-actions button.leave { color: var(--muted); }
+</style>
+{/block}
+
+{block content}
+
+{* Gruppen nach Kategorie gruppieren *}
+
+{var $order = ['Teams', 'Rechte', 'Sonstige', 'System', 'Entwicklung']}
+{var $byCategory = array_fill_keys($order, [])}
+{foreach $groups as $group}
+    {var $byCategory[$group->category ?: ''][] = $group}
+{/foreach}
+
+<div class="groups-panel">
+{foreach array_filter($byCategory) as $category => $categoryGroups}
+<section class="groups-category">
+    <div class="groups-category-head">
+        <h2>{$category ?: 'Allgemein'}</h2>
+        <span class="groups-category-count">{count($categoryGroups)}</span>
+        <div class="groups-category-divider"></div>
+    </div>
+    <div class="group-list">
+    {foreach $categoryGroups as $group}
+        {var $isMember = $group->isMember($username)}
+        {var $isOwner  = $group->isOwner($username)}
+        {var $mayManage = $isGroupAdmin || $isOwner}
+        {var $showMembers = $group->memberVisibility->value === 'all'
+            || ($group->memberVisibility->value === 'members' && $isMember)
+            || ($group->memberVisibility->value === 'owners'  && ($isOwner || $isGroupAdmin))}
+
+        <div class="group-card">
+            <div class="group-card-info">
+                <span class="group-card-name">
+                    <a href="/groups/{$group->name}">{$group->displayName ?: $group->name}</a>
+                </span>
+                <span n:if="$group->description" class="group-card-description">{$group->description}</span>
+                <span class="group-card-meta">
+                    <span n:if=$showMembers>{count($group->memberUsernames)} Mitglied{count($group->memberUsernames) !== 1 ? 'er'}</span>
+                    <span n:if=$isMember class="badge"><i class="ti ti-check" aria-hidden="true"></i> Mitglied</span>
+                    <span n:if=$isOwner class="badge owner"><i class="ti ti-crown" aria-hidden="true"></i> Gruppenverwalter*in</span>
+                    <span n:if="$group->mailAddress"><i class="ti ti-mail" aria-hidden="true"></i> {$group->mailAddress}</span>
+                    <span n:if="$group->visibility === \App\Model\Enum\GroupVisibility::Hidden"><i class="ti ti-eye-off" aria-hidden="true"></i> Versteckt</span>
+                </span>
+            </div>
+            <div class="group-card-actions">
+                {* Beitreten *}
+                <button n:if="!$isMember && $group->joinPolicy->value === 'open'"
+                    class="ghost"
+                    data-action="/groups/{$group->name}/join"
+                    onclick="groupAction(this.dataset.action, 'POST')">
+                    <i class="ti ti-user-plus" aria-hidden="true"></i> Beitreten
+                </button>
+                {* Anfrage stellen *}
+                <button n:if="!$isMember && $group->joinPolicy->value === 'request'"
+                    class="ghost"
+                    data-action="/groups/{$group->name}/join-requests"
+                    onclick="groupAction(this.dataset.action, 'POST', 'Beitrittsanfrage gesendet.')">
+                    <i class="ti ti-send" aria-hidden="true"></i> Beitritt anfragen
+                </button>
+                {* Nur auf Einladung — Info *}
+                <span n:if="!$isMember && $group->joinPolicy->value === 'invite'" class="group-card-meta">
+                    <i class="ti ti-lock" aria-hidden="true"></i> Nur auf Einladung
+                </span>
+                {* Verlassen *}
+                <button n:if="$isMember && $group->leavePolicy === \App\Model\Enum\LeavePolicy::Allowed"
+                    class="ghost leave"
+                    data-action="/groups/{$group->name}/leave"
+                    onclick="groupAction(this.dataset.action, 'POST')">
+                    <i class="ti ti-user-minus" aria-hidden="true"></i> Verlassen
+                </button>
+            </div>
+        </div>
+    {/foreach}
+    </div>
+</section>
+{/foreach}
+</div>
+
+{/block}
+
+{block footer}
+
+{* === Dialog: Neue Gruppe === *}
+{embed dialog, id: 'group-create-dialog', labelIcon: 'users-group', label: 'Gruppen', title: 'Neue Gruppe anlegen'}
+{block dialog-content}
+<form id="group-create-form" onsubmit="submitGroupForm(event, this, '/groups', 'POST')">
+    <div class="form-group">
+        <label for="create-name">Technischer Name <small>(z.B. vorstand)</small></label>
+        <input id="create-name" name="name" type="text" pattern="[a-z][a-z0-9\-_]*" required placeholder="z.B. vorstand">
+    </div>
+    <div class="form-group">
+        <label for="create-displayName">Anzeigename</label>
+        <input id="create-displayName" name="displayName" type="text" placeholder="z.B. Vorstand">
+    </div>
+    <div class="form-group">
+        <label for="create-category">Kategorie</label>
+        <input id="create-category" name="category" type="text" placeholder="z.B. Gremien">
+    </div>
+    <div class="form-actions">
+        <button type="submit"><i class="ti ti-plus" aria-hidden="true"></i> Anlegen</button>
+        <button type="button" class="secondary" onclick="document.getElementById('group-create-dialog').close()">Abbrechen</button>
+    </div>
+</form>
+{/block}
+{/embed}
+
+
+<script>
+{syntax off}
+async function groupAction(url, method, successMessage) {
+    try {
+        const data = await callApi(method, url, new FormData());
+        if (successMessage) alert(successMessage);
+        if (data?.redirect) { window.location.href = data.redirect; } else { window.location.reload(); }
+    } catch (err) { showError(err); }
+}
+
+async function submitGroupForm(event, form, url, method) {
+    event.preventDefault();
+    try {
+        const data = await callApi(method || 'POST', url, new FormData(form));
+        window.location.href = data?.redirect || '/groups';
+    } catch (err) { showError(err); }
+}
+{/syntax}
+</script>
+{/block}

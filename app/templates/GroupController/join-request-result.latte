@@ -1,0 +1,15 @@
+{var $navId = gruppen}
+
+{block title}Beitrittsanfrage{/block}
+{block page-label}<i class="ti ti-users-group" aria-hidden="true"></i> Gruppen{/block}
+
+{block content}
+<section class="panel">
+    {if $action === 'approved'}
+        {include info-box, type: 'success', text: "{$username} wurde erfolgreich zur Gruppe „{$group->displayName ?: $group->name}" hinzugefügt.", showCloseButton: false}
+    {elseif $action === 'rejected'}
+        {include info-box, type: 'info', text: "Die Beitrittsanfrage von {$username} für die Gruppe „{$group->displayName ?: $group->name}" wurde abgelehnt.", showCloseButton: false}
+    {/if}
+    <p><a href="/groups">Zurück zur Gruppenübersicht</a></p>
+</section>
+{/block}

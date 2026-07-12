@@ -10,6 +10,7 @@
         {include nav-link, 'Mitgliedersuche', '/', 'user-search', suche}
         {include nav-link, 'Meine Daten', '/user/self/edit', 'user', bearbeiten}
         {include nav-link, 'Einwilligungen', '/user/self/agreements', 'shield-check', einwilligungen}
+        {include nav-link, 'Gruppen', '/groups', 'users-group', gruppen}
         {include nav-link, 'Statistik', '/statistics', 'chart-bar', statistics, currentUser()->hasRole('mvread')}
         {include nav-link, 'Mitgliederverwaltung', '/admin', 'settings', admin, currentUser()->hasRole('mvedit')}
         {include nav-link, 'Einwilligungstexte', '/agreements', 'file-text-shield', datenschutz, currentUser()->hasRole('datenschutz')}

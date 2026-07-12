@@ -5,6 +5,7 @@ namespace App\Model;
 use App\Model\Enum\GroupVisibility;
 use App\Model\Enum\JoinPolicy;
 use App\Model\Enum\LeavePolicy;
+use App\Model\Enum\ListPostPolicy;
 use App\Model\Enum\MemberVisibility;
 use Symfony\Component\Ldap\Entry;
 
@@ -19,6 +20,7 @@ class Group
     public function __construct(
         public readonly string $name,
         public string $displayName = '',
+        public string $description = '',
         public string $category = '',
         public private(set) array $memberUsernames = [],
         public private(set) array $ownerUsernames = [],
@@ -27,6 +29,11 @@ class Group
         public LeavePolicy $leavePolicy = LeavePolicy::Allowed,
         public MemberVisibility $memberVisibility = MemberVisibility::Members,
         public GroupVisibility $visibility = GroupVisibility::Public,
+        public bool $privileged = false,
+        public string $listLabel = '',
+        public ListPostPolicy $listPostPolicy = ListPostPolicy::Members,
+        public string $listSenderRewrite = '{sender-name} (via MHN)',
+        public private(set) array $unknownDescriptionLines = [],
     ) {}
 
     public function isMember(string $username): bool

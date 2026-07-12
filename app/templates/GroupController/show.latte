@@ -1,0 +1,368 @@
+{var $navId = gruppen}
+
+{block css}
+<style>
+.mail-settings fieldset { display: none; }
+.mail-settings:has(#is-mail-group:checked) fieldset { display: revert; }
+
+.action-links .primary { background: var(--accent); color: #fff; }
+.action-links .primary:hover, .action-links .primary:focus-visible { background: var(--accent-dark); }
+.action-links .leave { background: transparent; color: var(--muted); border: 1.5px solid var(--border); }
+.action-links .leave:hover, .action-links .leave:focus-visible { background: var(--panel-soft); }
+
+.group-detail-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+@media (max-width: 640px) {
+    .group-detail-panels { grid-template-columns: 1fr; }
+}
+.group-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    padding: 1rem;
+}
+.group-panel-head {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: .6rem;
+}
+.group-panel-head .ti { color: var(--placeholder); }
+.group-panel-head h2 { margin: 0; font-size: .8rem; font-weight: 600; }
+.group-panel-count {
+    font-size: .7rem;
+    color: var(--placeholder);
+    background: var(--panel-soft);
+    padding: .1em .55em;
+    border-radius: 99px;
+}
+.person-list { display: flex; flex-direction: column; }
+.person-row {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .45rem 0;
+    border-top: 1px solid var(--border);
+}
+.person-name {
+    flex: 1;
+    min-width: 0;
+    font-size: .82rem;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.remove-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    flex: none;
+    border: none;
+    background: none;
+    color: var(--placeholder);
+}
+.remove-btn:hover, .remove-btn:focus-visible { color: #dc2626; background: none; }
+.person-add-form {
+    display: flex;
+    gap: .4rem;
+    margin-top: .75rem;
+    padding-top: .75rem;
+    border-top: 1px solid var(--border);
+}
+.person-add-form input {
+    flex: 1;
+    min-width: 0;
+    padding: .4rem .6rem;
+    font-size: .8rem;
+    border-radius: var(--radius-card);
+}
+.person-add-form button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    padding: 0;
+    flex: none;
+    background: transparent;
+    color: var(--muted);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-card);
+}
+.person-add-form button:hover { background: var(--panel-soft); }
+.text-muted { color: var(--muted); font-size: .85rem; }
+</style>
+{/block}
+
+{block title}{$group->displayName ?: $group->name}{/block}
+{block page-label}<i class="ti ti-users-group" aria-hidden="true"></i> <a href="/groups">Gruppen</a>{if $group->category} / {$group->category}{else}Allgemein{/if}{/block}
+
+{block page-header}
+<div class="summary">{$group->description|breakLines}</div>
+<div class="meta">
+    <span n:if="$group->mailAddress"><i class="ti ti-mail" aria-hidden="true"></i> {$group->mailAddress}</span>
+</div>
+<div class="action-links" n:ifcontent>
+    <button n:if="!$isMember && $group->joinPolicy === \App\Model\Enum\JoinPolicy::Open"
+        data-action="/groups/{$group->name}/join"
+        onclick="groupAction(this.dataset.action, 'POST')">
+        <i class="ti ti-user-plus" aria-hidden="true"></i> Beitreten
+    </button>
+    <button n:if="!$isMember && $group->joinPolicy === \App\Model\Enum\JoinPolicy::Request"
+        data-action="/groups/{$group->name}/join-requests"
+        onclick="groupAction(this.dataset.action, 'POST', 'Deine Anfrage wurde gesendet.')">
+        <i class="ti ti-send" aria-hidden="true"></i> Beitritt anfragen
+    </button>
+    <button n:if="$isMember && $group->leavePolicy === \App\Model\Enum\LeavePolicy::Allowed"
+        class="leave"
+        data-action="/groups/{$group->name}/leave"
+        onclick="groupAction(this.dataset.action, 'POST')">
+        <i class="ti ti-user-minus" aria-hidden="true"></i> Gruppe verlassen
+    </button>
+    <button n:if=$mayManage class="primary"
+        onclick="document.getElementById('group-edit-dialog').showModal()">
+        <i class="ti ti-settings" aria-hidden="true"></i> Einstellungen
+    </button>
+</div>
+{/block}
+
+{block content}
+
+<section class="panel" aria-labelledby="members-heading">
+    <h2 id="members-heading"><i class="label-icon ti ti-users" aria-hidden="true"></i>Mitglieder <span n:if=$showMembers class="group-panel-count">{count($memberInfos)}</span></h2>
+
+    {if !$showMembers}
+        <p class="text-muted">Die Mitgliederliste ist nicht öffentlich sichtbar.</p>
+    {else}
+        <div class="person-list" n:if="$memberInfos">
+            {foreach $memberInfos as $info}
+            <div class="person-row">
+                <a href="/user/{$info->userName}" class="person-name">{$info->realName}</a>
+                <button n:if=$mayManage class="remove-btn"
+                    data-action="/groups/{$group->name}/members/{$info->userName}"
+                    onclick="groupAction(this.dataset.action, 'DELETE')"
+                    aria-label="Mitglied entfernen">
+                    <i class="ti ti-x" aria-hidden="true"></i>
+                </button>
+            </div>
+            {/foreach}
+        </div>
+        <p n:if="!$memberInfos" class="text-muted">Noch keine Mitglieder.</p>
+    {/if}
+
+    {* Mitglied hinzufügen *}
+    {if $mayManage}
+    <form class="person-add-form" onsubmit="addMember(event, this)">
+        <input list="non-members-list" name="username" placeholder="Hinzufügen…" autocomplete="off" required>
+        <datalist id="non-members-list">
+            {foreach $nonMembers as $info}
+                <option value="{$info->userName}">{$info->realName} ({$info->userName})</option>
+            {/foreach}
+        </datalist>
+        <button type="submit" aria-label="Mitglied hinzufügen"><i class="ti ti-plus" aria-hidden="true"></i></button>
+    </form>
+    {/if}
+</section>
+
+{* Owner *}
+<section n:if=$mayManage class="panel" aria-labelledby="owners-heading">
+    <h2 id="owners-heading"><i class="label-icon ti ti-crown" aria-hidden="true"></i>Gruppenverwalter*innen <span class="group-panel-count">{count($ownerInfos)}</span></h2>
+    <div class="person-list" n:if="$ownerInfos">
+        {foreach $ownerInfos as $info}
+        <div class="person-row">
+            <a href="/user/{$info->userName}" class="person-name">{$info->realName}</a>
+            <button class="remove-btn"
+                data-action="/groups/{$group->name}/owners/{$info->userName}"
+                onclick="groupAction(this.dataset.action, 'DELETE')"
+                n:if="$isGroupAdmin || $info->userName !== $username"
+                aria-label="Als Gruppenverwalter*in entfernen">
+                <i class="ti ti-x" aria-hidden="true"></i>
+            </button>
+        </div>
+        {/foreach}
+    </div>
+    <p n:if="!$ownerInfos" class="text-muted">Keine Gruppenverwalter*innen definiert.</p>
+
+    <form class="person-add-form" onsubmit="addOwner(event, this)">
+        <input list="non-members-list" name="username" placeholder="Hinzufügen…" autocomplete="off" required>
+        <button type="submit" aria-label="Gruppenverwalter*in hinzufügen"><i class="ti ti-plus" aria-hidden="true"></i></button>
+    </form>
+</section>
+
+{* === Dialog: Einstellungen === *}
+{embed dialog, id: 'group-edit-dialog', labelIcon: 'settings', label: 'Gruppe', title: 'Einstellungen'}
+{block dialog-content}
+<form data-action="/groups/{$group->name}" onsubmit="submitForm(event, this, this.dataset.action, 'POST')">
+    <div class="form-group">
+        <label for="edit-displayName">Anzeigename</label>
+        <input id="edit-displayName" name="displayName" type="text" value="{$group->displayName}">
+    </div>
+    <div class="form-group">
+        <label for="edit-description">Beschreibung</label>
+        <textarea id="edit-description" name="description" rows="3">{$group->description}</textarea>
+    </div>
+    <div class="form-group">
+        <label for="edit-category">Kategorie</label>
+        <input id="edit-category" name="category" type="text" value="{$group->category}">
+    </div>
+    <div class="form-group">
+        <label for="edit-joinPolicy">Beitrittspolitik</label>
+        <select id="edit-joinPolicy" name="joinPolicy">
+            {foreach $joinPolicyCases as $case}
+                <option value="{$case->value}" n:attr="selected: $case === $group->joinPolicy">
+                    {=match ($case->value) {
+                        'open'    => 'Offen — jeder kann beitreten',
+                        'invite'  => 'Nur auf Einladung',
+                        'request' => 'Beitrittsanfrage erforderlich',
+                        default   => $case->value
+                    }}
+                </option>
+            {/foreach}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="edit-leavePolicy">Verlassen</label>
+        <select id="edit-leavePolicy" name="leavePolicy">
+            {foreach $leavePolicyCases as $case}
+                <option value="{$case->value}" n:attr="selected: $case === $group->leavePolicy">
+                    {=match ($case->value) {
+                        'direct'    => 'Direkt möglich',
+                        'moderated' => 'Nur durch Gruppenverwalter*in',
+                        default     => $case->value
+                    }}
+                </option>
+            {/foreach}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="edit-memberVisibility">Mitgliederliste sichtbar für</label>
+        <select id="edit-memberVisibility" name="memberVisibility">
+            {foreach $memberVisibilityCases as $case}
+                <option value="{$case->value}" n:attr="selected: $case === $group->memberVisibility">
+                    {=match ($case->value) {
+                        'all'     => 'Alle Mitglieder',
+                        'members' => 'Nur Gruppenmitglieder',
+                        'owners'  => 'Nur Gruppenverwalter*innen',
+                        default   => $case->value
+                    }}
+                </option>
+            {/foreach}
+        </select>
+    </div>
+    <div n:if=$isGroupAdmin>
+        <div class="form-group">
+            <label for="edit-visibility">Sichtbarkeit</label>
+            <select id="edit-visibility" name="visibility">
+                {foreach $visibilityCases as $case}
+                    <option value="{$case->value}" n:attr="selected: $case === $group->visibility">
+                        {=match ($case->value) {
+                            'public'  => 'Öffentlich — für alle sichtbar',
+                            'members' => 'Nur für Mitglieder sichtbar',
+                            'hidden'  => 'Versteckt — nur für Gruppenverwalter*innen und Admins',
+                            default   => $case->value
+                        }}
+                    </option>
+                {/foreach}
+            </select>
+        </div>
+        <div class="mail-settings">
+            <label class="checkbox-label">
+                <input type="checkbox" id="is-mail-group" name="isMailGroup" n:attr="checked: $group->isMailGroup">
+                Diese Gruppe ist eine Mailingliste
+            </label>
+            <fieldset>
+                <legend>Mailingliste</legend>
+                <div class="form-group">
+                    <label for="edit-mailAddress">E-Mail-Adresse</label>
+                    <input id="edit-mailAddress" name="mailAddress" type="email" value="{$group->mailAddress}" placeholder="gruppe@example.org">
+                </div>
+                <div class="form-group">
+                    <label for="edit-listLabel">Betreff-Präfix <small>(leer = [{$group->displayName ?: $group->name}])</small></label>
+                    <input id="edit-listLabel" name="listLabel" type="text" value="{$group->listLabel}" placeholder="[{$group->displayName ?: $group->name}]">
+                </div>
+                <div class="form-group">
+                    <label for="edit-listPostPolicy">Wer darf schreiben</label>
+                    <select id="edit-listPostPolicy" name="listPostPolicy">
+                        {foreach $listPostPolicyCases as $case}
+                            <option value="{$case->value}" n:attr="selected: $case === $group->listPostPolicy">
+                                {=match ($case->value) {
+                                    'all'     => 'Alle (auch Nicht-Mitglieder)',
+                                    'members' => 'Nur Gruppenmitglieder',
+                                    'owners'  => 'Nur Gruppenverwalter*innen',
+                                    default   => $case->value
+                                }}
+                            </option>
+                        {/foreach}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-listSenderRewrite">Absender-Umschreibung</label>
+                    <input id="edit-listSenderRewrite" name="listSenderRewrite" type="text" value="{$group->listSenderRewrite}" placeholder="{l}sender-name{r} (via MHN)">
+                    <small>Platzhalter: <code>{l}sender-name{r}</code> = ursprünglicher Absender</small>
+                </div>
+            </fieldset>
+        </div>
+        <div n:if=$isRechteAdmin class="form-group">
+            <label class="checkbox-label">
+                <input type="checkbox" name="privileged" n:attr="checked: $group->privileged">
+                Privilegierte Gruppe <small>(nur von Inhabern der Rolle <code>rechte</code> verwaltbar, nicht von der Gruppenadministration)</small>
+            </label>
+        </div>
+    </div>
+    <div class="form-actions">
+        <button type="submit"><i class="ti ti-device-floppy" aria-hidden="true"></i> Speichern</button>
+        <button n:if=$isGroupAdmin type="button" class="danger"
+            data-action="/groups/{$group->name}"
+            onclick="if(confirm('Gruppe wirklich löschen?')) submitForm(null, null, this.dataset.action, 'DELETE')">
+            <i class="ti ti-trash" aria-hidden="true"></i> Gruppe löschen
+        </button>
+        <button type="button" class="secondary" onclick="this.closest('dialog').close()">Abbrechen</button>
+    </div>
+</form>
+{/block}
+{/embed}
+
+{/block}
+
+{block footer}
+<script>
+groupname = {$group->name};
+{syntax off}
+async function groupAction(url, method, successMessage) {
+    try {
+        const data = await callApi(method, url, new FormData());
+        if (successMessage) alert(successMessage);
+        if (data?.redirect) { window.location.href = data.redirect; } else { window.location.reload(); }
+    } catch (err) { showError(err); }
+}
+
+async function submitForm(event, form, url, method) {
+    event?.preventDefault();
+    try {
+        const data = await callApi(method, url, form ? new FormData(form) : new FormData());
+        if (data?.redirect) { window.location.href = data.redirect; } else { window.location.reload(); }
+    } catch (err) { showError(err); }
+}
+
+async function addMember(event, form) {
+    event.preventDefault();
+    const username = form.querySelector('[name=username]').value;
+    await groupAction(`/groups/${groupname}/members/${username}`, 'POST');
+}
+
+async function addOwner(event, form) {
+    event.preventDefault();
+    const username = form.querySelector('[name=username]').value;
+    await groupAction(`/groups/${groupname}/owners/${username}`, 'POST');
+}
+{/syntax}
+</script>
+{/block}

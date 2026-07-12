@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Aufnahmekommission – Mein MHN</title>
+    <link rel="icon" href="/favicon.png">
+    <link rel="stylesheet" href="/css/style.css?4bfcdaf3481c0b3f79907c46991ce625">
+    <link rel="stylesheet" href="/css/tabler-icons.min.css"/>
+<style>
+.mail-settings fieldset { display: none; }
+.mail-settings:has(#is-mail-group:checked) fieldset { display: revert; }
+</style>
+  </head>
+  <body>
+<main id="main-content" class="main-content">
+    <section class="page-header" aria-labelledby="title">
+        <div class="summary">
+            <span class="page-label"><i class="ti ti-users-group" aria-hidden="true"></i> <a href="/groups">Gruppen</a> / Teams</span>
+            <h1 id="title">Aufnahmekommission</h1>
+<div class="summary">Die Aufnahmekommission entscheidet auf Grundlage der Aufnahmeordnung über Mitgliedsanträge.</div>
+<div class="meta">
+</div>
+<div class="action-links">
+    <button class="secondary" data-action="/groups/aufnahme/leave" onclick="groupAction(this.dataset.action, 'POST')">
+        <i class="ti ti-user-minus" aria-hidden="true"></i> Gruppe verlassen
+    </button>
+    <button class="secondary" onclick="document.getElementById('group-edit-dialog').showModal()">
+        <i class="ti ti-settings" aria-hidden="true"></i> Einstellungen
+    </button>
+</div>
+        </div>
+    </section>
+
+<section class="panel" aria-labelledby="members-heading">
+    <h2 id="members-heading"><i class="ti ti-users" aria-hidden="true"></i> Mitglieder</h2>
+        <ul class="member-list">
+            <li class="member-list-item">
+                <a href="/user/Henrik">Henrik Gebauer</a>
+                <span class="badge"><i class="ti ti-crown" aria-hidden="true"></i> Gruppenverwalter*in</span>
+                <button class="icon-button danger" data-action="/groups/aufnahme/members/Henrik" onclick="groupAction(this.dataset.action, 'DELETE')" aria-label="Mitglied entfernen">
+                    <i class="ti ti-x" aria-hidden="true"></i>
+                </button>
+            </li>
+            <li class="member-list-item">
+                <a href="/user/Webteam">Web Team</a>
+                <button class="icon-button danger" data-action="/groups/aufnahme/members/Webteam" onclick="groupAction(this.dataset.action, 'DELETE')" aria-label="Mitglied entfernen">
+                    <i class="ti ti-x" aria-hidden="true"></i>
+                </button>
+            </li>
+        </ul>
+    <form class="add-member-form" onsubmit="addMember(event, this)">
+        <input list="non-members-list" name="username" placeholder="Mitglied hinzufügen…" autocomplete="off" required>
+        <datalist id="non-members-list">
+                <option value="ein.neumitglied">Ein Neumitglied (ein.neumitglied)</option>
+                <option value="Hugo">Hugo Testuser (Hugo)</option>
+                <option value="Jimmy">Hugo Testuser (Jimmy)</option>
+                <option value="johnny.testmitglied">Johnny Testmitglied (johnny.testmitglied)</option>
+                <option value="michael.neumann1">Michael Neumann (michael.neumann1)</option>
+                <option value="test.test">Test test (test.test)</option>
+                <option value="vorname">Vorname Nachname geändert (vorname)</option>
+        </datalist>
+        <button type="submit"><i class="ti ti-plus" aria-hidden="true"></i> Hinzufügen</button>
+    </form>
+</section>
+
+<section class="panel" aria-labelledby="owners-heading">
+    <h2 id="owners-heading"><i class="ti ti-crown" aria-hidden="true"></i> Gruppenverwalter*innen</h2>
+    <ul class="member-list">
+        <li class="member-list-item">
+            <a href="/user/Henrik">Henrik Gebauer</a>
+            <button class="icon-button danger" data-action="/groups/aufnahme/owners/Henrik" onclick="groupAction(this.dataset.action, 'DELETE')" aria-label="Als Gruppenverwalter*in entfernen">
+                <i class="ti ti-x" aria-hidden="true"></i>
+            </button>
+        </li>
+    </ul>
+    <form class="add-member-form" onsubmit="addOwner(event, this)">
+        <input list="non-members-list" name="username" placeholder="Gruppenverwalter*in hinzufügen…" autocomplete="off" required>
+        <button type="submit"><i class="ti ti-plus" aria-hidden="true"></i> Hinzufügen</button>
+    </form>
+</section>
+
+<dialog id="group-edit-dialog" aria-label="" aria-labelledby="group-edit-dialog_title" closedby="any">
+    <span class="dialog-close" onclick="document.getElementById('group-edit-dialog').close()">&times;</span>
+    <div class="page-label"><i class="ti ti-settings" aria-hidden="true"></i> Gruppe</div>
+    <h2 class="dialog-title" id="group-edit-dialog_title">Einstellungen</h2>
+<form data-action="/groups/aufnahme" onsubmit="submitForm(event, this, this.dataset.action, 'POST')">
+    <div class="form-group">
+        <label for="edit-displayName">Anzeigename</label>
+        <input id="edit-displayName" name="displayName" type="text" value="Aufnahmekommission">
+    </div>
+    <div class="form-group">
+        <label for="edit-description">Beschreibung</label>
+        <textarea id="edit-description" name="description" rows="3">Die Aufnahmekommission entscheidet auf Grundlage der Aufnahmeordnung über Mitgliedsanträge.</textarea>
+    </div>
+    <div class="form-group">
+        <label for="edit-category">Kategorie</label>
+        <input id="edit-category" name="category" type="text" value="Teams">
+    </div>
+    <div class="form-group">
+        <label for="edit-joinPolicy">Beitrittspolitik</label>
+        <select id="edit-joinPolicy" name="joinPolicy">
+                <option value="open">Offen — jeder kann beitreten</option>
+                <option value="invite" selected>Nur auf Einladung</option>
+                <option value="request">Beitrittsanfrage erforderlich</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="edit-leavePolicy">Verlassen</label>
+        <select id="edit-leavePolicy" name="leavePolicy">
+                <option value="direct" selected>Direkt möglich</option>
+                <option value="moderated">Nur durch Gruppenverwalter*in</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="edit-memberVisibility">Mitgliederliste sichtbar für</label>
+        <select id="edit-memberVisibility" name="memberVisibility">
+                <option value="all" selected>Alle Mitglieder</option>
+                <option value="members">Nur Gruppenmitglieder</option>
+                <option value="owners">Nur Gruppenverwalter*innen</option>
+        </select>
+    </div>
+    <div>
+        <div class="form-group">
+            <label for="edit-visibility">Sichtbarkeit</label>
+            <select id="edit-visibility" name="visibility">
+                    <option value="public" selected>Öffentlich — für alle sichtbar</option>
+                    <option value="members">Nur für Mitglieder sichtbar</option>
+                    <option value="hidden">Versteckt — nur für Gruppenverwalter*innen und Admins</option>
+            </select>
+        </div>
+        <div class="mail-settings">
+            <label class="checkbox-label">
+                <input type="checkbox" id="is-mail-group" name="isMailGroup">
+                Diese Gruppe ist eine Mailingliste
+            </label>
+            <fieldset>
+                <legend>Mailingliste</legend>
+                <div class="form-group">
+                    <label for="edit-mailAddress">E-Mail-Adresse</label>
+                    <input id="edit-mailAddress" name="mailAddress" type="email" placeholder="gruppe@example.org">
+                </div>
+                <div class="form-group">
+                    <label for="edit-listLabel">Betreff-Präfix <small>(leer = [Aufnahmekommission])</small></label>
+                    <input id="edit-listLabel" name="listLabel" type="text" value="" placeholder="[Aufnahmekommission]">
+                </div>
+                <div class="form-group">
+                    <label for="edit-listPostPolicy">Wer darf schreiben</label>
+                    <select id="edit-listPostPolicy" name="listPostPolicy">
+                            <option value="all">Alle (auch Nicht-Mitglieder)</option>
+                            <option value="members" selected>Nur Gruppenmitglieder</option>
+                            <option value="owners">Nur Gruppenverwalter*innen</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-listSenderRewrite">Absender-Umschreibung</label>
+                    <input id="edit-listSenderRewrite" name="listSenderRewrite" type="text" value="{sender-name} (via MHN)" placeholder="{sender-name} (via MHN)">
+                    <small>Platzhalter: <code>{sender-name}</code> = ursprünglicher Absender</small>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="form-actions">
+        <button type="submit"><i class="ti ti-device-floppy" aria-hidden="true"></i> Speichern</button>
+        <button type="button" class="danger" data-action="/groups/aufnahme" onclick="if(confirm('Gruppe wirklich löschen?')) submitForm(null, null, this.dataset.action, 'DELETE')">
+            <i class="ti ti-trash" aria-hidden="true"></i> Gruppe löschen
+        </button>
+        <button type="button" class="secondary" onclick="this.closest('dialog').close()">Abbrechen</button>
+    </div>
+</form>
+</dialog>
+</main>
+<script>
+groupname = "aufnahme";
+async function groupAction(url, method, successMessage) {
+    try {
+        const data = await callApi(method, url, new FormData());
+        if (successMessage) alert(successMessage);
+        if (data?.redirect) { window.location.href = data.redirect; } else { window.location.reload(); }
+    } catch (err) { showError(err); }
+}
+async function submitForm(event, form, url, method) {
+    event?.preventDefault();
+    try {
+        const data = await callApi(method, url, form ? new FormData(form) : new FormData());
+        if (data?.redirect) { window.location.href = data.redirect; } else { window.location.reload(); }
+    } catch (err) { showError(err); }
+}
+async function addMember(event, form) {
+    event.preventDefault();
+    const username = form.querySelector('[name=username]').value;
+    await groupAction(`/groups/${groupname}/members/${username}`, 'POST');
+}
+async function addOwner(event, form) {
+    event.preventDefault();
+    const username = form.querySelector('[name=username]').value;
+    await groupAction(`/groups/${groupname}/owners/${username}`, 'POST');
+}
+</script>
+  </body>
+</html>

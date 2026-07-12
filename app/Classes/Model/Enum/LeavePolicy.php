@@ -4,6 +4,6 @@ namespace App\Model\Enum;
 
 enum LeavePolicy: string
 {
-    case Allowed = 'allowed';
-    case Disabled = 'disabled';
+    case Allowed = 'direct';
+    case Disabled = 'moderated';
 }

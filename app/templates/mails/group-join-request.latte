@@ -1,0 +1,22 @@
+{layout html-mail-layout.latte}
+{var $return->subject = 'Beitrittsanfrage: ' . ($group->displayName ?: $group->name)}
+{block content}
+<p>Hallo,</p>
+<p><strong>{$requester->get('fullName')}</strong> möchte der Gruppe
+<strong>{$group->displayName ?: $group->name}</strong> beitreten.</p>
+
+<p>Bitte entscheide, ob du die Anfrage annehmen oder ablehnen möchtest:</p>
+
+<p>
+    <a href="{$approveUrl}" style="display:inline-block;padding:.5em 1.25em;background:#2a7d4f;color:#fff;text-decoration:none;border-radius:4px;margin-right:.5em">
+        ✓ Anfrage annehmen
+    </a>
+    <a href="{$rejectUrl}" style="display:inline-block;padding:.5em 1.25em;background:#c0392b;color:#fff;text-decoration:none;border-radius:4px">
+        ✗ Anfrage ablehnen
+    </a>
+</p>
+
+<p><small>Diese Links sind 7 Tage gültig.</small></p>
+
+<p>Viele Grüße,<br>dein MHN-Mitgliederportal</p>
+{/block}

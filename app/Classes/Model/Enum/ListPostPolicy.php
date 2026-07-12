@@ -2,9 +2,9 @@
 declare(strict_types=1);
 namespace App\Model\Enum;
 
-enum GroupVisibility: string
+enum ListPostPolicy: string
 {
-    case Public = 'public';
+    case All = 'all';
     case Members = 'members';
-    case Hidden = 'hidden';
+    case Owners = 'owners';
 }

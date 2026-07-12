@@ -302,6 +302,8 @@ class User
             return true;
         } elseif ($roleName === 'mvedit' && $this->hasRole('rechte')) {
             return true;
+        } elseif ($roleName === 'groupadmin' && $this->hasRole('rechte')) {
+            return true;
         } else {
             return $this->isMemberOfGroup($roleName);
         }
