@@ -1,0 +1,32 @@
+{var $navId = admin}
+
+{block page-label}<i class="ti ti-mail-forward" aria-hidden="true"></i> ListMonk-Synchronisation{/block}
+
+{block title}ListMonk-Synchronisation{/block}
+
+{block content}
+<section class="panel">
+    <h2>Abgleich abgeschlossen</h2>
+
+    {if $result['errors']}
+        {include info-box, type: 'warning', text: 'Der Abgleich wurde durchgeführt, dabei sind Fehler aufgetreten (siehe unten).'}
+    {else}
+        {include info-box, type: 'success', text: 'Die Mitglieder wurden erfolgreich mit ListMonk abgeglichen.'}
+    {/if}
+
+    <ul>
+        <li><strong>{$result['total']}</strong> Mitglieder mit gültiger E-Mail-Adresse</li>
+        <li><strong>{$result['created']}</strong> neu zur Liste hinzugefügt</li>
+        <li><strong>{$result['updated']}</strong> aktualisiert (Name/Attribute)</li>
+        <li><strong>{$result['removed']}</strong> aus der Liste entfernt</li>
+        <li><strong>{$result['skipped']}</strong> übersprungen (ungültige <code>.invalid</code>-Adresse)</li>
+    </ul>
+
+    <p n:if="$result['errors']">Fehler:</p>
+    <ol n:ifcontent n:inner-foreach="$result['errors'] as $error">
+        <li>{$error}</li>
+    </ol>
+
+    <p><a href="/admin">zurück zur Mitgliederverwaltung</a></p>
+</section>
+{/block}
