@@ -50,8 +50,6 @@
 .person-name {
     flex: 1;
     min-width: 0;
-    font-size: .82rem;
-    font-weight: 500;
     color: var(--text);
     white-space: nowrap;
     overflow: hidden;
@@ -69,7 +67,7 @@
     background: none;
     color: var(--placeholder);
 }
-.remove-btn:hover, .remove-btn:focus-visible { color: #dc2626; background: none; }
+.remove-btn:hover, .remove-btn:focus-visible { color: #dc2626; background: none !important; }
 .person-add-form {
     display: flex;
     gap: .4rem;
@@ -77,27 +75,6 @@
     padding-top: .75rem;
     border-top: 1px solid var(--border);
 }
-.person-add-form input {
-    flex: 1;
-    min-width: 0;
-    padding: .4rem .6rem;
-    font-size: .8rem;
-    border-radius: var(--radius-card);
-}
-.person-add-form button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.9rem;
-    height: 1.9rem;
-    padding: 0;
-    flex: none;
-    background: transparent;
-    color: var(--muted);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-card);
-}
-.person-add-form button:hover { background: var(--panel-soft); }
 .text-muted { color: var(--muted); font-size: .85rem; }
 </style>
 {/block}
@@ -137,13 +114,15 @@
 {block content}
 
 <section class="panel" aria-labelledby="members-heading">
-    <h2 id="members-heading"><i class="label-icon ti ti-users" aria-hidden="true"></i>Mitglieder <span n:if=$showMembers class="group-panel-count">{count($memberInfos)}</span></h2>
+    <div class="panel-heading">
+        <h2 id="members-heading"><i class="label-icon ti ti-users" aria-hidden="true"></i>Mitglieder</h2>
+        <span n:if=$showMembers class="meta-note">{count($memberInfos)} Mitglied{count($memberInfos) !== 1 ? 'er'}</span></h2>
+    </div>
 
     {if !$showMembers}
         <p class="text-muted">Die Mitgliederliste ist nicht öffentlich sichtbar.</p>
     {else}
-        <div class="person-list" n:if="$memberInfos">
-            {foreach $memberInfos as $info}
+        <div class="person-list" n:if="$memberInfos" n:inner-foreach="$memberInfos as $info">
             <div class="person-row">
                 <a href="/user/{$info->userName}" class="person-name">{$info->realName}</a>
                 <button n:if=$mayManage class="remove-btn"
@@ -153,7 +132,6 @@
                     <i class="ti ti-x" aria-hidden="true"></i>
                 </button>
             </div>
-            {/foreach}
         </div>
         <p n:if="!$memberInfos" class="text-muted">Noch keine Mitglieder.</p>
     {/if}
@@ -161,22 +139,26 @@
     {* Mitglied hinzufügen *}
     {if $mayManage}
     <form class="person-add-form" onsubmit="addMember(event, this)">
-        <input list="non-members-list" name="username" placeholder="Hinzufügen…" autocomplete="off" required>
         <datalist id="non-members-list">
             {foreach $nonMembers as $info}
                 <option value="{$info->userName}">{$info->realName} ({$info->userName})</option>
             {/foreach}
         </datalist>
-        <button type="submit" aria-label="Mitglied hinzufügen"><i class="ti ti-plus" aria-hidden="true"></i></button>
+        <div class="input-group">
+        <input list="non-members-list" name="username" placeholder="Hinzufügen…" autocomplete="off" required>
+        <button type="submit" aria-label="Mitglied hinzufügen"><i class="ti ti-user-plus" aria-hidden="true"></i></button>
+        </div>
     </form>
     {/if}
 </section>
 
-{* Owner *}
-<section n:if=$mayManage class="panel" aria-labelledby="owners-heading">
-    <h2 id="owners-heading"><i class="label-icon ti ti-crown" aria-hidden="true"></i>Gruppenverwalter*innen <span class="group-panel-count">{count($ownerInfos)}</span></h2>
-    <div class="person-list" n:if="$ownerInfos">
-        {foreach $ownerInfos as $info}
+<section class="panel" aria-labelledby="owners-heading">
+    <div class="panel-heading">
+        <h2 id="owners-heading"><i class="label-icon ti ti-crown" aria-hidden="true"></i>Gruppenverwalter*in{count($ownerInfos) !== 1 ? 'nen'}</h2>
+        <span n:if="count($ownerInfos) !== 1" class="meta-note">{count($ownerInfos)} Gruppenverwalter*innen</span>
+    </div>
+
+    <div class="person-list" n:if="$ownerInfos" n:inner-foreach="$ownerInfos as $info">
         <div class="person-row">
             <a href="/user/{$info->userName}" class="person-name">{$info->realName}</a>
             <button class="remove-btn"
@@ -187,15 +169,21 @@
                 <i class="ti ti-x" aria-hidden="true"></i>
             </button>
         </div>
-        {/foreach}
     </div>
-    <p n:if="!$ownerInfos" class="text-muted">Keine Gruppenverwalter*innen definiert.</p>
+    <p n:if="!$ownerInfos" class="text-muted">Für diese Gruppe wurden keine Gruppenverwalter*innen definiert.</p>
 
     <form class="person-add-form" onsubmit="addOwner(event, this)">
-        <input list="non-members-list" name="username" placeholder="Hinzufügen…" autocomplete="off" required>
-        <button type="submit" aria-label="Gruppenverwalter*in hinzufügen"><i class="ti ti-plus" aria-hidden="true"></i></button>
+        <div class="input-group">
+            <input list="non-members-list" name="username" placeholder="Hinzufügen…" autocomplete="off" required>
+            <button type="submit" class="button" aria-label="Gruppenverwalter*in hinzufügen"><i class="ti ti-user-plus" aria-hidden="true"></i></button>
+        </div>
     </form>
 </section>
+
+
+{/block}
+
+{block footer}
 
 {* === Dialog: Einstellungen === *}
 {embed dialog, id: 'group-edit-dialog', labelIcon: 'settings', label: 'Gruppe', title: 'Einstellungen'}
@@ -274,16 +262,16 @@
             </select>
         </div>
         <div class="mail-settings">
+            <div class="form-group">
+                <label for="edit-mailAddress">E-Mail-Adresse</label>
+                <input id="edit-mailAddress" name="mailAddress" type="email" value="{$group->mailAddress}" placeholder="gruppe@example.org">
+            </div>
             <label class="checkbox-label">
                 <input type="checkbox" id="is-mail-group" name="isMailGroup" n:attr="checked: $group->isMailGroup">
                 Diese Gruppe ist eine Mailingliste
             </label>
             <fieldset>
                 <legend>Mailingliste</legend>
-                <div class="form-group">
-                    <label for="edit-mailAddress">E-Mail-Adresse</label>
-                    <input id="edit-mailAddress" name="mailAddress" type="email" value="{$group->mailAddress}" placeholder="gruppe@example.org">
-                </div>
                 <div class="form-group">
                     <label for="edit-listLabel">Betreff-Präfix <small>(leer = [{$group->displayName ?: $group->name}])</small></label>
                     <input id="edit-listLabel" name="listLabel" type="text" value="{$group->listLabel}" placeholder="[{$group->displayName ?: $group->name}]">
@@ -330,9 +318,6 @@
 {/block}
 {/embed}
 
-{/block}
-
-{block footer}
 <script>
 groupname = {$group->name};
 {syntax off}

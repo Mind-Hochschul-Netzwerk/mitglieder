@@ -96,32 +96,28 @@ class GroupController extends Controller
         $ownerInfos = [];
         $nonMembers = [];
 
-        if ($showMembers || $mayManage) {
-            $userInfoByUsername = [];
-            foreach ($userRepository->getAllUserinfos() as $info) {
-                $userInfoByUsername[$info->userName] = $info;
-            }
+        $userInfoByUsername = [];
+        foreach ($userRepository->getAllUserinfos() as $info) {
+            $userInfoByUsername[$info->userName] = $info;
+        }
 
-            if ($showMembers) {
-                $memberInfos = array_map(
-                    fn($u) => $userInfoByUsername[$u] ?? new \App\Model\UserInfo(userName: $u, realName: $u),
-                    $group->memberUsernames
-                );
-            }
+        if ($showMembers) {
+            $memberInfos = array_map(
+                fn($u) => $userInfoByUsername[$u] ?? new \App\Model\UserInfo(userName: $u, realName: $u),
+                $group->memberUsernames
+            );
+        }
 
-            if ($mayManage) {
-                $ownerInfos = array_map(
-                    fn($u) => $userInfoByUsername[$u] ?? new \App\Model\UserInfo(userName: $u, realName: $u),
-                    $group->ownerUsernames
-                );
-                foreach ($userInfoByUsername as $info) {
-                    if (!$group->isMember($info->userName)) {
-                        $nonMembers[] = $info;
-                    }
-                }
-                usort($nonMembers, fn($a, $b) => $a->realName <=> $b->realName);
+        $ownerInfos = array_map(
+            fn($u) => $userInfoByUsername[$u] ?? new \App\Model\UserInfo(userName: $u, realName: $u),
+            $group->ownerUsernames
+        );
+        foreach ($userInfoByUsername as $info) {
+            if (!$group->isMember($info->userName)) {
+                $nonMembers[] = $info;
             }
         }
+        usort($nonMembers, fn($a, $b) => $a->realName <=> $b->realName);
 
         return $this->render('GroupController/show', [
             'group' => $group,
@@ -216,9 +212,8 @@ class GroupController extends Controller
             if ($visibility = GroupVisibility::tryFrom($input['visibility'])) {
                 $group->visibility = $visibility;
             }
-            $group->mailAddress = $input['isMailGroup'] && $input['mailAddress'] !== ''
-                ? $input['mailAddress']
-                : null;
+            $group->mailAddress = $input['mailAddress'] !== '' ? $input['mailAddress'] : null;
+            $group->isMailGroup = $input['isMailGroup'];
         }
 
         if ($group->isMailGroup) {

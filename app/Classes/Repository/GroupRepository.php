@@ -24,6 +24,7 @@ class GroupRepository
         'member-visibility' => 'memberVisibility',
         'visibility'      => 'visibility',
         'privileged'      => 'privileged',
+        'mail-group'      => 'isMailGroup',
         'list-label'      => 'listLabel',
         'post-access'     => 'listPostPolicy',
         'smtp-from-name'  => 'listSenderRewrite',
@@ -53,7 +54,7 @@ class GroupRepository
         $memberDns = array_map($this->ldap->getDnByUsername(...), $group->memberUsernames);
         $ownerDns = array_map($this->ldap->getDnByUsername(...), $group->ownerUsernames);
         $objectClasses = array_values(array_filter([
-            'top', 'groupOfNames', $group->isMailGroup ? 'mailGroup' : null,
+            'top', 'groupOfNames', $group->mailAddress !== null ? 'mailGroup' : null,
         ]));
 
         // groupOfNames requires at least one member; bind DN as invisible placeholder for empty groups
@@ -67,6 +68,7 @@ class GroupRepository
             'member-visibility:'   . $group->memberVisibility->value,
             'visibility:'          . $group->visibility->value,
             $group->privileged    ? 'privileged:true'                                              : null,
+            $group->isMailGroup   ? 'mail-group:true'                                              : null,
             $group->isMailGroup   ? 'list-label:'       . $group->listLabel                        : null,
             $group->isMailGroup   ? 'post-access:'      . $group->listPostPolicy->value             : null,
             $group->isMailGroup   ? 'smtp-from-name:'   . $group->listSenderRewrite                 : null,
@@ -141,6 +143,7 @@ class GroupRepository
             memberVisibility:  MemberVisibility::tryFrom($config['memberVisibility'] ?? '') ?? MemberVisibility::Members,
             visibility:        GroupVisibility::tryFrom($config['visibility'] ?? '')  ?? GroupVisibility::Public,
             privileged:        ($config['privileged'] ?? '') === 'true',
+            isMailGroup:       ($config['isMailGroup'] ?? '') === 'true',
             listLabel:         $config['listLabel'] ?? '',
             listPostPolicy:    ListPostPolicy::tryFrom($config['listPostPolicy'] ?? '') ?? ListPostPolicy::Members,
             listSenderRewrite: $config['listSenderRewrite'] ?? '{sender-name} (via MHN)',

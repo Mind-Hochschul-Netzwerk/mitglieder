@@ -13,10 +13,6 @@ class Group
 {
     public ?Entry $ldapEntry = null;
 
-    public bool $isMailGroup {
-        get => $this->mailAddress !== null;
-    }
-
     public function __construct(
         public readonly string $name,
         public string $displayName = '',
@@ -30,6 +26,7 @@ class Group
         public MemberVisibility $memberVisibility = MemberVisibility::Members,
         public GroupVisibility $visibility = GroupVisibility::Public,
         public bool $privileged = false,
+        public bool $isMailGroup = false,
         public string $listLabel = '',
         public ListPostPolicy $listPostPolicy = ListPostPolicy::Members,
         public string $listSenderRewrite = '{sender-name} (via MHN)',

@@ -16,37 +16,9 @@ Hier findest du die Teams und anderen Gruppen im MHN. Um Ansprechpartner*innen z
 
 {block css}
 <style>
-.groups-panel {
-    background: var(--panel-soft);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-panel);
-    box-shadow: var(--shadow);
-    padding: 1.75rem;
+.cards-header {
+    margin-block: 1rem;
 }
-.groups-category { margin-top: 1.5rem; }
-.groups-category:first-child { margin-top: 0; }
-.groups-category-head {
-    display: flex;
-    align-items: center;
-    gap: .6rem;
-    margin-bottom: .6rem;
-}
-.groups-category-head h2 {
-    margin: 0;
-    font-size: .75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    color: var(--muted);
-}
-.groups-category-count {
-    font-size: .72rem;
-    color: var(--muted);
-    background: var(--panel);
-    padding: .1em .6em;
-    border-radius: 99px;
-}
-.groups-category-divider { flex: 1; height: 1px; background: var(--border); }
 .group-list { display: flex; flex-direction: column; gap: .5rem; }
 .group-card {
     display: flex;
@@ -56,11 +28,12 @@ Hier findest du die Teams und anderen Gruppen im MHN. Um Ansprechpartner*innen z
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: var(--radius-card);
+    box-shadow: var(--shadow);
 }
 .group-card-info { display: flex; flex-direction: column; gap: .2rem; flex: 1; min-width: 0; }
-.group-card-name { font-weight: 600; font-size: .9rem; }
+.group-card-name { font-weight: 600; }
 .group-card-description {
-    font-size: .8rem;
+    font-size: .9rem;
     color: var(--muted);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -107,14 +80,13 @@ Hier findest du die Teams und anderen Gruppen im MHN. Um Ansprechpartner*innen z
     {var $byCategory[$group->category ?: ''][] = $group}
 {/foreach}
 
-<div class="groups-panel">
 {foreach array_filter($byCategory) as $category => $categoryGroups}
-<section class="groups-category">
-    <div class="groups-category-head">
-        <h2>{$category ?: 'Allgemein'}</h2>
-        <span class="groups-category-count">{count($categoryGroups)}</span>
-        <div class="groups-category-divider"></div>
+<section aria-labelledby="category-heading-{$category}">
+    <div class="cards-header">
+        <h2 id="category-heading-{$category}">{$category ?: 'Sonstiges'}</h2>
+        <span class="cards-header-info">{count($categoryGroups)} Gruppe{count($categoryGroups) !== 1 ? 'n' : ''}</span>
     </div>
+
     <div class="group-list">
     {foreach $categoryGroups as $group}
         {var $isMember = $group->isMember($username)}
@@ -170,7 +142,6 @@ Hier findest du die Teams und anderen Gruppen im MHN. Um Ansprechpartner*innen z
     </div>
 </section>
 {/foreach}
-</div>
 
 {/block}
 
