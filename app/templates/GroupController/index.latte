@@ -28,7 +28,6 @@ Hier findest du die Teams und anderen Gruppen im MHN. Um Ansprechpartner*innen z
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: var(--radius-card);
-    box-shadow: var(--shadow);
 }
 .group-card-info { display: flex; flex-direction: column; gap: .2rem; flex: 1; min-width: 0; }
 .group-card-name { font-weight: 600; }
@@ -81,10 +80,10 @@ Hier findest du die Teams und anderen Gruppen im MHN. Um Ansprechpartner*innen z
 {/foreach}
 
 {foreach array_filter($byCategory) as $category => $categoryGroups}
-<section aria-labelledby="category-heading-{$category}">
-    <div class="cards-header">
+<section class="panel" aria-labelledby="category-heading-{$category}">
+    <div class="panel-heading">
         <h2 id="category-heading-{$category}">{$category ?: 'Sonstiges'}</h2>
-        <span class="cards-header-info">{count($categoryGroups)} Gruppe{count($categoryGroups) !== 1 ? 'n' : ''}</span>
+        <span class="meta-note">{count($categoryGroups)} Gruppe{count($categoryGroups) !== 1 ? 'n' : ''}</span>
     </div>
 
     <div class="group-list">
