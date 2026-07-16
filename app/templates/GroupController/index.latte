@@ -70,7 +70,7 @@ Hier findest du die Teams und anderen Gruppen im MHN. Um Ansprechpartner*innen z
 
 {* Gruppen nach Kategorie gruppieren *}
 
-{var $order = ['Teams', 'Rechte', 'Sonstige', 'System', 'Entwicklung']}
+{var $order = ['Teams', 'Rechte', 'System', 'Entwicklung']}
 {var $byCategory = array_fill_keys($order, [])}
 {foreach $groups as $group}
     {var $byCategory[$group->category ?: ''][] = $group}
