@@ -13,6 +13,15 @@ use App\Repository\UserRepository;
 
 class UserInfo
 {
+    public bool $hasProfilePicture {
+        get => file_exists(User::PROFILE_PICUTRE_DIRECTORY . '/' . $this->userId . '-' . $this->userName . '.jpeg')
+            || file_exists(User::PROFILE_PICUTRE_DIRECTORY . '/' . $this->userId . '-' . $this->userName . '.png');
+    }
+
+    public string $initials {
+        get => strtoupper(preg_replace('/\B\w|\s+/u', '', $this->realName));
+    }
+
     public function __construct(
         public ?User $user = null,
         public ?int $userId = null,

@@ -95,6 +95,7 @@ class GroupController extends Controller
         $memberInfos = [];
         $ownerInfos = [];
         $nonMembers = [];
+        $nonOwners = [];
 
         $userInfoByUsername = [];
         foreach ($userRepository->getAllUserinfos() as $info) {
@@ -116,6 +117,9 @@ class GroupController extends Controller
             if (!$group->isMember($info->userName)) {
                 $nonMembers[] = $info;
             }
+            if (!$group->isOwner($info->userName)) {
+                $nonOwners[] = $info;
+            }
         }
         usort($nonMembers, fn($a, $b) => $a->realName <=> $b->realName);
 
@@ -130,6 +134,7 @@ class GroupController extends Controller
             'memberInfos' => $memberInfos,
             'ownerInfos' => $ownerInfos,
             'nonMembers' => $nonMembers,
+            'nonOwners' => $nonOwners,
             'username' => $username,
             'joinPolicyCases' => JoinPolicy::cases(),
             'leavePolicyCases' => LeavePolicy::cases(),

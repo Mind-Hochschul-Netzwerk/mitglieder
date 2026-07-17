@@ -48,6 +48,9 @@
     border-top: 1px solid var(--border);
 }
 .person-name {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
     flex: 1;
     min-width: 0;
     color: var(--text);
@@ -55,6 +58,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+.person-name .profile-image { flex: none; }
 .remove-btn {
     display: inline-flex;
     align-items: center;
@@ -76,6 +80,37 @@
     border-top: 1px solid var(--border);
 }
 .text-muted { color: var(--muted); font-size: .85rem; }
+
+.profile-image {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 99px;
+    background: var(--accent-soft);
+    color: var(--muted);
+    font-size: .7rem;
+    font-weight: 600;
+    text-decoration: none;
+    img { width: 100%; height: 100%; object-fit: cover; border-radius: 99px; }
+}
+.person-name:hover, .person-name:focus-visible { text-decoration: none; }
+.person-name:hover .person-name-text, .person-name:focus-visible .person-name-text { text-decoration: underline; }
+.person-name + span { display: flex; align-items: center; gap: .25rem; }
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    font-size: .72rem;
+    font-weight: 600;
+    padding: .2em .6em;
+    border-radius: 99px;
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+.badge.owner { background: #fef9c3; color: #713f12; }
+
 </style>
 {/block}
 
@@ -124,13 +159,27 @@
     {else}
         <div class="person-list" n:if="$memberInfos" n:inner-foreach="$memberInfos as $info">
             <div class="person-row">
-                <a href="/user/{$info->userName}" class="person-name">{$info->realName}</a>
-                <button n:if=$mayManage class="remove-btn"
-                    data-action="/groups/{$group->name}/members/{$info->userName}"
-                    onclick="groupAction(this.dataset.action, 'DELETE')"
-                    aria-label="Mitglied entfernen">
-                    <i class="ti ti-x" aria-hidden="true"></i>
-                </button>
+                <a href="/user/{$info->userName}" class="person-name">
+                    <span class="profile-image">
+                        {if $info->hasProfilePicture}
+                            <img src="/user/{$info->userName}/profile-picture?size=thumbnail" alt="Profilbild von {$info->realName}">
+                        {else}
+                            {$info->initials}
+                        {/if}
+                    </span>
+                    <span class="person-name-text">{$info->realName}</span>
+                </a>
+                <span>
+                    {if in_array($info, $ownerInfos)}
+                        <span class="badge owner"><i class="ti ti-crown" aria-hidden="true"></i> Gruppenverwalter*in</span>
+                    {/if}
+                    <button n:if=$mayManage class="remove-btn"
+                        data-action="/groups/{$group->name}/members/{$info->userName}"
+                        onclick="groupAction(this.dataset.action, 'DELETE')"
+                        aria-label="Mitglied entfernen">
+                        <i class="ti ti-x" aria-hidden="true"></i>
+                    </button>
+                </span>
             </div>
         </div>
         <p n:if="!$memberInfos" class="text-muted">Noch keine Mitglieder.</p>
@@ -145,7 +194,7 @@
             {/foreach}
         </datalist>
         <div class="input-group">
-        <input list="non-members-list" name="username" placeholder="Hinzufügen…" autocomplete="off" required>
+        <input type="search" list="non-members-list" name="username" placeholder="Hinzufügen…" autocomplete="off" required>
         <button type="submit" aria-label="Mitglied hinzufügen"><i class="ti ti-user-plus" aria-hidden="true"></i></button>
         </div>
     </form>
@@ -160,7 +209,16 @@
 
     <div class="person-list" n:if="$ownerInfos" n:inner-foreach="$ownerInfos as $info">
         <div class="person-row">
-            <a href="/user/{$info->userName}" class="person-name">{$info->realName}</a>
+            <a href="/user/{$info->userName}" class="person-name">
+                <span class="profile-image">
+                    {if $info->hasProfilePicture}
+                        <img src="/user/{$info->userName}/profile-picture?size=thumbnail" alt="Profilbild von {$info->realName}">
+                    {else}
+                        {$info->initials}
+                    {/if}
+                </span>
+                <span class="person-name-text">{$info->realName}</span>
+            </a>
             <button class="remove-btn"
                 data-action="/groups/{$group->name}/owners/{$info->userName}"
                 onclick="groupAction(this.dataset.action, 'DELETE')"
@@ -173,8 +231,13 @@
     <p n:if="!$ownerInfos" class="text-muted">Für diese Gruppe wurden keine Gruppenverwalter*innen definiert.</p>
 
     <form class="person-add-form" onsubmit="addOwner(event, this)">
+        <datalist id="non-owners-list">
+            {foreach $nonOwners as $info}
+                <option value="{$info->userName}">{$info->realName} ({$info->userName})</option>
+            {/foreach}
+        </datalist>
         <div class="input-group">
-            <input list="non-members-list" name="username" placeholder="Hinzufügen…" autocomplete="off" required>
+            <input list="non-owners-list" name="username" type="search" placeholder="Hinzufügen…" autocomplete="off" required>
             <button type="submit" class="button" aria-label="Gruppenverwalter*in hinzufügen"><i class="ti ti-user-plus" aria-hidden="true"></i></button>
         </div>
     </form>
