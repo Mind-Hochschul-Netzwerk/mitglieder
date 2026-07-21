@@ -216,6 +216,7 @@ class AuthController extends Controller {
         } catch (\Exception $e) {
             throw new InvalidUserDataException('Der Link ist abgelaufen oder ungültig.');
         }
+        assert($user instanceof User);
         return $user;
     }
 

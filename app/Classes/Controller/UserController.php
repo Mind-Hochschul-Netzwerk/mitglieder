@@ -415,6 +415,9 @@ class UserController extends Controller {
             throw new InvalidUserDataException('Der Link ist abgelaufen oder ungültig.');
         }
 
+        assert($user instanceof User);
+        assert(is_string($email));
+
         $this->currentUser->logIn($user);
 
         $this->storeEmail($user, $email);
