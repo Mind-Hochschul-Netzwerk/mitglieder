@@ -8,6 +8,8 @@ namespace App\Service;
  */
 
 use Symfony\Component\Ldap\Ldap as SymfonyLdap;
+use Symfony\Component\Ldap\Adapter\ExtLdap\Adapter as SymfonyLdapAdapter;
+use Symfony\Component\Ldap\Adapter\ExtLdap\Connection as SymfonyLdapConnection;
 use Symfony\Component\Ldap\Exception\InvalidCredentialsException;
 use Symfony\Component\Ldap\Entry;
 
@@ -17,7 +19,9 @@ use Symfony\Component\Ldap\Entry;
 class Ldap
 {
     private SymfonyLdap $ldap;
-    private $isAdmin = false;
+    // SymfonyLdap keeps its adapter private with no getter, but we need the raw
+    // ext_ldap resource for ldap_exop_passwd(), so we hold the adapter ourselves
+    private SymfonyLdapAdapter $adapter;
 
     public function __construct(
         private string $host,
@@ -27,32 +31,30 @@ class Ldap
         private string $groupsDn,
     )
     {
-        $this->ldap = SymfonyLdap::create('ext_ldap', ['connection_string' => $host]);
+        $this->adapter = new SymfonyLdapAdapter(['connection_string' => $host]);
+        $this->ldap = new SymfonyLdap($this->adapter);
+        $this->bind();
     }
 
     private function bind(): void
     {
-        if ($this->isAdmin) {
-            return;
-        }
         $this->ldap->bind($this->bindDn, $this->bindPassword);
-        $this->isAdmin = true;
     }
 
     public function checkPassword(string $username, string $password): bool
     {
-        $this->isAdmin = false;
+        $valid = false;
         try {
             $this->ldap->bind($this->getDnByUsername($username), $password);
+            $valid = true;
         } catch (InvalidCredentialsException) {
-            return false;
         }
-        return true;
+        $this->bind();
+        return $valid;
     }
 
     public function getAll(): array
     {
-        $this->bind();
         try {
             $result = $this->ldap->query($this->peopleDn, '(objectClass=inetOrgPerson)')->execute();
         } catch (\Exception) {
@@ -73,7 +75,6 @@ class Ldap
 
     public function getUserIdsByQuery(string $query): array
     {
-        $this->bind();
         try {
             $result = $this->ldap->query($this->peopleDn, '(&(objectclass=inetOrgPerson)' . $query . ')')->execute();
         } catch (\Exception) {
@@ -84,7 +85,6 @@ class Ldap
 
     public function getEntryByUsername(string $username): ?Entry
     {
-        $this->bind();
         try {
             $result = $this->ldap->query($this->peopleDn, '(&(objectclass=inetOrgPerson)(cn=' . ldap_escape($username) . '))')->execute();
         } catch (\Exception) {
@@ -102,7 +102,6 @@ class Ldap
      */
     public function getAllValidEmails(): array
     {
-        $this->bind();
         try {
             $result = $this->ldap->query($this->peopleDn, '(&(objectClass=inetOrgPerson)(!(mail=*.invalid)))')->execute();
         } catch (\Exception) {
@@ -117,7 +116,6 @@ class Ldap
 
     public function getEntryByEmail(string $email): ?Entry
     {
-        $this->bind();
         try {
             $result = $this->ldap->query($this->peopleDn, '(&(objectclass=inetOrgPerson)(mail=' . ldap_escape($email) . '))')->execute();
         } catch (\Exception) {
@@ -147,15 +145,12 @@ class Ldap
         if (!empty($data['id'])) {
             $entry->setAttribute('employeeNumber', [$data['id']]);
         }
-        if (!empty($data['password'])) {
-            $entry->setAttribute('userPassword', ['{CRYPT}' .  PasswordService::hash($data['password'])]);
-        }
     }
 
     public function addUser(string $username, array $data): Entry
     {
-        $this->bind();
-        $entry = new Entry($this->getDnByUsername($username), [
+        $dn = $this->getDnByUsername($username);
+        $entry = new Entry($dn, [
             'objectClass' => ['inetOrgPerson', 'top'],
             'cn' => [$username],
             'givenName' => ['-'],
@@ -166,29 +161,44 @@ class Ldap
         ]);
         $this->setAttributes($entry, $data);
         $this->ldap->getEntryManager()->add($entry);
+        $this->storePassword($username, $data['password'] ?? '');
         return $entry;
     }
 
     public function modifyUser(string $username, array $data): bool
     {
-        $this->bind();
         $entry = $this->getEntryByUsername($username);
         if (!$entry) {
             return false;
         }
         $this->setAttributes($entry, $data);
         $this->ldap->getEntryManager()->update($entry);
+        $this->storePassword($username, $data['password'] ?? '');
         return true;
     }
 
     public function deleteUser(string $username): void
     {
-        $this->bind();
         try {
             $this->ldap->getEntryManager()->remove(new Entry($this->getDnByUsername($username)));
         } catch (\Exception) {
-
         }
+    }
+
+    public function storePassword(string $username, string $password): void
+    {
+        if (empty($password)) {
+            return;
+        }
+        $dn = $this->getDnByUsername($username);
+        $connection = $this->adapter->getConnection();
+        assert($connection instanceof SymfonyLdapConnection);
+        ldap_exop_passwd(
+            $connection->getResource(),
+            user: $dn,
+            old_password: '',
+            new_password: $password,
+        );
     }
 
     public function getBindDn(): string { return $this->bindDn; }
@@ -215,7 +225,6 @@ class Ldap
 
     public function getGroupEntry(string $name): ?Entry
     {
-        $this->bind();
         try {
             $result = $this->ldap->query(
                 $this->groupsDn,
@@ -230,7 +239,6 @@ class Ldap
     /** @return Entry[] */
     public function getAllGroupEntries(): array
     {
-        $this->bind();
         try {
             $result = $this->ldap->query($this->groupsDn, '(objectClass=groupOfNames)')->execute();
         } catch (\Exception) {
@@ -241,19 +249,16 @@ class Ldap
 
     public function addGroupEntry(Entry $entry): void
     {
-        $this->bind();
         $this->ldap->getEntryManager()->add($entry);
     }
 
     public function updateGroupEntry(Entry $entry): void
     {
-        $this->bind();
         $this->ldap->getEntryManager()->update($entry);
     }
 
     public function deleteGroup(string $name): void
     {
-        $this->bind();
         try {
             $this->ldap->getEntryManager()->remove(new Entry($this->getDnByGroupName($name)));
         } catch (\Exception) {}
@@ -261,7 +266,6 @@ class Ldap
 
     public function isUserMemberOfGroup(string $username, string $group): bool
     {
-        $this->bind();
         $query = '(&(objectclass=groupOfNames)(cn=' . ldap_escape($group) . ')(member=' . $this->getDnByUsername($username) . '))';
         $entry = $this->ldap->query($this->groupsDn, $query)->execute()[0];
         return !empty($entry);
@@ -292,7 +296,6 @@ class Ldap
 
     public function removeUserFromGroup(string $username, string $group): void
     {
-        $this->bind();
         $query = '(&(objectclass=groupOfNames)(cn=' . ldap_escape($group) . ')(member=' . $this->getDnByUsername($username) . '))';
         $entry = $this->ldap->query($this->groupsDn, $query)->execute()[0];
         if (!$entry) {
@@ -314,7 +317,6 @@ class Ldap
 
     public function getGroupsByUsername(string $username): array
     {
-        $this->bind();
         $query = '(&(objectclass=groupOfNames)(member=' . $this->getDnByUsername($username) . '))';
         $result = $this->ldap->query($this->groupsDn, $query)->execute();
         $groups = [];
@@ -326,8 +328,6 @@ class Ldap
 
     public function getIdsByGroup(string $groupName): array
     {
-        $this->bind();
-
         $result = $this->ldap->query($this->groupsDn, '(cn=' . ldap_escape($groupName) . ')')->execute();
 
         if (!$result) {
@@ -364,7 +364,6 @@ class Ldap
      */
     public function getAllGroups(array $skipMembersOfGroups = []): array
     {
-        $this->bind();
         $query = '(&(objectclass=groupOfNames))';
         $result = $this->ldap->query($this->groupsDn, $query)->execute();
         $groups = [];
