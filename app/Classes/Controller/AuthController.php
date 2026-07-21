@@ -75,9 +75,20 @@ class AuthController extends Controller {
         return $this->redirect($redirectUrl);
     }
 
+    /**
+     * Logs out of the app first, then routes the browser through Authelia's own logout page
+     * (which clears its SSO session cookie) before landing back here to show the confirmation.
+     * Without this detour, Authelia's session survives and the next login is silent SSO.
+     */
     #[Route('GET /logout'), PublicAccess]
     public function logout(): Response {
         $this->currentUser->logOut();
+
+        if (!$this->request->query->getBoolean('idpDone')) {
+            $returnUrl = 'https://mitglieder.' . getenv('DOMAINNAME') . '/logout?idpDone=1';
+            return $this->redirect('https://sso.' . getenv('DOMAINNAME') . '/logout?rd=' . urlencode($returnUrl));
+        }
+
         return $this->render('AuthController/logout');
     }
 

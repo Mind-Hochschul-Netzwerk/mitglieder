@@ -96,6 +96,7 @@ class Bootstrap extends ServiceContainer {
             clientSecret: getenv('OIDC_CLIENT_SECRET') ?: '',
             redirectUrl: 'https://mitglieder.' . getenv('DOMAINNAME') . '/login',
             request: $this->getRequest(),
+            publicProviderHost: getenv('OIDC_PUBLIC_URL') ? parse_url(getenv('OIDC_PUBLIC_URL'), PHP_URL_HOST) : null,
         ));
     }
 

@@ -17,7 +17,13 @@ Die Anwendung ist dann im Browser unter [https://mitglieder.docker.localhost/](h
 Die Anmeldung erfolgt über einen externen OpenID-Connect-Provider (Identity Provider).
 Dazu müssen in der `.env` folgende Werte gesetzt sein (siehe `env.sample`):
 
-* `OIDC_PROVIDER_URL` – Issuer-URL des IdP (muss `/.well-known/openid-configuration` bereitstellen)
+* `OIDC_PROVIDER_URL` – Issuer-URL des IdP, wie sie **aus dem app-Container heraus** erreichbar ist
+  (muss `/.well-known/openid-configuration` bereitstellen); Discovery, Token-Exchange, JWKS- und
+  Userinfo-Abruf laufen serverseitig gegen diese URL
+* `OIDC_PUBLIC_URL` – optional; öffentliche Basis-URL des IdP, falls diese von `OIDC_PROVIDER_URL`
+  abweicht (z.B. wenn der IdP intern nur ohne TLS unter seinem Docker-Servicenamen erreichbar ist,
+  siehe `docker-compose.yml`). Nur der `authorization_endpoint` (Redirect des Browsers zum Login)
+  wird auf diese URL umgeschrieben; fehlt sie, wird `OIDC_PROVIDER_URL` unverändert verwendet.
 * `OIDC_CLIENT_ID`
 * `OIDC_CLIENT_SECRET`
 

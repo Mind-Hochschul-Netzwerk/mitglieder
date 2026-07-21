@@ -27,8 +27,9 @@ services:
       - MYSQL_PASSWORD
       - MYSQL_DATABASE=database
       - TOKEN_KEY
-      - OIDC_PROVIDER_URL
-      - OIDC_CLIENT_ID
+      - OIDC_PROVIDER_URL=http://authelia:9091
+      - OIDC_PUBLIC_URL=https://sso.${DOMAINNAME}
+      - OIDC_CLIENT_ID=mitglieder
       - OIDC_CLIENT_SECRET
       - LDAP_HOST=ldap://ldap:389/
       - LDAP_GROUPS_DN=ou=groups,dc=mind-hochschul-netzwerk,dc=de
