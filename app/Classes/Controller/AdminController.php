@@ -7,25 +7,13 @@
 declare(strict_types=1);
 namespace App\Controller;
 
-use App\Service\CurrentUser;
-use App\Service\Ldap;
 use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 class AdminController extends Controller {
-    #[Route('GET /admin'), AllowIf(role: 'mvedit')]
-    public function show(Ldap $ldap, CurrentUser $user): Response {
-        $groups = [];
-        if ($user->hasRole('rechte')) {
-            $groups = $ldap->getAllGroups($skipMembersOfGroups = ['alleMitglieder', 'listen']);
-            usort($groups, function ($a, $b) {
-                return strnatcasecmp($a['name'], $b['name']);
-            });
-        }
-
-        return $this->render('AdminController/admin', [
-            'groups' => $groups
-        ]);
+    #[Route('GET /admin'), AllowIf(role: 'mvedit'), AllowIf(role: 'newsletter-export')]
+    public function show(): Response {
+        return $this->render('AdminController/admin');
     }
 }

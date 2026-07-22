@@ -1,15 +1,12 @@
 {var $navId = admin}
 
-{block title}Mitgliederverwaltung{/block}
+{block title}Administration{/block}
 
 {block page-label}<i class="ti ti-settings" aria-hidden="true"></i> Administration{/block}
 
 {block content}
-<section class="panel">
 
-<h2>Mitgliederdaten bearbeiten</h2>
-<p>Suche das zu bearbeitende Mitglied mit der <a href="/search">Mitgliedersuche</a> und klicke im Profil auf "Daten bearbeiten".</p>
-
+<section n:if="currentUser()->hasRole('mvedit')" class="panel">
 <h2>Austrittsersuche bearbeiten</h2>
 <p>Zeige die <a href="/search?fullName=&key0=resignation&op0=true">Liste der ausgetretenen Mitglieder</a> und klicke im Profil auf "Daten bearbeiten".</p>
 </section>
@@ -22,31 +19,3 @@
     <button type="submit"><i class="ti ti-refresh" aria-hidden="true"></i> Jetzt synchronisieren</button>
 </form>
 </section>
-
-{if $groups}
-    <section class="panel">
-    <h2>Gruppenzuordnungen verwalten</h2>
-    <p>Suche das zu bearbeitende Mitglied mit der <a href="/search">Mitgliedersuche</a> und klicke im Profil auf "Daten bearbeiten".</p>
-    <ul n:inner-foreach="$groups as $group">
-        <li><code>{$group['name']}</code>: {$group['description']}</li>
-    </ul>
-    </section>
-    <h3>Übersicht über die Gruppen</h3>
-    <div id="panels" class="cards">
-        <div n:foreach="$groups as $n => $group">
-            <div class='card'>
-                <div class='panel-heading'>{$group[name]}</div>
-                <div id='panel-$n' class='panel-body'>
-                {if $group[name] in [alleMitglieder, listen]}
-                    <div>alle Mitglieder</div>
-                {else}
-                    <div n:foreach="$group[users] as $user">
-
-                        <a href='/user/{$user[username]}/edit'>{$user[firstname]} {$user[lastname]}</a>
-                    </div>
-                {/if}
-            </div>
-        </div>
-    </div>
-{/if}
-{/block}
