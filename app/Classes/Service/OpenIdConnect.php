@@ -36,14 +36,14 @@ class OpenIdConnect
             }
 
             // capture the authorization redirect instead of header()+exit so it fits the framework's response flow
-            public function redirect(string $url) {
+            public function redirect(string $url): never {
                 throw new OidcRedirectException($url);
             }
 
             // Authelia derives and validates its issuer strictly from the Host header + X-Forwarded-Proto
             // (must match session.cookies[].authelia_url). Since we talk to it directly on its internal,
             // TLS-free address, spoof both so it treats the request as coming through the public HTTPS host.
-            protected function fetchURL(string $url, string $post_body = null, array $headers = []) {
+            protected function fetchURL(string $url, ?string $post_body = null, array $headers = []): bool|string {
                 if ($this->publicProviderHost !== null) {
                     $headers[] = 'Host: ' . $this->publicProviderHost;
                     $headers[] = 'X-Forwarded-Proto: https';
@@ -54,7 +54,10 @@ class OpenIdConnect
             // authorization_endpoint is correctly public already (browser-facing, discovered via the
             // spoofed headers above); token/jwks/userinfo are server-to-server and must stay on the
             // internally reachable host, so pull their path back onto $providerUrl
-            protected function getProviderConfigValue(string $param, $default = null) {
+            /**
+             * @return string|string[]|bool
+             */
+            protected function getProviderConfigValue(string $param, $default = null): string|array|bool {
                 $value = parent::getProviderConfigValue($param, $default);
                 if ($this->publicProviderHost !== null && is_string($value)
                     && in_array($param, ['token_endpoint', 'jwks_uri', 'userinfo_endpoint'], true)

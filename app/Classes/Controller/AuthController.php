@@ -23,7 +23,6 @@ class AuthController extends Controller {
         private UserRepository $userRepository,
         private AgreementRepository $agreementRepository,
         private UserAgreementRepository $userAgreementRepository,
-        private OpenIdConnect $openIdConnect,
     ) {}
 
     /**
@@ -32,7 +31,7 @@ class AuthController extends Controller {
      * in which case the originally requested path is preserved as the post-login target.
      */
     #[Route('GET /login'), PublicAccess]
-    public function login(): Response {
+    public function login(OpenIDConnect $openIdConnect): Response {
         $session = $this->request->getSession();
         $isCallback = $this->request->query->has('code') || $this->request->query->has('error');
 
@@ -48,17 +47,17 @@ class AuthController extends Controller {
             $session->set('oidc_redirect', $target);
             $session->set('oidc_stepup', $isStepUp);
 
-            return $this->openIdConnect->authenticate(forceReauth: $isStepUp);
+            return $openIdConnect->authenticate(forceReauth: $isStepUp);
         }
 
         // callback from the IdP: validate the tokens
-        $this->openIdConnect->authenticate();
+        $openIdConnect->authenticate();
 
         $isStepUp = (bool) $session->get('oidc_stepup', false);
         $session->remove('oidc_stepup');
 
         if (!$this->currentUser->isLoggedIn()) {
-            $username = $this->openIdConnect->getUsername();
+            $username = $openIdConnect->getUsername();
             $user = $username ? $this->userRepository->findOneByUsername($username) : null;
             if (!$user) {
                 return $this->showError('Es wurde kein Mitgliedskonto zu diesem Login gefunden. Bitte wende dich an die Mitgliederverwaltung.', 403);
