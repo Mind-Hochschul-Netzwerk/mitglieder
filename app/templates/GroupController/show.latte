@@ -72,6 +72,34 @@
     color: var(--placeholder);
 }
 .remove-btn:hover, .remove-btn:focus-visible { color: #dc2626; background: none !important; }
+.add-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    flex: none;
+    border: none;
+    background: none;
+    color: var(--placeholder);
+}
+.add-btn:hover, .add-btn:focus-visible { color: #16a34a; background: none !important; }
+.crown-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    flex: none;
+    border: none;
+    background: none;
+    color: var(--placeholder);
+}
+.crown-btn:hover, .crown-btn:focus-visible { color: #713f12; background: none !important; }
+.crown-btn.is-owner { color: #713f12; }
+.crown-btn.is-owner:hover, .crown-btn.is-owner:focus-visible { color: var(--placeholder); }
 .person-add-form {
     display: flex;
     gap: .4rem;
@@ -152,42 +180,55 @@
 <section class="panel" aria-labelledby="members-heading">
     <div class="panel-heading">
         <h2 id="members-heading"><i class="label-icon ti ti-users" aria-hidden="true"></i>Mitglieder</h2>
-        <span n:if=$showMembers class="meta-note">{count($memberInfos)} Mitglied{count($memberInfos) !== 1 ? 'er'}</span></h2>
+        <span n:if=$displayInfos class="meta-note">{count($displayInfos)} Mitglied{count($displayInfos) !== 1 ? 'er'}</span>
     </div>
 
-    {if !$showMembers}
-        <p class="text-muted">Die Mitgliederliste ist nicht öffentlich sichtbar.</p>
-    {else}
-        <div class="person-list" n:if="$memberInfos" n:inner-foreach="$memberInfos as $info">
-            <div class="person-row">
-                <a href="/user/{$info->userName}" class="person-name">
-                    <span class="profile-image">
-                        {if $info->hasProfilePicture}
-                            <img src="/user/{$info->userName}/profile-picture?size=thumbnail" alt="Profilbild von {$info->realName}">
-                        {else}
-                            {$info->initials}
-                        {/if}
-                    </span>
-                    <span class="person-name-text">{$info->realName}</span>
-                </a>
-                <span>
-                    {if in_array($info, $ownerInfos)}
-                        <span class="badge owner"><i class="ti ti-crown" aria-hidden="true"></i> Gruppenverwalter*in</span>
+    <p n:if="!$showMembers" class="text-muted">Die vollständige Mitgliederliste ist nicht öffentlich sichtbar, hier werden nur die Gruppenverwalter*innen angezeigt.</p>
+
+    <div class="person-list" n:if="$displayInfos" n:inner-foreach="$displayInfos as $info">
+        <div class="person-row">
+            <a href="/user/{$info->userName}" class="person-name">
+                <span class="profile-image">
+                    {if $info->hasProfilePicture}
+                        <img src="/user/{$info->userName}/profile-picture?size=thumbnail" alt="Profilbild von {$info->realName}">
+                    {else}
+                        {$info->initials}
                     {/if}
-                    <button n:if=$mayManage class="remove-btn"
-                        data-action="/groups/{$group->name}/members/{$info->userName}"
-                        onclick="groupAction(this.dataset.action, 'DELETE')"
-                        aria-label="Mitglied entfernen">
-                        <i class="ti ti-x" aria-hidden="true"></i>
-                    </button>
                 </span>
-            </div>
+                <span class="person-name-text">{$info->realName}</span>
+            </a>
+            <span>
+                {if $group->isOwner($info->userName)}
+                    <span class="badge owner"><i class="ti ti-crown" aria-hidden="true"></i> Gruppenverwalter*in</span>
+                {/if}
+                <button n:if="$mayManage && ($isGroupAdmin || $info->userName !== $username || !$group->isOwner($info->userName))"
+                    class="crown-btn{if $group->isOwner($info->userName)} is-owner{/if}"
+                    data-action="/groups/{$group->name}/owners/{$info->userName}"
+                    onclick="groupAction(this.dataset.action, '{if $group->isOwner($info->userName)}DELETE{else}POST{/if}')"
+                    aria-label="{if $group->isOwner($info->userName)}Als Gruppenverwalter*in zurückstufen{else}Zum/zur Gruppenverwalter*in befördern{/if}"
+                    title="{if $group->isOwner($info->userName)}Als Gruppenverwalter*in zurückstufen{else}Zum/zur Gruppenverwalter*in befördern{/if}">
+                    <i class="ti ti-crown" aria-hidden="true"></i>
+                </button>
+                <button n:if="$mayManage && $group->isMember($info->userName)" class="remove-btn"
+                    data-action="/groups/{$group->name}/members/{$info->userName}"
+                    onclick="groupAction(this.dataset.action, 'DELETE')"
+                    aria-label="Mitglied entfernen">
+                    <i class="ti ti-x" aria-hidden="true"></i>
+                </button>
+                <button n:if="$mayManage && !$group->isMember($info->userName)" class="add-btn"
+                    data-action="/groups/{$group->name}/members/{$info->userName}"
+                    onclick="groupAction(this.dataset.action, 'POST')"
+                    aria-label="Als Mitglied hinzufügen"
+                    title="Ist (noch) kein Mitglied &ndash; wieder als Mitglied hinzufügen">
+                    <i class="ti ti-user-plus" aria-hidden="true"></i>
+                </button>
+            </span>
         </div>
-        <p n:if="!$memberInfos" class="text-muted">Noch keine Mitglieder.</p>
-    {/if}
+    </div>
+    <p n:if="!$displayInfos" class="text-muted">Noch keine Mitglieder.</p>
 
     {* Mitglied hinzufügen *}
-    {if $mayManage}
+    {if $mayManage && $showMembers}
     <form class="person-add-form" onsubmit="addMember(event, this)">
         <datalist id="non-members-list">
             {foreach $nonMembers as $info}
@@ -201,49 +242,6 @@
     </form>
     {/if}
 </section>
-
-<section class="panel" aria-labelledby="owners-heading">
-    <div class="panel-heading">
-        <h2 id="owners-heading"><i class="label-icon ti ti-crown" aria-hidden="true"></i>Gruppenverwalter*in{count($ownerInfos) !== 1 ? 'nen'}</h2>
-        <span n:if="count($ownerInfos) !== 1" class="meta-note">{count($ownerInfos)} Gruppenverwalter*innen</span>
-    </div>
-
-    <div class="person-list" n:if="$ownerInfos" n:inner-foreach="$ownerInfos as $info">
-        <div class="person-row">
-            <a href="/user/{$info->userName}" class="person-name">
-                <span class="profile-image">
-                    {if $info->hasProfilePicture}
-                        <img src="/user/{$info->userName}/profile-picture?size=thumbnail" alt="Profilbild von {$info->realName}">
-                    {else}
-                        {$info->initials}
-                    {/if}
-                </span>
-                <span class="person-name-text">{$info->realName}</span>
-            </a>
-            <button class="remove-btn"
-                data-action="/groups/{$group->name}/owners/{$info->userName}"
-                onclick="groupAction(this.dataset.action, 'DELETE')"
-                n:if="$isGroupAdmin || $info->userName !== $username"
-                aria-label="Als Gruppenverwalter*in entfernen">
-                <i class="ti ti-x" aria-hidden="true"></i>
-            </button>
-        </div>
-    </div>
-    <p n:if="!$ownerInfos" class="text-muted">Für diese Gruppe wurden keine Gruppenverwalter*innen definiert.</p>
-
-    <form class="person-add-form" onsubmit="addOwner(event, this)">
-        <datalist id="non-owners-list">
-            {foreach $nonOwners as $info}
-                <option value="{$info->userName}">{$info->realName} ({$info->userName})</option>
-            {/foreach}
-        </datalist>
-        <div class="input-group">
-            <input list="non-owners-list" name="username" type="search" placeholder="Hinzufügen…" autocomplete="off" required>
-            <button type="submit" class="button" aria-label="Gruppenverwalter*in hinzufügen"><i class="ti ti-user-plus" aria-hidden="true"></i></button>
-        </div>
-    </form>
-</section>
-
 
 {/block}
 

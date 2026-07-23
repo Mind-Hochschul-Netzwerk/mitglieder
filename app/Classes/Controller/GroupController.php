@@ -92,33 +92,37 @@ class GroupController extends Controller
             MemberVisibility::Owners  => $isOwner || $isGroupAdmin,
         };
 
-        $memberInfos = [];
-        $ownerInfos = [];
         $nonMembers = [];
-        $nonOwners = [];
 
         $userInfoByUsername = [];
         foreach ($userRepository->getAllUserinfos() as $info) {
             $userInfoByUsername[$info->userName] = $info;
         }
 
+        $ownerInfos = array_map(
+            fn($u) => $userInfoByUsername[$u] ?? new \App\Model\UserInfo(userName: $u, realName: $u),
+            $group->ownerUsernames
+        );
+
+        // owners are always shown (even without member-list access); the rest of the
+        // member list is only added on top when the viewer is allowed to see it
+        $displayInfos = $ownerInfos;
         if ($showMembers) {
             $memberInfos = array_map(
                 fn($u) => $userInfoByUsername[$u] ?? new \App\Model\UserInfo(userName: $u, realName: $u),
                 $group->memberUsernames
             );
+            $displayByUsername = [];
+            foreach ([...$memberInfos, ...$ownerInfos] as $info) {
+                $displayByUsername[$info->userName] = $info;
+            }
+            $displayInfos = array_values($displayByUsername);
         }
+        usort($displayInfos, fn($a, $b) => $a->realName <=> $b->realName);
 
-        $ownerInfos = array_map(
-            fn($u) => $userInfoByUsername[$u] ?? new \App\Model\UserInfo(userName: $u, realName: $u),
-            $group->ownerUsernames
-        );
         foreach ($userInfoByUsername as $info) {
             if (!$group->isMember($info->userName)) {
                 $nonMembers[] = $info;
-            }
-            if (!$group->isOwner($info->userName)) {
-                $nonOwners[] = $info;
             }
         }
         usort($nonMembers, fn($a, $b) => $a->realName <=> $b->realName);
@@ -131,10 +135,8 @@ class GroupController extends Controller
             'isOwner' => $isOwner,
             'mayManage' => $mayManage,
             'showMembers' => $showMembers,
-            'memberInfos' => $memberInfos,
-            'ownerInfos' => $ownerInfos,
+            'displayInfos' => $displayInfos,
             'nonMembers' => $nonMembers,
-            'nonOwners' => $nonOwners,
             'username' => $username,
             'joinPolicyCases' => JoinPolicy::cases(),
             'leavePolicyCases' => LeavePolicy::cases(),
