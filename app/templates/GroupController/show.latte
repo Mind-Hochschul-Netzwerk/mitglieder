@@ -144,7 +144,7 @@
 {/block}
 
 {block title}{$group->displayName ?: $group->name}{/block}
-{block page-label}<i class="ti ti-users-group" aria-hidden="true"></i> <a href="/groups">Gruppen</a>{if $group->category} / {$group->category}{else}Allgemein{/if}{/block}
+{block page-label}<i class="ti ti-users-group" aria-hidden="true"></i> <a href="/groups">Gruppen</a> / {$group->category ?: Sonstiges}{/block}
 
 {block page-header}
 <div class="summary">{$group->description|breakLines}</div>

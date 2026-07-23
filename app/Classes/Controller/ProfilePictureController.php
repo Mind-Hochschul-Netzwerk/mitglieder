@@ -7,9 +7,9 @@ use App\Model\User;
 use App\Repository\UserRepository;
 use App\Service\ImageResizer;
 use Hengeb\Router\Attribute\AllowIf;
+use Hengeb\Router\Attribute\PublicAccess;
 use Hengeb\Router\Attribute\QueryValue;
 use Hengeb\Router\Attribute\RequestValue;
-use Hengeb\Router\Attribute\RequireLogin;
 use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,8 +21,14 @@ class ProfilePictureController extends Controller {
     const thumbnailMaxWidth = 200;
     const thumbnailMaxHeight = 200;
 
-    #[Route('GET /user/{username=>user}/profile-picture'), RequireLogin]
+    #[Route('GET /user/{username=>user}/profile-picture'), PublicAccess]
     public function show(User $user, #[QueryValue] string $size = 'full'): Response {
+        if (!$this->currentUser->isLoggedIn()
+            // Ausnhame: Profilbilder einiger Funktionsträger*innen sind öffentlich sichtbar
+            && !$user->isMemberOfGroup('aufnahme') && !$user->isMemberOfGroup('vorstand')) {
+            return $this->showError('Profilbilder sind nur für eingeloggte Mitglieder sichtbar.', 403);
+        }
+
         if (!$user->get('profilbild') || !is_file($user->profilePicturePath)) {
             return $this->redirect('/img/profilbild-default.png');
         }
