@@ -174,8 +174,9 @@ class UserRepository
         }
 
         $ldapData = [
-            'firstname' => $user->get('vorname'),
-            'lastname' => $user->get('nachname'),
+            'givenName' => $user->get('vorname'),
+            'familyName' => $user->get('nachname'),
+            'fullName' => $user->get('fullName'),
             'email' => $user->get('email'),
         ];
         if ($user->hasPasswordChanged()) {

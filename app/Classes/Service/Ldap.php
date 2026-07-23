@@ -65,8 +65,9 @@ class Ldap
             $list[] = [
                 'id' => $user->getAttribute('employeeNumber')[0],
                 'username' => $user->getAttribute('cn')[0],
-                'firstname' => $user->getAttribute('givenName')[0],
-                'lastname' => $user->getAttribute('sn')[0],
+                'givenName' => $user->getAttribute('givenName')[0],
+                'familyName' => $user->getAttribute('sn')[0],
+                'fullName' => $user->getAttribute('displayName')[0],
                 'email' => $user->getAttribute('mail')[0],
             ];
         }
@@ -130,11 +131,14 @@ class Ldap
 
     private function setAttributes(Entry $entry, array $data): void
     {
-        if (!empty($data['firstname'])) {
-            $entry->setAttribute('givenName', [$data['firstname']]);
+        if (!empty($data['givenName'])) {
+            $entry->setAttribute('givenName', [$data['givenName']]);
         }
-        if (!empty($data['lastname'])) {
-            $entry->setAttribute('sn', [$data['lastname']]);
+        if (!empty($data['familyName'])) {
+            $entry->setAttribute('sn', [$data['familyName']]);
+        }
+        if (!empty($data['fullName'])) {
+            $entry->setAttribute('displayName', [$data['fullName']]);
         }
         if (!empty($data['email'])) {
             $entry->setAttribute('mail', [$data['email']]);
@@ -158,6 +162,7 @@ class Ldap
             'mail' => ['no@mail.invalid'],
             'userPassword' => ['{CRYPT}! no login'],
             'employeeNumber' => ['0'],
+            'displayName' => ['-'],
         ]);
         $this->setAttributes($entry, $data);
         $this->ldap->getEntryManager()->add($entry);
@@ -356,7 +361,7 @@ class Ldap
      *  ['name' => group name,
      *   'description' => description,
      *    'users' => [
-     *        ['id' => uid, 'username' => username, 'firstname' => first name, 'lastname' => last name],
+     *        ['id' => uid, 'username' => username, 'givenName' => first name, 'familyName' => last name, 'fullName' => full name],
      *         ...
      *        ],
      *    ...
@@ -384,8 +389,9 @@ class Ldap
                     return [
                         'id' => $user->getAttribute('employeeNumber')[0],
                         'username' => $user->getAttribute('cn')[0],
-                        'firstname' => $user->getAttribute('givenName')[0],
-                        'lastname' => $user->getAttribute('sn')[0],
+                        'givenName' => $user->getAttribute('givenName')[0],
+                        'familyName' => $user->getAttribute('sn')[0],
+                        'fullName' => $user->getAttribute('displayName')[0],
                     ];
                 }, $group->getAttribute('member'));
                 $members = array_filter($members, function ($entry) {

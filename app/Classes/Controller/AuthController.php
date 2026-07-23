@@ -51,7 +51,7 @@ class AuthController extends Controller {
         $session->remove('oidc_stepup');
 
         if (!$this->currentUser->isLoggedIn()) {
-            $username = $openIdConnect->getUsername();
+            $username = $openIdConnect->username;
             $user = $username ? $this->userRepository->findOneByUsername($username) : null;
             if (!$user) {
                 return $this->showError('Es wurde kein Mitgliedskonto zu diesem Login gefunden. Bitte wende dich an die Mitgliederverwaltung.', 403);

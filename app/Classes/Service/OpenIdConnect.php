@@ -14,6 +14,22 @@ class OpenIdConnect
 {
     private OpenIDConnectClient $client;
 
+    public string $username {
+        get => $this->getUserInfo('preferred_username') ?? '';
+    }
+
+    public string $mail {
+        get => $this->getUserInfo('email') ?? '';
+    }
+
+    public string $firstName {
+        get => $this->getUserInfo('given_name') ?? $this->getUserInfo('preferred_username');
+    }
+
+    public string $fullName {
+        get => $this->getUserInfo('name') ?? ($this->getUserInfo('given_name') . ' ' . $this->getUserInfo('family_name'));
+    }
+
     public function __construct(
         string $providerUrl,
         string $clientId,
@@ -99,13 +115,8 @@ class OpenIdConnect
         return null;
     }
 
-    /**
-     * The username of the authenticated user (OIDC preferred_username claim, mapped to the local username).
-     * Only meaningful after a successful callback.
-     */
-    public function getUsername(): string
+    public function getUserInfo(string $claim): ?string
     {
-        return (string) ($this->client->getVerifiedClaims('preferred_username')
-            ?? $this->client->requestUserInfo('preferred_username'));
+        return (string) ($this->client->getVerifiedClaims($claim) ?? $this->client->requestUserInfo($claim));
     }
 }

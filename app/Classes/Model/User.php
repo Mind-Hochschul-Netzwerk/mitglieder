@@ -92,17 +92,7 @@ class User
         case 'id':
             return (int) $this->data['id'];
         case 'fullName':
-            $vorname = $this->data['vorname'];
-            $nachname = $this->data['nachname'];
-            $fn = $vorname;
-            if ($fn) {
-                $fn .= ' ';
-            }
-            $fn .= $nachname;
-            if (!$fn) {
-                $fn = '#' . $this->data['id'];
-            }
-            return $fn;
+            return implode(' ', array_filter([$this->data['vorname'], $this->data['nachname']])) ?? ('#' . $this->data['id']);
         case 'email':
             return $this->email;
         case 'hashedPassword':
