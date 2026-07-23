@@ -19,7 +19,7 @@ class UserInfo
     }
 
     public string $initials {
-        get => strtoupper(preg_replace('/\B\w|\s+/u', '', $this->realName));
+        get => preg_replace('/[^A-Z]/', '', strtoupper(preg_replace('/\B\w|\s+/u', '', $this->realName)));
     }
 
     public function __construct(
