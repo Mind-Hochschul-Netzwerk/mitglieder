@@ -150,7 +150,7 @@
 <div class="summary">{$group->description|breakLines}</div>
 <div class="meta">
     <span n:if="$group->mailAddress"><i class="ti ti-mail" aria-hidden="true"></i> {$group->mailAddress}</span>
-    <span n:if="$archiveUrl"><a href="{$archiveUrl}" target="_blank" rel="noopener"><i class="ti ti-archive" aria-hidden="true"></i> Archiv</a></span>
+    <span n:if="$archiveUrl"><a href="{$archiveUrl}"><i class="ti ti-archive" aria-hidden="true"></i> Archiv</a></span>
 </div>
 <div class="action-links" n:ifcontent>
     <button n:if="!$isMember && $group->joinPolicy === \App\Model\Enum\JoinPolicy::Open"
