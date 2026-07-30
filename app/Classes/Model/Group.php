@@ -2,11 +2,13 @@
 declare(strict_types=1);
 namespace App\Model;
 
+use App\Model\Enum\ArchiveMode;
 use App\Model\Enum\GroupVisibility;
 use App\Model\Enum\JoinPolicy;
 use App\Model\Enum\LeavePolicy;
 use App\Model\Enum\ListPostPolicy;
 use App\Model\Enum\MemberVisibility;
+use App\Model\Enum\ReplyToBehavior;
 use Symfony\Component\Ldap\Entry;
 
 class Group
@@ -30,8 +32,17 @@ class Group
         public string $listLabel = '',
         public ListPostPolicy $listPostPolicy = ListPostPolicy::Members,
         public string $listSenderRewrite = '{sender-name} (via MHN)',
+        public ReplyToBehavior $replyTo = ReplyToBehavior::List,
+        public ArchiveMode $archive = ArchiveMode::Members,
+        public string $listPasswordCiphertext = '',
+        public string $apiToken = '',
         public private(set) array $unknownDescriptionLines = [],
     ) {}
+
+    public function hasListPassword(): bool
+    {
+        return $this->listPasswordCiphertext !== '';
+    }
 
     public function isMember(string $username): bool
     {

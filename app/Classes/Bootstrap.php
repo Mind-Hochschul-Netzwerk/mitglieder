@@ -19,6 +19,7 @@ use App\Service\CurrentUser;
 use App\Service\EmailService;
 use App\Service\Ldap;
 use App\Service\RateLimiter;
+use App\Service\ListigApi;
 use App\Service\Listmonk;
 use App\Service\OpenIdConnect;
 use Hengeb\Router\Exception\InvalidRouteException;
@@ -107,6 +108,13 @@ class Bootstrap extends ServiceContainer {
             apiUser: getenv('LISTMONK_USER') ?: '',
             apiToken: getenv('LISTMONK_TOKEN') ?: '',
             listId: (int) (getenv('LISTMONK_LIST_ID') ?: 0),
+        ));
+    }
+
+    public function getListigApi(): ListigApi
+    {
+        return $this->createService(ListigApi::class, fn() => new ListigApi(
+            baseUrl: 'https://lists.' . getenv('DOMAINNAME'),
         ));
     }
 

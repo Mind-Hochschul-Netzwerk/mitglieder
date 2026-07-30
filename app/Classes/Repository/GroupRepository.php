@@ -2,11 +2,13 @@
 declare(strict_types=1);
 namespace App\Repository;
 
+use App\Model\Enum\ArchiveMode;
 use App\Model\Enum\GroupVisibility;
 use App\Model\Enum\JoinPolicy;
 use App\Model\Enum\LeavePolicy;
 use App\Model\Enum\ListPostPolicy;
 use App\Model\Enum\MemberVisibility;
+use App\Model\Enum\ReplyToBehavior;
 use App\Model\Group;
 use App\Service\Ldap;
 use Symfony\Component\Ldap\Entry;
@@ -28,6 +30,10 @@ class GroupRepository
         'list-label'      => 'listLabel',
         'post-access'     => 'listPostPolicy',
         'smtp-from-name'  => 'listSenderRewrite',
+        'reply-to'        => 'replyTo',
+        'archive'         => 'archive',
+        'mail-password'   => 'listPasswordCiphertext',
+        'api-token'       => 'apiToken',
     ];
 
     public function __construct(
@@ -72,6 +78,10 @@ class GroupRepository
             $group->isMailGroup   ? 'list-label:'       . $group->listLabel                        : null,
             $group->isMailGroup   ? 'post-access:'      . $group->listPostPolicy->value             : null,
             $group->isMailGroup   ? 'smtp-from-name:'   . $group->listSenderRewrite                 : null,
+            $group->isMailGroup   ? 'reply-to:'         . $group->replyTo->value                    : null,
+            $group->isMailGroup   ? 'archive:'          . $group->archive->value                    : null,
+            $group->isMailGroup && $group->listPasswordCiphertext !== '' ? 'mail-password:' . $group->listPasswordCiphertext : null,
+            $group->isMailGroup && $group->apiToken !== ''               ? 'api-token:'     . $group->apiToken               : null,
         ]));
         $descriptionValues = array_merge($descriptionValues, $group->unknownDescriptionLines);
 
@@ -147,6 +157,10 @@ class GroupRepository
             listLabel:         $config['listLabel'] ?? '',
             listPostPolicy:    ListPostPolicy::tryFrom($config['listPostPolicy'] ?? '') ?? ListPostPolicy::Members,
             listSenderRewrite: $config['listSenderRewrite'] ?? '{sender-name} (via MHN)',
+            replyTo:           ReplyToBehavior::tryFrom($config['replyTo'] ?? '') ?? ReplyToBehavior::List,
+            archive:           ArchiveMode::tryFrom($config['archive'] ?? '') ?? ArchiveMode::Members,
+            listPasswordCiphertext: $config['listPasswordCiphertext'] ?? '',
+            apiToken:          $config['apiToken'] ?? '',
             unknownDescriptionLines: $unknownDescriptionLines,
         );
         $group->ldapEntry = $entry;

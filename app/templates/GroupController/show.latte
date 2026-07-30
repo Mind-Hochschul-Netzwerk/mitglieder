@@ -150,6 +150,7 @@
 <div class="summary">{$group->description|breakLines}</div>
 <div class="meta">
     <span n:if="$group->mailAddress"><i class="ti ti-mail" aria-hidden="true"></i> {$group->mailAddress}</span>
+    <span n:if="$archiveUrl"><a href="{$archiveUrl}" target="_blank" rel="noopener"><i class="ti ti-archive" aria-hidden="true"></i> Archiv</a></span>
 </div>
 <div class="action-links" n:ifcontent>
     <button n:if="!$isMember && $group->joinPolicy === \App\Model\Enum\JoinPolicy::Open"
@@ -358,6 +359,31 @@
                     <input id="edit-listSenderRewrite" name="listSenderRewrite" type="text" value="{$group->listSenderRewrite}" placeholder="{l}sender-name{r} (via MHN)">
                     <small>Platzhalter: <code>{l}sender-name{r}</code> = ursprünglicher Absender</small>
                 </div>
+                <div class="form-group">
+                    <label for="edit-replyTo">Antwort geht an</label>
+                    <select id="edit-replyTo" name="replyTo">
+                        {foreach $replyToCases as $case}
+                            <option value="{$case->value}" n:attr="selected: $case === $group->replyTo">
+                                {=match ($case->value) {
+                                    'list'   => 'Die Liste',
+                                    'sender' => 'Die ursprüngliche Absenderin/den ursprünglichen Absender',
+                                    default  => $case->value
+                                }}
+                            </option>
+                        {/foreach}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Mailserver-Passwort</label>
+                    <p class="text-muted" id="list-password-status">
+                        {if $group->hasListPassword()}
+                            <i class="ti ti-lock" aria-hidden="true"></i> Passwort ist gesetzt.
+                        {else}
+                            <i class="ti ti-lock-open" aria-hidden="true"></i> Kein Passwort gesetzt.
+                        {/if}
+                    </p>
+                    <button type="button" onclick="setListPassword()">Passwort eingeben</button>
+                </div>
             </fieldset>
         </div>
         <div n:if=$isRechteAdmin class="form-group">
@@ -409,6 +435,18 @@ async function addOwner(event, form) {
     event.preventDefault();
     const username = form.querySelector('[name=username]').value;
     await groupAction(`/groups/${groupname}/owners/${username}`, 'POST');
+}
+
+async function setListPassword() {
+    const password = prompt('Neues Passwort für den Mailserver-Zugang der Liste eingeben (leer lassen, um das Passwort zu löschen):');
+    if (password === null) return;
+    const fd = new FormData();
+    fd.append('password', password);
+    try {
+        await callApi('POST', `/groups/${groupname}/list-password`, fd);
+        alert(password === '' ? 'Passwort wurde gelöscht.' : 'Passwort wurde gesetzt.');
+        window.location.reload();
+    } catch (err) { showError(err); }
 }
 {/syntax}
 </script>

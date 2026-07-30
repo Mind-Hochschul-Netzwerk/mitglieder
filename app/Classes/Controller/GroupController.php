@@ -2,16 +2,20 @@
 declare(strict_types=1);
 namespace App\Controller;
 
+use App\Model\Enum\ArchiveMode;
 use App\Model\Enum\GroupVisibility;
 use App\Model\Enum\JoinPolicy;
 use App\Model\Enum\LeavePolicy;
 use App\Model\Enum\ListPostPolicy;
 use App\Model\Enum\MemberVisibility;
+use App\Model\Enum\ReplyToBehavior;
 use App\Model\Group;
 use App\Model\User;
 use App\Repository\GroupRepository;
 use App\Repository\UserRepository;
 use App\Service\EmailService;
+use App\Service\ListigApi;
+use App\Service\ListigPasswordRejectedException;
 use App\Service\RateLimiter;
 use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\PublicAccess;
@@ -92,6 +96,16 @@ class GroupController extends Controller
             MemberVisibility::Owners  => $isOwner || $isGroupAdmin,
         };
 
+        $canViewArchive = match ($group->archive) {
+            ArchiveMode::Public          => true,
+            ArchiveMode::Members         => $isMember || $isOwner,
+            ArchiveMode::Owners          => $isOwner,
+            ArchiveMode::Hidden, ArchiveMode::Off => false,
+        };
+        $archiveUrl = $canViewArchive
+            ? 'https://lists.' . getenv('DOMAINNAME') . '/' . rawurlencode($group->name) . '/archive'
+            : null;
+
         $nonMembers = [];
 
         $userInfoByUsername = [];
@@ -135,6 +149,7 @@ class GroupController extends Controller
             'isOwner' => $isOwner,
             'mayManage' => $mayManage,
             'showMembers' => $showMembers,
+            'archiveUrl' => $archiveUrl,
             'displayInfos' => $displayInfos,
             'nonMembers' => $nonMembers,
             'username' => $username,
@@ -143,6 +158,7 @@ class GroupController extends Controller
             'memberVisibilityCases' => MemberVisibility::cases(),
             'visibilityCases' => GroupVisibility::cases(),
             'listPostPolicyCases' => ListPostPolicy::cases(),
+            'replyToCases' => ReplyToBehavior::cases(),
         ]);
     }
 
@@ -195,6 +211,7 @@ class GroupController extends Controller
             'listLabel'        => 'string',
             'listPostPolicy'   => 'string',
             'listSenderRewrite'=> 'string',
+            'replyTo'          => 'string',
         ]);
 
         $group->displayName = $input['displayName'];
@@ -229,6 +246,9 @@ class GroupController extends Controller
                 $group->listPostPolicy = $listPostPolicy;
             }
             $group->listSenderRewrite = $input['listSenderRewrite'];
+            if ($replyTo = ReplyToBehavior::tryFrom($input['replyTo'])) {
+                $group->replyTo = $replyTo;
+            }
         }
 
         $groupRepository->save($group);
@@ -237,6 +257,61 @@ class GroupController extends Controller
             return $this->json(['success' => true]);
         }
         return $this->redirect('/groups');
+    }
+
+    #[Route('POST /groups/{name=>group}/list-password'), RequireLogin]
+    public function setListPassword(Group $group, GroupRepository $groupRepository, ListigApi $listigApi): Response
+    {
+        $this->requireManage($group);
+
+        if (!$group->isMailGroup) {
+            throw new InvalidUserDataException('Diese Gruppe ist keine Mailingliste.');
+        }
+
+        $input = $this->validatePayload([
+            'password' => 'string required untrimmed',
+        ]);
+
+        if ($input['password'] === '') {
+            $group->listPasswordCiphertext = '';
+            $groupRepository->save($group);
+
+            if ($this->isJsonResponse) {
+                return $this->json(['success' => true]);
+            }
+            return $this->redirect('/groups');
+        }
+
+        // api-token nur temporär setzen, damit Listig sich per Bearer-Token authentifizieren kann;
+        // Listig verschlüsselt das Passwort und schreibt mail-password selbst direkt in denselben
+        // LDAP-Eintrag (encrypt-password gibt das Chiffrat nicht zurück) - daher unten neu einlesen,
+        // bevor der Token wieder entfernt wird, sonst würde ein veralteter Save es überschreiben.
+        $group->apiToken = bin2hex(random_bytes(32));
+        $groupRepository->save($group);
+
+        try {
+            $listigApi->encryptPassword($group->name, $group->apiToken, $input['password']);
+        } catch (ListigPasswordRejectedException $e) {
+            $this->clearListApiToken($group, $groupRepository);
+            throw new InvalidUserDataException('Das Passwort wurde vom Mailserver abgelehnt: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            $this->clearListApiToken($group, $groupRepository);
+            throw new InvalidUserDataException('Passwort konnte nicht gesetzt werden: ' . $e->getMessage());
+        }
+
+        $this->clearListApiToken($group, $groupRepository);
+
+        if ($this->isJsonResponse) {
+            return $this->json(['success' => true]);
+        }
+        return $this->redirect('/groups');
+    }
+
+    private function clearListApiToken(Group $group, GroupRepository $groupRepository): void
+    {
+        $group = $groupRepository->findOneByName($group->name) ?? $group;
+        $group->apiToken = '';
+        $groupRepository->save($group);
     }
 
     #[Route('DELETE /groups/{name=>group}'), AllowIf(role: 'groupadmin')]
