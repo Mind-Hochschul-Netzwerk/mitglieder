@@ -6,4 +6,6 @@ enum ReplyToBehavior: string
 {
     case List = 'list';
     case Sender = 'sender';
+    case Nobody = 'nobody';
+    case Both = 'both';
 }
