@@ -6,8 +6,8 @@ use App\Model\Enum\ArchiveMode;
 use App\Model\Enum\GroupVisibility;
 use App\Model\Enum\JoinPolicy;
 use App\Model\Enum\LeavePolicy;
-use App\Model\Enum\ListPostPolicy;
 use App\Model\Enum\MemberVisibility;
+use App\Model\Enum\PostAccessLevel;
 use App\Model\Enum\ReplyToBehavior;
 use App\Model\Group;
 use App\Service\Ldap;
@@ -26,9 +26,9 @@ class GroupRepository
         'member-visibility' => 'memberVisibility',
         'visibility'      => 'visibility',
         'privileged'      => 'privileged',
-        'mail-group'      => 'isMailGroup',
         'list-label'      => 'listLabel',
-        'post-access'     => 'listPostPolicy',
+        'post-access-members' => 'postAccessMembers',
+        'post-access-public'  => 'postAccessPublic',
         'smtp-from-name'  => 'listSenderRewrite',
         'reply-to'        => 'replyTo',
         'archive'         => 'archive',
@@ -74,14 +74,14 @@ class GroupRepository
             'member-visibility:'   . $group->memberVisibility->value,
             'visibility:'          . $group->visibility->value,
             $group->privileged    ? 'privileged:true'                                              : null,
-            $group->isMailGroup   ? 'mail-group:true'                                              : null,
-            $group->isMailGroup   ? 'list-label:'       . $group->listLabel                        : null,
-            $group->isMailGroup   ? 'post-access:'      . $group->listPostPolicy->value             : null,
-            $group->isMailGroup   ? 'smtp-from-name:'   . $group->listSenderRewrite                 : null,
-            $group->isMailGroup   ? 'reply-to:'         . $group->replyTo->value                    : null,
-            $group->isMailGroup   ? 'archive:'          . $group->archive->value                    : null,
-            $group->isMailGroup && $group->listPasswordCiphertext !== '' ? 'mail-password:' . $group->listPasswordCiphertext : null,
-            $group->isMailGroup && $group->apiToken !== ''               ? 'api-token:'     . $group->apiToken               : null,
+            'list-label:'       . $group->listLabel,
+            'post-access-members:' . $group->postAccessMembers->value,
+            'post-access-public:'  . $group->postAccessPublic->value,
+            'smtp-from-name:'   . $group->listSenderRewrite,
+            'reply-to:'         . $group->replyTo->value,
+            'archive:'          . $group->archive->value,
+            $group->listPasswordCiphertext !== '' ? 'mail-password:' . $group->listPasswordCiphertext : null,
+            $group->apiToken !== ''               ? 'api-token:'     . $group->apiToken               : null,
         ]));
         $descriptionValues = array_merge($descriptionValues, $group->unknownDescriptionLines);
 
@@ -106,7 +106,6 @@ class GroupRepository
             $entry->setAttribute('description',   $descriptionValues);
             $entry->setAttribute('ou',            $group->category !== '' ? [$group->category] : []);
             $entry->setAttribute('mail',          $group->mailAddress !== null ? [$group->mailAddress] : []);
-            $entry->setAttribute('businessCategory', []); // remove legacy field if present
             $this->ldap->updateGroupEntry($entry);
         }
     }
@@ -153,9 +152,9 @@ class GroupRepository
             memberVisibility:  MemberVisibility::tryFrom($config['memberVisibility'] ?? '') ?? MemberVisibility::Members,
             visibility:        GroupVisibility::tryFrom($config['visibility'] ?? '')  ?? GroupVisibility::Public,
             privileged:        ($config['privileged'] ?? '') === 'true',
-            isMailGroup:       ($config['isMailGroup'] ?? '') === 'true',
             listLabel:         $config['listLabel'] ?? '',
-            listPostPolicy:    ListPostPolicy::tryFrom($config['listPostPolicy'] ?? '') ?? ListPostPolicy::Members,
+            postAccessMembers: PostAccessLevel::tryFrom($config['postAccessMembers'] ?? '') ?? PostAccessLevel::Allow,
+            postAccessPublic:  PostAccessLevel::tryFrom($config['postAccessPublic'] ?? '') ?? PostAccessLevel::Deny,
             listSenderRewrite: $config['listSenderRewrite'] ?? '{sender-name} (via MHN)',
             replyTo:           ReplyToBehavior::tryFrom($config['replyTo'] ?? '') ?? ReplyToBehavior::List,
             archive:           ArchiveMode::tryFrom($config['archive'] ?? '') ?? ArchiveMode::Members,

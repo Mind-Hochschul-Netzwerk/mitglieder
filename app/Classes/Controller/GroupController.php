@@ -6,8 +6,8 @@ use App\Model\Enum\ArchiveMode;
 use App\Model\Enum\GroupVisibility;
 use App\Model\Enum\JoinPolicy;
 use App\Model\Enum\LeavePolicy;
-use App\Model\Enum\ListPostPolicy;
 use App\Model\Enum\MemberVisibility;
+use App\Model\Enum\PostAccessLevel;
 use App\Model\Enum\ReplyToBehavior;
 use App\Model\Group;
 use App\Model\User;
@@ -96,6 +96,8 @@ class GroupController extends Controller
             MemberVisibility::Owners  => $isOwner || $isGroupAdmin,
         };
 
+        $showMailAddress = $isMember || $isOwner || $isGroupAdmin || $group->postAccessPublic !== PostAccessLevel::Deny;
+
         $canViewArchive = match ($group->archive) {
             ArchiveMode::Public          => true,
             ArchiveMode::Members         => $isMember || $isOwner,
@@ -149,6 +151,7 @@ class GroupController extends Controller
             'isOwner' => $isOwner,
             'mayManage' => $mayManage,
             'showMembers' => $showMembers,
+            'showMailAddress' => $showMailAddress,
             'archiveUrl' => $archiveUrl,
             'displayInfos' => $displayInfos,
             'nonMembers' => $nonMembers,
@@ -157,7 +160,7 @@ class GroupController extends Controller
             'leavePolicyCases' => LeavePolicy::cases(),
             'memberVisibilityCases' => MemberVisibility::cases(),
             'visibilityCases' => GroupVisibility::cases(),
-            'listPostPolicyCases' => ListPostPolicy::cases(),
+            'postAccessLevelCases' => PostAccessLevel::cases(),
             'replyToCases' => ReplyToBehavior::cases(),
         ]);
     }
@@ -206,10 +209,10 @@ class GroupController extends Controller
             'memberVisibility' => 'string',
             'visibility'       => 'string',
             'privileged'       => 'bool',
-            'isMailGroup'      => 'bool',
             'mailAddress'      => 'string',
             'listLabel'        => 'string',
-            'listPostPolicy'   => 'string',
+            'postAccessMembers'=> 'string',
+            'postAccessPublic' => 'string',
             'listSenderRewrite'=> 'string',
             'replyTo'          => 'string',
         ]);
@@ -237,13 +240,13 @@ class GroupController extends Controller
                 $group->visibility = $visibility;
             }
             $group->mailAddress = $input['mailAddress'] !== '' ? $input['mailAddress'] : null;
-            $group->isMailGroup = $input['isMailGroup'];
-        }
 
-        if ($group->isMailGroup) {
             $group->listLabel = $input['listLabel'];
-            if ($listPostPolicy = ListPostPolicy::tryFrom($input['listPostPolicy'])) {
-                $group->listPostPolicy = $listPostPolicy;
+            if ($postAccessMembers = PostAccessLevel::tryFrom($input['postAccessMembers'])) {
+                $group->postAccessMembers = $postAccessMembers;
+            }
+            if ($postAccessPublic = PostAccessLevel::tryFrom($input['postAccessPublic'])) {
+                $group->postAccessPublic = $postAccessPublic;
             }
             $group->listSenderRewrite = $input['listSenderRewrite'];
             if ($replyTo = ReplyToBehavior::tryFrom($input['replyTo'])) {
@@ -263,10 +266,6 @@ class GroupController extends Controller
     public function setListPassword(Group $group, GroupRepository $groupRepository, ListigApi $listigApi): Response
     {
         $this->requireManage($group);
-
-        if (!$group->isMailGroup) {
-            throw new InvalidUserDataException('Diese Gruppe ist keine Mailingliste.');
-        }
 
         $input = $this->validatePayload([
             'password' => 'string required untrimmed',

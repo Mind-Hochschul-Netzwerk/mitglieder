@@ -114,7 +114,7 @@ class Bootstrap extends ServiceContainer {
     public function getListigApi(): ListigApi
     {
         return $this->createService(ListigApi::class, fn() => new ListigApi(
-            baseUrl: 'https://lists.' . getenv('DOMAINNAME'),
+            baseUrl: 'http://listig',
         ));
     }
 

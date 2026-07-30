@@ -6,8 +6,8 @@ use App\Model\Enum\ArchiveMode;
 use App\Model\Enum\GroupVisibility;
 use App\Model\Enum\JoinPolicy;
 use App\Model\Enum\LeavePolicy;
-use App\Model\Enum\ListPostPolicy;
 use App\Model\Enum\MemberVisibility;
+use App\Model\Enum\PostAccessLevel;
 use App\Model\Enum\ReplyToBehavior;
 use Symfony\Component\Ldap\Entry;
 
@@ -28,9 +28,9 @@ class Group
         public MemberVisibility $memberVisibility = MemberVisibility::Members,
         public GroupVisibility $visibility = GroupVisibility::Public,
         public bool $privileged = false,
-        public bool $isMailGroup = false,
         public string $listLabel = '',
-        public ListPostPolicy $listPostPolicy = ListPostPolicy::Members,
+        public PostAccessLevel $postAccessMembers = PostAccessLevel::Allow,
+        public PostAccessLevel $postAccessPublic = PostAccessLevel::Deny,
         public string $listSenderRewrite = '{sender-name} (via MHN)',
         public ReplyToBehavior $replyTo = ReplyToBehavior::List,
         public ArchiveMode $archive = ArchiveMode::Members,

@@ -149,7 +149,7 @@
 {block page-header}
 <div class="summary">{$group->description|breakLines}</div>
 <div class="meta">
-    <span n:if="$group->mailAddress"><i class="ti ti-mail" aria-hidden="true"></i> {$group->mailAddress}</span>
+    <span n:if="$group->mailAddress && $showMailAddress"><i class="ti ti-mail" aria-hidden="true"></i> {$group->mailAddress}</span>
     <span n:if="$archiveUrl"><a href="{$archiveUrl}"><i class="ti ti-archive" aria-hidden="true"></i> Archiv</a></span>
 </div>
 <div class="action-links" n:ifcontent>
@@ -181,7 +181,7 @@
 <section class="panel" aria-labelledby="members-heading">
     <div class="panel-heading">
         <h2 id="members-heading"><i class="label-icon ti ti-users" aria-hidden="true"></i>Mitglieder</h2>
-        <span n:if=$displayInfos class="meta-note">{count($displayInfos)} Mitglied{count($displayInfos) !== 1 ? 'er'}</span>
+        <span n:if=$displayInfos class="meta-note" id="member-count" data-count="{count($displayInfos)}">{count($displayInfos)} Mitglied{count($displayInfos) !== 1 ? 'er'}</span>
     </div>
 
     <p n:if="!$showMembers" class="text-muted">Die vollständige Mitgliederliste ist nicht öffentlich sichtbar, hier werden nur die Gruppenverwalter*innen angezeigt.</p>
@@ -205,20 +205,23 @@
                 <button n:if="$mayManage && ($isGroupAdmin || $info->userName !== $username || !$group->isOwner($info->userName))"
                     class="crown-btn{if $group->isOwner($info->userName)} is-owner{/if}"
                     data-action="/groups/{$group->name}/owners/{$info->userName}"
-                    onclick="groupAction(this.dataset.action, '{if $group->isOwner($info->userName)}DELETE{else}POST{/if}')"
+                    data-username="{$info->userName}"
+                    onclick="toggleOwner(this)"
                     aria-label="{if $group->isOwner($info->userName)}Als Gruppenverwalter*in zurückstufen{else}Zum/zur Gruppenverwalter*in befördern{/if}"
                     title="{if $group->isOwner($info->userName)}Als Gruppenverwalter*in zurückstufen{else}Zum/zur Gruppenverwalter*in befördern{/if}">
                     <i class="ti ti-crown" aria-hidden="true"></i>
                 </button>
                 <button n:if="$mayManage && $group->isMember($info->userName)" class="remove-btn"
                     data-action="/groups/{$group->name}/members/{$info->userName}"
-                    onclick="groupAction(this.dataset.action, 'DELETE')"
+                    data-username="{$info->userName}"
+                    onclick="removeMember(this)"
                     aria-label="Mitglied entfernen">
                     <i class="ti ti-x" aria-hidden="true"></i>
                 </button>
                 <button n:if="$mayManage && !$group->isMember($info->userName)" class="add-btn"
                     data-action="/groups/{$group->name}/members/{$info->userName}"
-                    onclick="groupAction(this.dataset.action, 'POST')"
+                    data-username="{$info->userName}"
+                    onclick="addBackMember(this)"
                     aria-label="Als Mitglied hinzufügen"
                     title="Ist (noch) kein Mitglied &ndash; wieder als Mitglied hinzufügen">
                     <i class="ti ti-user-plus" aria-hidden="true"></i>
@@ -330,7 +333,7 @@
                 <input id="edit-mailAddress" name="mailAddress" type="email" value="{$group->mailAddress}" placeholder="gruppe@example.org">
             </div>
             <label class="checkbox-label">
-                <input type="checkbox" id="is-mail-group" name="isMailGroup" n:attr="checked: $group->isMailGroup">
+                <input type="checkbox" id="is-mail-group" n:attr="checked: $group->hasListPassword()">
                 Diese Gruppe ist eine Mailingliste
             </label>
             <fieldset>
@@ -340,15 +343,30 @@
                     <input id="edit-listLabel" name="listLabel" type="text" value="{$group->listLabel}" placeholder="[{$group->displayName ?: $group->name}]">
                 </div>
                 <div class="form-group">
-                    <label for="edit-listPostPolicy">Wer darf schreiben</label>
-                    <select id="edit-listPostPolicy" name="listPostPolicy">
-                        {foreach $listPostPolicyCases as $case}
-                            <option value="{$case->value}" n:attr="selected: $case === $group->listPostPolicy">
+                    <label for="edit-postAccessMembers">Posten durch Gruppenmitglieder</label>
+                    <select id="edit-postAccessMembers" name="postAccessMembers">
+                        {foreach $postAccessLevelCases as $case}
+                            <option value="{$case->value}" n:attr="selected: $case === $group->postAccessMembers">
                                 {=match ($case->value) {
-                                    'all'     => 'Alle (auch Nicht-Mitglieder)',
-                                    'members' => 'Nur Gruppenmitglieder',
-                                    'owners'  => 'Nur Gruppenverwalter*innen',
-                                    default   => $case->value
+                                    'allow'    => 'Erlaubt',
+                                    'moderate' => 'Nur nach Freigabe',
+                                    'deny'     => 'Nicht erlaubt',
+                                    default    => $case->value
+                                }}
+                            </option>
+                        {/foreach}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-postAccessPublic">Posten durch Nicht-Mitglieder</label>
+                    <select id="edit-postAccessPublic" name="postAccessPublic">
+                        {foreach $postAccessLevelCases as $case}
+                            <option value="{$case->value}" n:attr="selected: $case === $group->postAccessPublic">
+                                {=match ($case->value) {
+                                    'allow'    => 'Erlaubt',
+                                    'moderate' => 'Nur nach Freigabe',
+                                    'deny'     => 'Nicht erlaubt',
+                                    default    => $case->value
                                 }}
                             </option>
                         {/foreach}
@@ -410,6 +428,8 @@
 
 <script>
 groupname = {$group->name};
+currentUsername = {$username};
+isGroupAdmin = {if $isGroupAdmin}true{else}false{/if};
 {syntax off}
 async function groupAction(url, method, successMessage) {
     try {
@@ -439,6 +459,96 @@ async function addOwner(event, form) {
     await groupAction(`/groups/${groupname}/owners/${username}`, 'POST');
 }
 
+function updateMemberCount(delta) {
+    const el = document.getElementById('member-count');
+    if (!el) return;
+    const n = parseInt(el.dataset.count, 10) + delta;
+    el.dataset.count = n;
+    el.textContent = `${n} Mitglied${n !== 1 ? 'er' : ''}`;
+}
+
+function makeMemberButton(kind, action, username) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.dataset.action = action;
+    btn.dataset.username = username;
+    const icon = document.createElement('i');
+    icon.setAttribute('aria-hidden', 'true');
+    if (kind === 'remove') {
+        btn.className = 'remove-btn';
+        btn.onclick = () => removeMember(btn);
+        btn.setAttribute('aria-label', 'Mitglied entfernen');
+        icon.className = 'ti ti-x';
+    } else {
+        btn.className = 'add-btn';
+        btn.onclick = () => addBackMember(btn);
+        btn.setAttribute('aria-label', 'Als Mitglied hinzufügen');
+        btn.title = 'Ist (noch) kein Mitglied – wieder als Mitglied hinzufügen';
+        icon.className = 'ti ti-user-plus';
+    }
+    btn.appendChild(icon);
+    return btn;
+}
+
+async function toggleOwner(button) {
+    const wasOwner = button.classList.contains('is-owner');
+    const username = button.dataset.username;
+    try {
+        await callApi(wasOwner ? 'DELETE' : 'POST', button.dataset.action, new FormData());
+        const nowOwner = !wasOwner;
+        const row = button.closest('.person-row');
+        const actionsSpan = row.querySelector('.person-name + span');
+        let badge = actionsSpan.querySelector('.badge.owner');
+        if (nowOwner && !badge) {
+            badge = document.createElement('span');
+            badge.className = 'badge owner';
+            const icon = document.createElement('i');
+            icon.className = 'ti ti-crown';
+            icon.setAttribute('aria-hidden', 'true');
+            badge.appendChild(icon);
+            badge.append(' Gruppenverwalter*in');
+            actionsSpan.insertBefore(badge, actionsSpan.firstChild);
+        } else if (!nowOwner && badge) {
+            badge.remove();
+        }
+        button.classList.toggle('is-owner', nowOwner);
+        const label = nowOwner ? 'Als Gruppenverwalter*in zurückstufen' : 'Zum/zur Gruppenverwalter*in befördern';
+        button.setAttribute('aria-label', label);
+        button.title = label;
+        // Selbst-Herabstufung ist serverseitig nur für Gruppenadmins erlaubt (siehe removeOwner) -
+        // der Button darf dann für die eigene Zeile nicht mehr angeboten werden.
+        if (nowOwner && username === currentUsername && !isGroupAdmin) {
+            button.remove();
+        }
+    } catch (err) { showError(err); }
+}
+
+async function removeMember(button) {
+    const username = button.dataset.username;
+    const action = button.dataset.action;
+    const row = button.closest('.person-row');
+    const isOwner = row.querySelector('.badge.owner') !== null;
+    try {
+        await callApi('DELETE', action, new FormData());
+        if (isOwner) {
+            // Owner bleiben immer sichtbar, auch ohne Mitgliedschaft - Button wird zum Wieder-hinzufügen-Button
+            button.replaceWith(makeMemberButton('add', action, username));
+        } else {
+            row.remove();
+            updateMemberCount(-1);
+        }
+    } catch (err) { showError(err); }
+}
+
+async function addBackMember(button) {
+    const username = button.dataset.username;
+    const action = button.dataset.action;
+    try {
+        await callApi('POST', action, new FormData());
+        button.replaceWith(makeMemberButton('remove', action, username));
+    } catch (err) { showError(err); }
+}
+
 async function setListPassword() {
     const password = prompt('Neues Passwort für den Mailserver-Zugang der Liste eingeben (leer lassen, um das Passwort zu löschen):');
     if (password === null) return;
@@ -446,8 +556,12 @@ async function setListPassword() {
     fd.append('password', password);
     try {
         await callApi('POST', `/groups/${groupname}/list-password`, fd);
-        alert(password === '' ? 'Passwort wurde gelöscht.' : 'Passwort wurde gesetzt.');
-        window.location.reload();
+        const hasPassword = password !== '';
+        document.getElementById('list-password-status').innerHTML = hasPassword
+            ? '<i class="ti ti-lock" aria-hidden="true"></i> Passwort ist gesetzt.'
+            : '<i class="ti ti-lock-open" aria-hidden="true"></i> Kein Passwort gesetzt.';
+        document.getElementById('is-mail-group').checked = hasPassword;
+        alert(hasPassword ? 'Passwort wurde gesetzt.' : 'Passwort wurde gelöscht.');
     } catch (err) { showError(err); }
 }
 {/syntax}
