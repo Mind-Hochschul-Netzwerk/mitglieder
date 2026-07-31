@@ -982,8 +982,6 @@ dl {
 
 /* ── Prose (Datenschutz etc.) ─────────────────────────────── */
 .prose {
-  max-width: 72ch;
-
   h2 {
     font-size: 1.2rem;
     margin: 2rem 0 0.6rem;
@@ -1109,7 +1107,6 @@ table {
     transition: background 0.1s;
 
     &:last-child td { border-bottom: none; }
-    &:hover td { background: var(--accent-soft); }
     &.active td { color: var(--accent); font-weight: 600; }
     &.active td:first-child { color: var(--accent); }
   }
@@ -1144,6 +1141,10 @@ table.clickable td { cursor: pointer; }
 
 @media (max-width: 959px) {
   .sidebar { width: min(280px, 80vw); }
+}
+
+pre {
+    white-space: pre-wrap;
 }
 
 /* ── Ladeanimation ───────────────────────────────────────── */
