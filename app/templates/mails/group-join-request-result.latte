@@ -1,0 +1,11 @@
+{layout html-mail-layout.latte}
+{var $return->subject = ($action === 'approve' ? 'Beitrittsanfrage angenommen: ' : 'Beitrittsanfrage abgelehnt: ') . ($group->displayName ?: $group->name)}
+{block content}
+<p>Hallo,</p>
+{if $action === 'approve'}
+<p>deine Anfrage, der Gruppe <strong>{$group->displayName ?: $group->name}</strong> beizutreten, wurde angenommen. Du bist jetzt Mitglied.</p>
+{else}
+<p>deine Anfrage, der Gruppe <strong>{$group->displayName ?: $group->name}</strong> beizutreten, wurde leider abgelehnt.</p>
+{/if}
+<p>Viele Grüße,<br>dein MHN-Mitgliederportal</p>
+{/block}

@@ -21,13 +21,26 @@ function formatTime(timestamp, includeDate = true, includeTime = true) {
     return timestamp.toLocaleDateString("de-DE", options);
 }
 
+function showLoader(loader = document.querySelector(".loader")) {
+    loader.classList.remove("hidden");
+    // Popover API hebt den Loader in die Top Layer, damit er auch über einem
+    // bereits geöffneten <dialog> sichtbar ist (normales z-index reicht dafür nicht,
+    // da <dialog> beim Öffnen ebenfalls in die Top Layer wechselt).
+    if (loader.showPopover && !loader.matches(":popover-open")) {
+        loader.showPopover();
+    }
+}
+
+function hideLoader(loader = document.querySelector(".loader")) {
+    loader.classList.add("hidden");
+    if (loader.hidePopover && loader.matches(":popover-open")) {
+        loader.hidePopover();
+    }
+}
+
 let csrfToken = "";
 async function callApi(method = "GET", url = "", data = {}, loader = undefined) {
-    if (!loader) {
-        loader = document.querySelector(".loader");
-    }
-
-    loader.classList.remove("hidden");
+    showLoader(loader);
 
     try {
         if (data instanceof FormData && data.has("_csrfToken")) {
@@ -52,7 +65,7 @@ async function callApi(method = "GET", url = "", data = {}, loader = undefined) 
         const token = response.headers.get("x-csrf-token");
         if (token) csrfToken = token;
 
-        loader.classList.add("hidden");
+        hideLoader(loader);
 
         if (!response.ok) {
             let message = `HTTP ${response.status}`;
@@ -71,7 +84,7 @@ async function callApi(method = "GET", url = "", data = {}, loader = undefined) 
         return await response.json();
 
     } catch (err) {
-        loader.classList.add("hidden");
+        hideLoader(loader);
         throw err;
     }
 }

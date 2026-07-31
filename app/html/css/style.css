@@ -1150,30 +1150,64 @@ table.clickable td { cursor: pointer; }
 
 .loader {
     display: grid;
-}
+    border: none;
+    padding: 0;
+    background: none;
+    /* die [popover]-UA-Defaults (inset:0; margin:auto) überschreiben sonst rechts/unten
+       und stören die eigene Zentrierung unten */
+    inset: auto;
+    margin: 0;
 
-.loader:not(.hidden) {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1000;
-    @media (min-width: 960px) {
-        left: calc(50% + var(--sidebar-w) / 2);
+    &:not(.hidden) {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        @media (min-width: 960px) {
+            left: calc(50% + var(--sidebar-w) / 2);
+        }
+    }
+
+    /* nur wirksam, wenn der Loader per Popover API angezeigt wird (siehe MHN.js) -
+       display/overlay mit allow-discrete sorgen dafür, dass der Backdrop beim Schließen
+       nicht sofort aus der Top Layer verschwindet, sondern erst nach Ende der
+       background-color/backdrop-filter-Transition - sonst wäre vom Ausblenden nichts zu sehen. */
+    &::backdrop {
+        background-color: rgba(0, 0, 0, 0);
+        backdrop-filter: blur(0px);
+        transition:
+            background-color .2s ease,
+            backdrop-filter .2s ease,
+            display .2s allow-discrete,
+            overlay .2s allow-discrete;
+    }
+
+    /* Verzögerung nur beim Einblenden (siehe oben, gegen Aufblitzen bei schnellen
+       API-Antworten) - beim Ausblenden gilt die Basisregel ohne Delay */
+    &:popover-open::backdrop {
+        background-color: rgba(0, 0, 0, .25);
+        backdrop-filter: blur(3px);
+        transition-delay: .3s;
+        @starting-style {
+            background-color: rgba(0, 0, 0, 0);
+            backdrop-filter: blur(0px);
+        }
+    }
+
+    &::before {
+        place-self: center;
+        content: "";
+        width: 32px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        border: 4px solid #514b82;
+        animation:
+            l20-1 1s infinite linear alternate,
+            l20-2 2s infinite linear;
     }
 }
 
-.loader::before {
-    place-self: center;
-    content: "";
-    width: 32px;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    border: 4px solid #514b82;
-    animation:
-        l20-1 1s infinite linear alternate,
-        l20-2 2s infinite linear;
-}
 /* https://css-loaders.com/spinner/ */
 @keyframes l20-1 {
     0%    {clip-path: polygon(50% 50%,0       0,  50%   0%,  50%    0%, 50%    0%, 50%    0%, 50%    0% )}

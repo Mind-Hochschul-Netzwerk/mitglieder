@@ -428,6 +428,8 @@ class GroupController extends Controller
     public function handleJoinRequest(
         string $token,
         GroupRepository $groupRepository,
+        UserRepository $userRepository,
+        EmailService $emailService,
     ): Response {
         $action = '';
         $groupName = '';
@@ -455,10 +457,28 @@ class GroupController extends Controller
             $groupRepository->save($group);
         }
 
+        $requester = null;
+        if ($action === 'approve' || $action === 'reject') {
+            $requester = $userRepository->findOneByUsername($username);
+            if ($requester !== null) {
+                $body = $this->renderToString('mails/group-join-request-result', [
+                    'action' => $action,
+                    'group' => $group,
+                    'return' => $return = new \stdclass(),
+                ]);
+                try {
+                    $emailService->sendToUser($requester, $return->subject, $body, ['Content-Type' => 'text/html; charset=UTF-8']);
+                } catch (\RuntimeException) {
+                    // die Aktion selbst ist bereits erfolgt; ein Mailversandfehler soll die Ergebnisseite nicht verhindern
+                }
+            }
+        }
+
         return $this->render('GroupController/join-request-result', [
             'action' => $action,
             'group' => $group,
             'username' => $username,
+            'requester' => $requester,
         ]);
     }
 

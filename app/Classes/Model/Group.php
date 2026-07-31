@@ -15,9 +15,13 @@ class Group
 {
     public ?Entry $ldapEntry = null;
 
+    public string $displayName {
+        get => $this->displayName !== '' ? $this->displayName : $this->name;
+    }
+
     public function __construct(
         public readonly string $name,
-        public string $displayName = '',
+        string $displayName = '',
         public string $description = '',
         public string $category = '',
         public private(set) array $memberUsernames = [],
@@ -37,7 +41,9 @@ class Group
         public string $listPasswordCiphertext = '',
         public string $apiToken = '',
         public private(set) array $unknownDescriptionLines = [],
-    ) {}
+    ) {
+        $this->displayName = $displayName;
+    }
 
     public function hasListPassword(): bool
     {

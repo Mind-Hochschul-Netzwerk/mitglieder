@@ -157,6 +157,7 @@ class Controller {
             $e instanceof AccessDeniedException => ['fehlende Rechte', 403],
             $e instanceof InvalidCsrfTokenException => ['Die Anfrage kann nicht wiederholt werden.', 400],
             $e instanceof InvalidUserDataException => ['fehlerhafte Eingabedaten', 400],
+            $e instanceof \Latte\CompileException => throw $e,
             default => (function () use ($e): array {
                 error_log($e->getMessage());
                 error_log($e->getTraceAsString());

@@ -54,6 +54,10 @@ class User
         get => $this->get('profilbild') ? '/user/' . $this->get('username') . '/profile-picture?size=thumbnail&' . filemtime($this->thumbnailPath) : '';
     }
 
+    public string $fullName {
+        get => $this->get('fullName');
+    }
+
     public function __construct(
         private Ldap $ldap,
         private UserRepository $userRepository,
