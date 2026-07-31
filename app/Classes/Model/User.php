@@ -58,6 +58,10 @@ class User
         get => $this->get('fullName');
     }
 
+    public string $initials {
+        get => preg_replace('/[^A-Z]/', '', strtoupper(preg_replace('/\B\w|\s+/u', '', $this->fullName)));
+    }
+
     public function __construct(
         private Ldap $ldap,
         private UserRepository $userRepository,

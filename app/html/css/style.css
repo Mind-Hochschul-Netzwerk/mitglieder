@@ -875,6 +875,7 @@ dialog, .page-header {
         color: var(--accent);
         font-size: 1.1rem;
         font-weight: 700;
+        overflow: hidden;
       }
     }
   }
@@ -903,6 +904,8 @@ dialog, .page-header {
   color: var(--muted);
   margin-top: auto;
   min-height: 1.5em;
+  white-space: nowrap;
+  overflow: hidden;
 
   .ti { font-size: 0.9rem; color: var(--accent); }
 }

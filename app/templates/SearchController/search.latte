@@ -173,7 +173,7 @@ main form {
                     {if $e[thumbnail]}
                         <img src="{$e[thumbnail]}" alt="Profilbild von {$e[fullName]}">
                     {else}
-                        <div class="card-image-placeholder" aria-hidden="true">{$e[vorname][0].$e[nachname][0]|upper}</div>
+                        <div class="card-image-placeholder" aria-hidden="true">{$e[initials]}</div>
                     {/if}
                 </div>
 

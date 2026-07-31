@@ -372,6 +372,7 @@ class SearchController extends Controller {
                 'vorname' => $user->get('vorname'),
                 'nachname' => $user->get('nachname'),
                 'fullName' => $user->get('fullName'),
+                'initials' => $user->initials,
                 'username' => $user->get('username'),
                 'orte' => implode(', ', $orte),
                 'thumbnail' => $user->thumbnailUrl,
