@@ -402,7 +402,7 @@
                             <i class="ti ti-lock-open" aria-hidden="true"></i> Kein Passwort gesetzt.
                         {/if}
                     </p>
-                    <button type="button" onclick="setListPassword()">Passwort eingeben</button>
+                    <button type="button" onclick="setListPassword(this)">Passwort eingeben</button>
                 </div>
             </fieldset>
         </div>
@@ -549,11 +549,14 @@ async function addBackMember(button) {
     } catch (err) { showError(err); }
 }
 
-async function setListPassword() {
+async function setListPassword(button) {
     const password = prompt('Neues Passwort für den Mailserver-Zugang der Liste eingeben (leer lassen, um das Passwort zu löschen):');
     if (password === null) return;
-    const fd = new FormData();
-    fd.append('password', password);
+    // schickt das ganze Formular mit (nicht nur das Passwort), damit z.B. bei einer noch nicht
+    // gespeicherten neuen Liste die restliche Konfiguration (v.a. mailAddress) zusammen mit dem
+    // Passwort gespeichert wird - siehe GroupController::setListPassword()
+    const fd = new FormData(button.closest('form'));
+    fd.set('password', password);
     try {
         await callApi('POST', `/groups/${groupname}/list-password`, fd);
         const hasPassword = password !== '';

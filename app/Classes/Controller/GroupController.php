@@ -239,19 +239,7 @@ class GroupController extends Controller
             if ($visibility = GroupVisibility::tryFrom($input['visibility'])) {
                 $group->visibility = $visibility;
             }
-            $group->mailAddress = $input['mailAddress'] !== '' ? $input['mailAddress'] : null;
-
-            $group->listLabel = $input['listLabel'];
-            if ($postAccessMembers = PostAccessLevel::tryFrom($input['postAccessMembers'])) {
-                $group->postAccessMembers = $postAccessMembers;
-            }
-            if ($postAccessPublic = PostAccessLevel::tryFrom($input['postAccessPublic'])) {
-                $group->postAccessPublic = $postAccessPublic;
-            }
-            $group->listSenderRewrite = $input['listSenderRewrite'];
-            if ($replyTo = ReplyToBehavior::tryFrom($input['replyTo'])) {
-                $group->replyTo = $replyTo;
-            }
+            $this->applyListSettings($group, $input);
         }
 
         $groupRepository->save($group);
@@ -268,8 +256,22 @@ class GroupController extends Controller
         $this->requireManage($group);
 
         $input = $this->validatePayload([
-            'password' => 'string required untrimmed',
+            'password'         => 'string required untrimmed',
+            'mailAddress'      => 'string',
+            'listLabel'        => 'string',
+            'postAccessMembers'=> 'string',
+            'postAccessPublic' => 'string',
+            'listSenderRewrite'=> 'string',
+            'replyTo'          => 'string',
         ]);
+
+        // die Listeneinstellungen kommen aus demselben Dialog wie update() und werden hier mit
+        // gespeichert - sonst würde bei einer noch nicht gespeicherten (z.B. neu angelegten) Liste
+        // das Passwort gesetzt, obwohl der Rest der Konfiguration (insb. mailAddress, das Listig
+        // als IMAP-Benutzername verwendet) noch fehlt, wodurch die Verifikation fehlschlägt.
+        if ($this->currentUser->hasRole('groupadmin')) {
+            $this->applyListSettings($group, $input);
+        }
 
         if ($input['password'] === '') {
             $group->listPasswordCiphertext = '';
@@ -311,6 +313,22 @@ class GroupController extends Controller
         $group = $groupRepository->findOneByName($group->name) ?? $group;
         $group->apiToken = '';
         $groupRepository->save($group);
+    }
+
+    private function applyListSettings(Group $group, array $input): void
+    {
+        $group->mailAddress = $input['mailAddress'] !== '' ? $input['mailAddress'] : null;
+        $group->listLabel = $input['listLabel'];
+        if ($postAccessMembers = PostAccessLevel::tryFrom($input['postAccessMembers'])) {
+            $group->postAccessMembers = $postAccessMembers;
+        }
+        if ($postAccessPublic = PostAccessLevel::tryFrom($input['postAccessPublic'])) {
+            $group->postAccessPublic = $postAccessPublic;
+        }
+        $group->listSenderRewrite = $input['listSenderRewrite'];
+        if ($replyTo = ReplyToBehavior::tryFrom($input['replyTo'])) {
+            $group->replyTo = $replyTo;
+        }
     }
 
     #[Route('DELETE /groups/{name=>group}'), AllowIf(role: 'groupadmin')]
