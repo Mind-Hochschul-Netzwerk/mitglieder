@@ -101,7 +101,7 @@ class GroupController extends Controller
         $showMailAddress = !$group->hasListPassword()
             || $isMember || $isOwner || $isGroupAdmin || $group->postAccessPublic !== PostAccessLevel::Deny;
 
-        $canViewArchive = match ($group->archive) {
+        $canViewArchive = $group->hasListPassword() && match ($group->archive) {
             ArchiveMode::Public          => true,
             ArchiveMode::Members         => $isMember || $isOwner,
             ArchiveMode::Owners          => $isOwner,
