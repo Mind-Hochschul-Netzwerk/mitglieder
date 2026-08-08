@@ -137,14 +137,15 @@ class GroupController extends Controller
             }
             $displayInfos = array_values($displayByUsername);
         }
-        usort($displayInfos, fn($a, $b) => $a->realName <=> $b->realName);
+        $collator = new \Collator('de_DE');
+        usort($displayInfos, fn($a, $b) => $collator->compare($a->realName, $b->realName));
 
         foreach ($userInfoByUsername as $info) {
             if (!$group->isMember($info->userName)) {
                 $nonMembers[] = $info;
             }
         }
-        usort($nonMembers, fn($a, $b) => $a->realName <=> $b->realName);
+        usort($nonMembers, fn($a, $b) => $collator->compare($a->realName, $b->realName));
 
         return $this->render('GroupController/show', [
             'group' => $group,
