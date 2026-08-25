@@ -375,14 +375,9 @@
             <span class="label-icon ti ti-settings" aria-hidden="true"></span>Mitgliedsverwaltung
         </h2>
 
-        {if $isSuperAdmin}
-            {include private-form-group, 'Gruppen ändern', groups, placeholder: "Trennen durch Komma. Mögliche Werte siehe Menüpunkt „Mitgliederverwaltung”"}
-        {else}
-            <dl>
-                <dt>Gruppen</dt>
-                <dd>{$groups}</dd>
-            </dl>
-        {/if}
+        <label>Gruppen</label>
+        <p>{foreach explode(', ', $groups) as $group}<a href="/groups/{$group}">{$group}</a>{sep}, {/sep}{/foreach}</p>
+        <a href="/groups" class="button"><i class="ti ti-users-group" aria-hidden="true"></i> Gruppen ändern</a>
 
         <div class="form-group">
             <label for="delete">Mitglied löschen</label>

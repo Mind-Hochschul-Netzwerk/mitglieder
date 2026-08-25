@@ -312,25 +312,6 @@ class User
         return $this->ldap->getGroupsByUsername($this->get('username'));
     }
 
-    /**
-     * @throws \OutOfRangeException one of the new groups is invalid
-     */
-    public function setGroups(array $groupNames): void
-    {
-        $username = $this->get('username');
-
-        $groupNames = array_map('strtolower', $groupNames);
-        $oldGroupNames = array_map('strtolower', $this->getGroups());
-
-        foreach(array_diff($oldGroupNames, $groupNames) as $groupName) {
-            $this->ldap->removeUserFromGroup($username, $groupName);
-        }
-
-        foreach(array_diff($groupNames, $oldGroupNames) as $groupName) {
-            $this->ldap->addUserToGroup($username, $groupName);
-        }
-    }
-
     public function deleteProfilePicture(): void
     {
         if ($this->get('profilbild') && is_file(User::PROFILE_PICUTRE_DIRECTORY . '/' . $this->get('profilbild'))) {

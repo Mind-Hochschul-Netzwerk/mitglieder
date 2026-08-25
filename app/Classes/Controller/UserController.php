@@ -200,21 +200,6 @@ class UserController extends Controller {
         }
     }
 
-    private function updateGroups(User $user): void {
-        $input = $this->validatePayload(['groups' => 'string']);
-        $groups = array_filter(array_unique(preg_split('/[\s,]+/', $input['groups'])));
-
-        if ($this->currentUser->get('id') ===  $user->get('id') && (!in_array('rechte', $groups, true))) {
-            throw new AccessDeniedException('Du kannst dir das Recht zur Rechtverwaltung nicht selbst entziehen.');
-        }
-
-        try {
-            $user->setGroups($groups);
-        } catch (\Exception $e) {
-            $this->setTemplateVariable('errorMessage', 'Beim Setzen der Gruppen ist ein Fehler aufgetreten.');
-        }
-    }
-
     /**
      * Admin-initiated resignation toggling via the edit form. Self-service resignation goes
      * through the dedicated step-up flow (resignForm()/resign()).
@@ -358,11 +343,6 @@ class UserController extends Controller {
             if ($this->request->getPayload()->getBoolean('delete')) {
                 return $this->delete($user);
             }
-        }
-
-        // Gruppen aktualisieren
-        if ($this->currentUser->hasRole('rechte')) {
-            $this->updateGroups($user);
         }
 
         // Austritt erklären
