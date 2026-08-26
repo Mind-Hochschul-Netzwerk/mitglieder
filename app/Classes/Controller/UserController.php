@@ -18,19 +18,289 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller {
     // Liste der vom Mitglied änderbaren Strings, deren Werte nicht geprüft werden
-    const bearbeiten_strings_ungeprueft = ['titel', 'mensa_nr', 'strasse', 'adresszusatz', 'plz', 'ort', 'land', 'strasse2', 'adresszusatz2', 'plz2', 'ort2', 'land2', 'telefon', 'homepage', 'sprachen', 'hobbys', 'interessen', 'studienort', 'studienfach', 'unityp', 'schwerpunkt', 'nebenfach', 'abschluss', 'zweitstudium', 'hochschulaktivitaeten', 'stipendien', 'auslandsaufenthalte', 'praktika', 'beruf', 'aufgabe_sonstiges_beschreibung'];
+    /* @var string[] */
+    private array $bearbeiten_strings_ungeprueft = [
+        'titel',
+        'mensa_nr',
+        'strasse', 'adresszusatz', 'plz', 'ort',
+        'strasse2', 'adresszusatz2', 'plz2', 'ort2',
+        'telefon', 'homepage',
+        'sprachen', 'hobbys', 'interessen',
+        'studienort', 'studienfach', 'unityp', 'schwerpunkt', 'nebenfach', 'abschluss', 'zweitstudium',
+        'ehrenamt', 'stipendien', 'auslandsaufenthalte', 'praktika',
+        'beruf', 'fruehere_taetigkeiten',
+        'aufgabe_freitext',
+    ];
 
-    // Liste der vom Mitglied änderbaren Booleans
-    const bearbeiten_bool_ungeprueft = ['sichtbarkeit_email', 'sichtbarkeit_geburtstag', 'sichtbarkeit_mensa_nr', 'sichtbarkeit_strasse', 'sichtbarkeit_adresszusatz', 'sichtbarkeit_plz_ort', 'sichtbarkeit_land', 'sichtbarkeit_telefon', 'sichtbarkeit_studienort', 'sichtbarkeit_studienfach', 'sichtbarkeit_unityp', 'sichtbarkeit_schwerpunkt', 'sichtbarkeit_nebenfach', 'sichtbarkeit_abschluss', 'sichtbarkeit_zweitstudium', 'sichtbarkeit_hochschulaktivitaeten', 'sichtbarkeit_stipendien', 'sichtbarkeit_auslandsaufenthalte', 'sichtbarkeit_praktika', 'sichtbarkeit_beruf', 'auskunft_studiengang', 'auskunft_stipendien', 'auskunft_auslandsaufenthalte', 'auskunft_praktika', 'auskunft_beruf', 'mentoring', 'aufgabe_ma', 'aufgabe_orte', 'aufgabe_vortrag', 'aufgabe_koord', 'aufgabe_graphisch', 'aufgabe_computer', 'aufgabe_texte_schreiben', 'aufgabe_texte_lesen', 'aufgabe_vermittlung', 'aufgabe_ansprechpartner', 'aufgabe_hilfe', 'aufgabe_sonstiges'];
+    // Liste der vom Mitglied änderbaren Booleans. Wird ergänzt um alle
+    // sichtbarkeit_*- und aufgabe_*-Felder (außer aufgabe_freitext) aus User
+    /* @var string[] */
+    private array $bearbeiten_bool_ungeprueft = ['mentoring'];
 
     // Liste der von der Mitgliederverwaltung änderbaren Strings
-    const bearbeiten_strings_admin = ['vorname', 'nachname'];
+    /* @var string[] */
+    private array $bearbeiten_strings_admin = ['vorname', 'nachname'];
+
+    const COUNTRY_NAMES = [
+        'AF' => 'Afghanistan',
+        'EG' => 'Ägypten',
+        'AX' => 'Ålandinseln',
+        'AL' => 'Albanien',
+        'DZ' => 'Algerien',
+        'AS' => 'Amerikanisch-Samoa',
+        'VI' => 'Amerikanische Jungferninseln',
+        'AD' => 'Andorra',
+        'AO' => 'Angola',
+        'AI' => 'Anguilla',
+        'AQ' => 'Antarktis',
+        'AG' => 'Antigua und Barbuda',
+        'GQ' => 'Äquatorialguinea',
+        'AR' => 'Argentinien',
+        'AM' => 'Armenien',
+        'AW' => 'Aruba',
+        'AZ' => 'Aserbaidschan',
+        'ET' => 'Äthiopien',
+        'AU' => 'Australien',
+        'BS' => 'Bahamas',
+        'BH' => 'Bahrain',
+        'BD' => 'Bangladesch',
+        'BB' => 'Barbados',
+        'BY' => 'Belarus',
+        'BE' => 'Belgien',
+        'BZ' => 'Belize',
+        'BJ' => 'Benin',
+        'BM' => 'Bermuda',
+        'BT' => 'Bhutan',
+        'BO' => 'Bolivien',
+        'BQ' => 'Bonaire, Sint Eustatius und Saba',
+        'BA' => 'Bosnien und Herzegowina',
+        'BW' => 'Botsuana',
+        'BV' => 'Bouvetinsel',
+        'BR' => 'Brasilien',
+        'VG' => 'Britische Jungferninseln',
+        'IO' => 'Britisches Territorium im Indischen Ozean',
+        'BN' => 'Brunei Darussalam',
+        'BG' => 'Bulgarien',
+        'BF' => 'Burkina Faso',
+        'BI' => 'Burundi',
+        'CV' => 'Cabo Verde',
+        'CL' => 'Chile',
+        'CN' => 'China',
+        'CK' => 'Cookinseln',
+        'CR' => 'Costa Rica',
+        'CI' => "Côte d'Ivoire",
+        'CW' => 'Curaçao',
+        'DK' => 'Dänemark',
+        'CD' => 'Demokratische Republik Kongo',
+        'DE' => 'Deutschland',
+        'DM' => 'Dominica',
+        'DO' => 'Dominikanische Republik',
+        'DJ' => 'Dschibuti',
+        'EC' => 'Ecuador',
+        'SV' => 'El Salvador',
+        'ER' => 'Eritrea',
+        'EE' => 'Estland',
+        'SZ' => 'Eswatini',
+        'FK' => 'Falklandinseln',
+        'FO' => 'Färöer',
+        'FJ' => 'Fidschi',
+        'FI' => 'Finnland',
+        'FR' => 'Frankreich',
+        'GF' => 'Französisch-Guayana',
+        'PF' => 'Französisch-Polynesien',
+        'TF' => 'Französische Süd- und Antarktisgebiete',
+        'GA' => 'Gabun',
+        'GM' => 'Gambia',
+        'GE' => 'Georgien',
+        'GH' => 'Ghana',
+        'GI' => 'Gibraltar',
+        'GD' => 'Grenada',
+        'GR' => 'Griechenland',
+        'GL' => 'Grönland',
+        'GP' => 'Guadeloupe',
+        'GU' => 'Guam',
+        'GT' => 'Guatemala',
+        'GG' => 'Guernsey',
+        'GN' => 'Guinea',
+        'GW' => 'Guinea-Bissau',
+        'GY' => 'Guyana',
+        'HT' => 'Haiti',
+        'HM' => 'Heard- und McDonaldinseln',
+        'HN' => 'Honduras',
+        'HK' => 'Hongkong',
+        'IN' => 'Indien',
+        'ID' => 'Indonesien',
+        'IQ' => 'Irak',
+        'IR' => 'Iran',
+        'IE' => 'Irland',
+        'IS' => 'Island',
+        'IM' => 'Isle of Man',
+        'IL' => 'Israel',
+        'IT' => 'Italien',
+        'JM' => 'Jamaika',
+        'JP' => 'Japan',
+        'YE' => 'Jemen',
+        'JE' => 'Jersey',
+        'JO' => 'Jordanien',
+        'KY' => 'Kaimaninseln',
+        'KH' => 'Kambodscha',
+        'CM' => 'Kamerun',
+        'CA' => 'Kanada',
+        'KZ' => 'Kasachstan',
+        'QA' => 'Katar',
+        'KE' => 'Kenia',
+        'KG' => 'Kirgisistan',
+        'KI' => 'Kiribati',
+        'CC' => 'Kokosinseln (Keelinginseln)',
+        'CO' => 'Kolumbien',
+        'KM' => 'Komoren',
+        'CG' => 'Kongo',
+        'HR' => 'Kroatien',
+        'CU' => 'Kuba',
+        'KW' => 'Kuwait',
+        'LA' => 'Laos',
+        'LS' => 'Lesotho',
+        'LV' => 'Lettland',
+        'LB' => 'Libanon',
+        'LR' => 'Liberia',
+        'LY' => 'Libyen',
+        'LI' => 'Liechtenstein',
+        'LT' => 'Litauen',
+        'LU' => 'Luxemburg',
+        'MO' => 'Macau',
+        'MG' => 'Madagaskar',
+        'MW' => 'Malawi',
+        'MY' => 'Malaysia',
+        'MV' => 'Malediven',
+        'ML' => 'Mali',
+        'MT' => 'Malta',
+        'MA' => 'Marokko',
+        'MH' => 'Marshallinseln',
+        'MQ' => 'Martinique',
+        'MR' => 'Mauretanien',
+        'MU' => 'Mauritius',
+        'YT' => 'Mayotte',
+        'MX' => 'Mexiko',
+        'FM' => 'Mikronesien',
+        'MD' => 'Moldau',
+        'MC' => 'Monaco',
+        'MN' => 'Mongolei',
+        'ME' => 'Montenegro',
+        'MS' => 'Montserrat',
+        'MZ' => 'Mosambik',
+        'MM' => 'Myanmar',
+        'NA' => 'Namibia',
+        'NR' => 'Nauru',
+        'NP' => 'Nepal',
+        'NC' => 'Neukaledonien',
+        'NZ' => 'Neuseeland',
+        'NI' => 'Nicaragua',
+        'NL' => 'Niederlande',
+        'NE' => 'Niger',
+        'NG' => 'Nigeria',
+        'NU' => 'Niue',
+        'KP' => 'Nordkorea',
+        'MK' => 'Nordmazedonien',
+        'NF' => 'Norfolkinsel',
+        'NO' => 'Norwegen',
+        'MP' => 'Nördliche Marianen',
+        'OM' => 'Oman',
+        'AT' => 'Österreich',
+        'PK' => 'Pakistan',
+        'PS' => 'Palästina',
+        'PW' => 'Palau',
+        'PA' => 'Panama',
+        'PG' => 'Papua-Neuguinea',
+        'PY' => 'Paraguay',
+        'PE' => 'Peru',
+        'PH' => 'Philippinen',
+        'PN' => 'Pitcairninseln',
+        'PL' => 'Polen',
+        'PT' => 'Portugal',
+        'PR' => 'Puerto Rico',
+        'RE' => 'Réunion',
+        'RW' => 'Ruanda',
+        'RO' => 'Rumänien',
+        'RU' => 'Russische Föderation',
+        'BL' => 'Saint-Barthélemy',
+        'KN' => 'Saint Kitts und Nevis',
+        'LC' => 'Saint Lucia',
+        'MF' => 'Saint-Martin (franz. Teil)',
+        'PM' => 'Saint Pierre und Miquelon',
+        'VC' => 'Saint Vincent und die Grenadinen',
+        'SB' => 'Salomonen',
+        'ZM' => 'Sambia',
+        'WS' => 'Samoa',
+        'SM' => 'San Marino',
+        'ST' => 'São Tomé und Príncipe',
+        'SA' => 'Saudi-Arabien',
+        'SE' => 'Schweden',
+        'CH' => 'Schweiz',
+        'SN' => 'Senegal',
+        'RS' => 'Serbien',
+        'SC' => 'Seychellen',
+        'SL' => 'Sierra Leone',
+        'ZW' => 'Simbabwe',
+        'SG' => 'Singapur',
+        'SX' => 'Sint Maarten (niederl. Teil)',
+        'SK' => 'Slowakei',
+        'SI' => 'Slowenien',
+        'SO' => 'Somalia',
+        'ES' => 'Spanien',
+        'LK' => 'Sri Lanka',
+        'ZA' => 'Südafrika',
+        'SD' => 'Sudan',
+        'GS' => 'Südgeorgien und die Südlichen Sandwichinseln',
+        'KR' => 'Südkorea',
+        'SS' => 'Südsudan',
+        'SR' => 'Suriname',
+        'SJ' => 'Svalbard und Jan Mayen',
+        'SY' => 'Syrien',
+        'TJ' => 'Tadschikistan',
+        'TW' => 'Taiwan',
+        'TZ' => 'Tansania',
+        'TH' => 'Thailand',
+        'TL' => 'Timor-Leste',
+        'TG' => 'Togo',
+        'TK' => 'Tokelau',
+        'TO' => 'Tonga',
+        'TT' => 'Trinidad und Tobago',
+        'TD' => 'Tschad',
+        'CZ' => 'Tschechien',
+        'TN' => 'Tunesien',
+        'TR' => 'Türkei',
+        'TM' => 'Turkmenistan',
+        'TC' => 'Turks- und Caicosinseln',
+        'TV' => 'Tuvalu',
+        'UG' => 'Uganda',
+        'UA' => 'Ukraine',
+        'HU' => 'Ungarn',
+        'UY' => 'Uruguay',
+        'US' => 'USA',
+        'UM' => 'US-Amerikanische Kleinere Inselbesitzungen',
+        'UZ' => 'Usbekistan',
+        'VU' => 'Vanuatu',
+        'VA' => 'Vatikanstadt',
+        'VE' => 'Venezuela',
+        'AE' => 'Vereinigte Arabische Emirate',
+        'GB' => 'Vereinigtes Königreich',
+        'VN' => 'Vietnam',
+        'WF' => 'Wallis und Futuna',
+        'EH' => 'Westsahara',
+        'CF' => 'Zentralafrikanische Republik',
+        'CY' => 'Zypern',
+    ];
 
     public function __construct(
         private EmailService $emailService,
         private UserRepository $userRepository,
     ) {
-        $this->setTemplateVariable('iso3166Laendernamen', User::getIso3166Laendernamen());
+        $this->setTemplateVariable('countryNames', self::COUNTRY_NAMES);
+        $this->setTemplateVariable('aufgabenLabels', User::AUFGABEN);
+        $this->bearbeiten_bool_ungeprueft = [
+            ...$this->bearbeiten_bool_ungeprueft,
+            ...array_filter(User::getAllKeys(), fn($key) => str_starts_with($key, 'sichtbarkeit_') || str_starts_with($key, 'aufgabe_') && $key !== 'aufgabe_freitext')
+        ];
     }
 
     #[Route('GET /user'), RequireLogin]
@@ -55,18 +325,17 @@ class UserController extends Controller {
         ];
 
         // generell: alle Daten kopieren
-        foreach (array_keys(User::felder) as $feld) {
+        foreach (User::getAllKeys() as $feld) {
             $templateVars[$feld] = $user->get($feld);
         }
-        // E-Mail ist in User::felder nicht enthalten, da sie in LDAP liegt
+        // E-Mail ist in User::getAllKeys() nicht enthalten, da sie in LDAP liegt
         $templateVars['email'] = $user->get('email');
 
         // Dann die sichtgeschützten Felder gesondert behandeln, damit das Template möglichst frei von Logik bleiben kann
         if (!$isAdmin) {
-            foreach (['email', 'geburtstag', 'mensa_nr', 'strasse', 'adresszusatz', 'land', 'telefon',
-                'studienort', 'studienfach', 'unityp', 'schwerpunkt', 'nebenfach', 'abschluss',
-                'zweitstudium', 'nebenfach', 'abschluss', 'zweitstudium', 'hochschulaktivitaeten', 'stipendien',
-                'auslandsaufenthalte', 'praktika', 'beruf'] as $feld) {
+            $felder = array_filter(User::getAllKeys(), fn($key) => str_starts_with($key, 'sichtbarkeit_') && $key !== 'sichtbarkeit_plz_ort');
+            $felder = array_map(fn($key) => substr($key, strlen('sichtbarkeit_')), $felder);
+            foreach ($felder as $feld) {
                 if (!$user->get('sichtbarkeit_' . $feld)) {
                     $templateVars[$feld] = null;
                 }
@@ -80,7 +349,7 @@ class UserController extends Controller {
         // Überprüfen, ob die Homepage das korrekte Format hat. ggf. http:// ergänzen
         $homepage = $user->get('homepage');
         if (!preg_match('=^https?://=i', $homepage)) {
-            $homepage = 'http://' . $homepage;
+            $homepage = 'https://' . $homepage;
         }
         if (!preg_match('=^https?://(?P<user>[^@]*@)?(?P<host>[\w\.0-9-]+)(?P<port>:[0-9]+)?(?<query>/.*)?$=i', $homepage)) {
             $homepage = '';
@@ -101,7 +370,7 @@ class UserController extends Controller {
     ]
     public function edit(User $user): Response {
         $templateVars = [];
-        foreach (array_keys(User::felder) as $feld) {
+        foreach (User::getAllKeys() as $feld) {
             $templateVars[$feld] = $user->get($feld);
         }
 
@@ -184,7 +453,7 @@ class UserController extends Controller {
     }
 
     private function updateAdmin(User $user): void {
-        $input = $this->validatePayload(array_fill_keys(self::bearbeiten_strings_admin, 'string'));
+        $input = $this->validatePayload(array_fill_keys($this->bearbeiten_strings_admin, 'string'));
         foreach ($input as $key=>$value) {
             $user->set($key, $value);
         }
@@ -319,13 +588,21 @@ class UserController extends Controller {
         AllowIf(id: '$user->get("id")'),
     ]
     public function update(User $user): Response {
-        $input = $this->validatePayload(array_fill_keys(self::bearbeiten_strings_ungeprueft, 'string'));
+        $input = $this->validatePayload(array_fill_keys($this->bearbeiten_strings_ungeprueft, 'string'));
         foreach ($input as $key=>$value) {
             $user->set($key, $value);
         }
-        $input = $this->validatePayload(array_fill_keys(self::bearbeiten_bool_ungeprueft, 'bool'));
+        $input = $this->validatePayload(array_fill_keys($this->bearbeiten_bool_ungeprueft, 'bool'));
         foreach ($input as $key=>$value) {
             $user->set($key, $value);
+        }
+
+        // Land prüfen (ISO 3166-1 alpha-2 code)
+        $input = $this->validatePayload(['land' => 'string', 'land2' => 'string']);
+        foreach ($input as $key=>$value) {
+            if (isset(self::COUNTRY_NAMES[$value]) || $key === 'land2' && $value === '') {
+                $user->set($key, $value);
+            }
         }
 
         $this->updateEmail($user);

@@ -64,15 +64,8 @@
     <h2 id="career-heading">
     <i class="label-icon ti ti-school" aria-hidden="true"></i>Ausbildung &amp; Beruf
     </h2>
+    <p n:if=$mentoring>Ich stehe in meinem Fachbereich gerne für berufliches Mentoring zu Verfügung.</p>
     <dl n:ifcontent>
-    {include row, 'Beschäftigung', name: beschaeftigung, value: match($beschaeftigung) {
-        'Schueler' => 'Schüler:in',
-        'Hochschulstudent' => 'Hochschulstudent:in',
-        'Doktorand' => 'Doktorand:in',
-        'Berufstaetig' => 'berufstätig',
-        'Sonstiges' => 'sonstiges',
-        default => null,
-    }}
     {include row, 'Beruf', name: beruf}
     {include row, 'Hochschultyp', name: unityp}
     {include row, 'Studienort', name: studienort}
@@ -81,48 +74,41 @@
     {include row, 'Nebenfach', name: nebenfach}
     {include row, 'Abschluss', name: abschluss}
     {include row, 'Zweitstudium', name: zweitstudium}
-    {include row, 'Ehrenamtliches Engagement', name: hochschulaktivitaeten}
+    {include row, 'Ehrenamtliches Engagement', name: ehrenamt}
     {include row, 'Stipendien', name: stipendien}
     {include row, 'Auslandsaufenthalte', name: auslandsaufenthalte}
     {include row, 'Praktika, Fort- und Weiterbildung', name. praktika}
     </dl>
     <p n:else>{$vorname} hat keine Angaben zu Ausbildung oder Beruf freigegeben.</p>
+
 </section>
 
 <section class="panel" aria-labelledby="activity-heading">
     <h2 id="activity-heading">
-    <span class="label-icon" aria-hidden="true"><i class="ti ti-affiliate"></i></span> Netzwerk
+    <span class="label-icon" aria-hidden="true"><i class="ti ti-carambola"></i></span> Engagement für den Verein
     </h2>
 
-    <h3>Angebote für andere Mitglieder</h3>
 
+    <h3>Ich könnte bei folgenden Aufgaben helfen</h3>
     <ul n:ifcontent class="feature-list">
-    <li n:if=$auskunft_studiengang>Auskunft über den Studiengang, Ausbildung</li>
-    <li n:if=$auskunft_stipendien>Auskunft über Stipendien</li>
-    <li n:if=$auskunft_auslandsaufenthalte>Auskunft über Auslandsaufenthalte</li>
-    <li n:if=$auskunft_praktika>Auskunft über Praktika, Fort- und Weiterbildung</li>
-    <li n:if=$auskunft_beruf>Auskunft über den Beruf</li>
-    <li n:if=$mentoring>berufliches Mentoring</li>
+        {foreach [aufgabe_ma, aufgabe_veranstaltungen, aufgabe_seminar, aufgabe_lokal, aufgabe_vortrag] as $key}
+            <li n:if="get_defined_vars()[$key]">{$aufgabenLabels[$key]}</li>
+        {/foreach}
     </ul>
-    <p n:else>{$vorname} hat keine Angebote für andere Mitglieder angegeben.</p>
+    <p n:else>{$vorname} hat keine Angaben zu Aufgaben gemacht.</p>
 
-    <h3>Angebote für den Verein</h3>
+    <h3>Ich könnte bei folgenden Teams mitarbeiten</h3>
     <ul n:ifcontent class="feature-list">
-    <li n:if=$aufgabe_ma>Mithilfe bei der Organisation der Mind-Akademie</li>
-    <li n:if=$aufgabe_orte>Mithilfe bei der Suche nach Veranstaltungsorten</li>
-    <li n:if=$aufgabe_vortrag>einen Vortrag, ein Seminar oder einen Workshop anbieten</li>
-    <li n:if=$aufgabe_koord>eine Koordinations-Aufgabe, die man per Mail/Tel. von zu Hause erledigen kann</li>
-    <li n:if=$aufgabe_graphisch>eine graphisch-kreative Aufgabe</li>
-    <li n:if=$aufgabe_computer>eine Aufgabe, in der ich mein Computer-/IT-Wissen einbringen kann</li>
-    <li n:if=$aufgabe_texte_schreiben>Texte verfassen (z.B. für die Homepage oder den MHN-Newsletter)</li>
-    <li n:if=$aufgabe_texte_lesen>Texte durchlesen und kommentieren</li>
-    <li n:if=$aufgabe_vermittlung>Weitervermittlung von Kontakten</li>
-    <li n:if=$aufgabe_ansprechpartner>Ansprechpartner vor Ort (lokale Treffen organisieren, Plakate aufhängen)</li>
-    <li n:if=$aufgabe_hilfe>eine kleine, zeitlich begrenzte Aufgabe, wenn ihr dringend Hilfe braucht</li>
-    <li n:if=$aufgabe_sonstiges>Sonstiges und zwar: „{$aufgabe_sonstiges_beschreibung}”</li>
+        {foreach [aufgabe_it, aufgabe_finanzen, aufgabe_mitgliederbetreuung, aufgabe_seminarteam, aufgabe_oeffentlichkeitsarbeit, aufgabe_mentoringprogramm] as $key}
+            <li n:if="get_defined_vars()[$key]">{$aufgabenLabels[$key]}</li>
+        {/foreach}
     </ul>
-    <p n:else>{$vorname} hat keine Angebote für den Verein angegeben.</p>
+    <p n:else>{$vorname} hat keine Angaben zu Teams gemacht.</p>
 
+    {if $aufgabe_freitext}
+        <h3>So möchte ich mich gerne engagieren</h3>
+        <p>{$aufgabe_freitext}</p>
+    {/if}
 </section>
 
 <section class="panel" aria-labelledby="about-heading">

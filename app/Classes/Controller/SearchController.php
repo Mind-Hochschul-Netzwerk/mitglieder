@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Model\User;
 use App\Repository\UserRepository;
 use App\Service\Ldap;
 use Hengeb\Db\Db;
@@ -35,7 +36,40 @@ class SearchController extends Controller {
     private array $filterValues = [];
 
     // Felder mit |s bzw |s* nur mit sichtbarkeit
-    const felder = ['username', 'id', 'vorname', 'nachname', 'mensa_nr|s', 'strasse|s', 'adresszusatz|s', 'plz|sichtbarkeit_plz_ort', 'ort|sichtbarkeit_plz_ort', 'land|s', 'strasse2', 'adresszusatz2', 'plz2', 'ort2', 'land2', 'homepage', 'sprachen', 'hobbys', 'interessen', 'studienort|s', 'studienfach|s', 'unityp|s', 'schwerpunkt|s', 'nebenfach|s', 'abschluss|s', 'zweitstudium|s', 'hochschulaktivitaeten|s', 'stipendien|s', 'auslandsaufenthalte|s', 'praktika|s', 'beruf|s'];
+    const felder = [
+        'username',
+        'id',
+        'vorname',
+        'nachname',
+        'mensa_nr|s',
+        'strasse|s',
+        'adresszusatz|s',
+        'plz|sichtbarkeit_plz_ort',
+        'ort|sichtbarkeit_plz_ort',
+        'land|s',
+        'strasse2',
+        'adresszusatz2',
+        'plz2',
+        'ort2',
+        'land2',
+        'homepage',
+        'sprachen',
+        'hobbys',
+        'interessen',
+        'studienort|s',
+        'studienfach|s',
+        'unityp|s',
+        'schwerpunkt|s',
+        'nebenfach|s',
+        'abschluss|s',
+        'zweitstudium|s',
+        'ehrenamt|s',
+        'stipendien|s',
+        'auslandsaufenthalte|s',
+        'praktika|s',
+        'beruf|s',
+        'fruehere_taetigkeiten',
+    ];
 
     #[
         Route('GET /'),
@@ -59,7 +93,22 @@ class SearchController extends Controller {
                 }
                 $this->addFilterValue("any$k", $part);
                 $filters[] = [
-                    ['telefon', 'mensa_nr', 'titel', 'sprachen', 'hobbys', 'interessen', 'stipendien', 'auslandsaufenthalte', 'praktika', 'beruf', 'id', 'studienfach', 'nebenfach'],
+                    [
+                        'telefon',
+                        'mensa_nr',
+                        'titel',
+                        'sprachen',
+                        'hobbys',
+                        'interessen',
+                        'stipendien',
+                        'auslandsaufenthalte',
+                        'praktika',
+                        'beruf',
+                        'fruehere_taetigkeiten',
+                        'id',
+                        'studienfach',
+                        'nebenfach'
+                    ],
                     FilterOp::Contains,
                     "any$k"
                 ];
@@ -106,12 +155,8 @@ class SearchController extends Controller {
             if ($key === 'none' || !$key) {
                 break;
             }
-            if (in_array($key, ['rolle', 'resignation', 'emailInvalid', 'db_modified'], true) && !$this->currentUser->hasRole('mvread')) {
+            if (in_array($key, ['resignation', 'emailInvalid', 'db_modified'], true) && !$this->currentUser->hasRole('mvread')) {
                 throw new \Hengeb\Router\Exception\AccessDeniedException();
-            }
-            // TODO
-            if (in_array($key, ['rolle'], true)) {
-                throw new \Exception('not implemented');
             }
 
             $op = $this->request->query->getEnum("op$i", FilterOp::class);
@@ -300,26 +345,23 @@ class SearchController extends Controller {
                     LIMIT 1
                 )', $op, $valueName),
             'aufgabe' => '(' . implode($combinationLogic, [
-                ...array_map(fn($item) => $this->generateSingleFilterExpression("IF($item[0]=TRUE, '$item[1]', '')", $op, $valueName), [
-                    ['aufgabe_ma', 'Mithilfe bei der Organisation der Mind-Akademie'],
-                    ['aufgabe_orte', 'Mithilfe bei der Suche nach Veranstaltungsorten'],
-                    ['aufgabe_vortrag', 'einen Vortrag, ein Seminar oder einen Workshop anbieten'],
-                    ['aufgabe_koord', 'eine Koordinations-Aufgabe, die man per Mail/Tel. von zu Hause erledigen kann'],
-                    ['aufgabe_graphisch', 'eine graphisch-kreative Aufgabe'],
-                    ['aufgabe_computer', 'eine Aufgabe, in der ich mein Computer-/IT-Wissen einbringen kann'],
-                    ['aufgabe_texte_schreiben', 'Texte verfassen (z.B. für die Homepage oder den MHN-Newsletter)'],
-                    ['aufgabe_texte_lesen', 'Texte durchlesen und kommentieren'],
-                    ['aufgabe_vermittlung', 'Weitervermittlung von Kontakten'],
-                    ['aufgabe_ansprechpartner', 'Ansprechpartner vor Ort (lokale Treffen organisieren, Plakate aufhängen)'],
-                    ['aufgabe_hilfe', 'eine kleine, zeitlich begrenzte Aufgabe, wenn ihr dringend Hilfe braucht'],
-                    ['aufgabe_sonstiges', 'Sonstiges'],
-                ]),
-                $this->generateSingleFilterExpression('aufgabe_sonstiges_beschreibung', $op, $valueName),
+                ...array_map(fn($item) => $this->generateSingleFilterExpression("IF($item[0]=TRUE, '$item[1]', '')", $op, $valueName),
+                    array_map(null, array_keys(User::AUFGABEN), array_values(User::AUFGABEN)),
+                ),
+                $this->generateSingleFilterExpression('aufgabe_freitext', $op, $valueName),
             ]) . ')',
+            // ISO 3166-1 alpha-2 code lookup: CASE land WHEN 'DE' THEN 'Deutschland' WHEN 'AT' THEN 'Österreich' ... ELSE land END
+            'land', 'land2' => $this->generateSingleFilterExpression("(CASE $field " . implode(' ',
+                    array_map(
+                        fn($code, $name) => "WHEN '$code' THEN $name",
+                        array_keys(UserController::COUNTRY_NAMES),
+                        array_map($this->db->quote(...), UserController::COUNTRY_NAMES)
+                    )
+                ) . ' ELSE ' . $field . ' END)', $op, $valueName),
             'id', 'titel', 'vorname', 'nachname',
-            'plz', 'plz2', 'ort', 'ort2', 'land', 'land2',
+            'plz', 'plz2', 'ort', 'ort2',
             'telefon', 'mensa_nr', 'sprachen', 'hobbys', 'interessen',
-            'stipendien', 'auslandsaufenthalte', 'praktika', 'beruf',
+            'stipendien', 'auslandsaufenthalte', 'praktika', 'beruf', 'fruehere_taetigkeiten',
                 => $this->generateSingleFilterExpression($field, $op, $valueName),
             default => '',
         };

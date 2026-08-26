@@ -1126,3 +1126,20 @@ pre {
     50%   {transform:scaleY(-1) rotate(0deg)}
     100%  {transform:scaleY(-1) rotate(-135deg)}
 }
+
+
+
+
+details:has(summary .ti-chevron-right) {
+    summary { cursor: pointer; }
+    summary::marker { content: ""; }
+    summary .ti-chevron-right { display: inline-block; transition: rotate 0.2s; }
+    &[open] summary .ti-chevron-right { rotate: 90deg; }
+}
+
+.info-sichtbarkeit:has(+ div.form-group :is(input[type="checkbox"]:checked, input:placeholder-shown)) {
+    display: none;
+}
+.info-nicht-leer:has(+ div input:placeholder-shown) {
+    display: none;
+}

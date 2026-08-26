@@ -40,7 +40,7 @@ class UserRepository
     {
         $user = new User(ldap: $this->ldap, userRepository: $this);
 
-        $data = $this->db->query('SELECT '. implode(',', array_keys(User::felder)) . ' FROM mitglieder WHERE id=:id', ['id' => $id])->getRow();
+        $data = $this->db->query('SELECT '. implode(',', User::getAllKeys()) . ' FROM mitglieder WHERE id=:id', ['id' => $id])->getRow();
         if (!$data) {
             return null;
         }
@@ -185,7 +185,7 @@ class UserRepository
 
         // Query bauen
         $values = [];
-        foreach (array_keys(User::felder) as $feld) {
+        foreach (User::getAllKeys() as $feld) {
             if (in_array($feld, ['id'], true)) {
                 continue;
             }

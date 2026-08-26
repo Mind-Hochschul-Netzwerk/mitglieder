@@ -51,7 +51,7 @@ class DevController extends Controller {
             ldap: $ldap,
             userRepository: $repo,
         );
-        foreach (User::felder as $key => $default) {
+        foreach (User::getAllKeys() as $key) {
             if (in_array($key, ['username', 'email', 'password', 'id'])) {
                 continue;
             }
