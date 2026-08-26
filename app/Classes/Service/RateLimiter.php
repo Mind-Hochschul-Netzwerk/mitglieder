@@ -38,4 +38,9 @@ class RateLimiter
             compact('action', 'identifier')
         );
     }
+
+    public function deleteOldRecords(): void
+    {
+        $this->db->query('DELETE FROM rate_limit WHERE created_at < DATE_SUB(NOW(), INTERVAL 1 DAY)');
+    }
 }

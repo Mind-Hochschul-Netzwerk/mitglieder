@@ -46,6 +46,7 @@ class Bootstrap extends ServiceContainer {
             ->addType(User::class, fn($id) => $this->getUserRepository()->findOneById((int) $id), 'id')
             ->addType(Agreement::class, fn($id) => $this->getAgreementRepository()->findOneById((int) $id))
             ->addType(Group::class, fn($name) => $this->getGroupRepository()->findOneByName($name), 'name');
+        $this->getRateLimiter()->deleteOldRecords();
     }
 
     public function getCurrentUser(): CurrentUser

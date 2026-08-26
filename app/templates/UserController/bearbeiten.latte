@@ -92,7 +92,7 @@ html {
     interpolate-size: allow-keywords;
 }
 
-.info-sichtbarkeit:has(+ div.form-group input[type="checkbox"]:checked) {
+.info-sichtbarkeit:has(+ div.form-group :is(input[type="checkbox"]:checked, input:placeholder-shown)) {
     display: none;
 }
 .info-nicht-leer:has(+ div input:placeholder-shown) {
