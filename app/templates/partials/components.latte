@@ -1,5 +1,5 @@
-{define info-box, $type, $text, $hide = false, $id, $showCloseButton = true}
-<div id={$id} n:class="info-box, 'info-box--' . $type, $hide ? hidden" role="alert">
+{define info-box, $type, $text, $hide = false, $id, $showCloseButton = true, $class = ""}
+<div id={$id} n:class="info-box, 'info-box--' . $type, $hide ? hidden, $class" role="alert">
     <i n:class="ti, match ($type) {
         'info' => ti-info-circle,
         'success' => ti-check,

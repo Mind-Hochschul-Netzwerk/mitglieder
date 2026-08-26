@@ -81,6 +81,24 @@
     }
 }
 
+details {
+    summary { cursor: pointer; }
+    summary::marker { content: ""; }
+    summary .ti-chevron-right { display: inline-block; transition: rotate 0.2s; }
+    &[open] summary .ti-chevron-right { rotate: 90deg; }
+}
+
+html {
+    interpolate-size: allow-keywords;
+}
+
+.info-sichtbarkeit:has(+ div.form-group input[type="checkbox"]:checked) {
+    display: none;
+}
+.info-nicht-leer:has(+ div input:placeholder-shown) {
+    display: none;
+}
+
 </style>
 {/block}
 
@@ -185,36 +203,28 @@
 <form method="post" id="profile-form">
     {=csrfTokenTag()}
 
-    <section class="panel" aria-labelledby="basisdaten-heading">
-        <h2 id="basisdaten-heading">
-            <i class="label-icon ti ti-id-badge" aria-hidden="true"></i>Basisdaten
+    <section class="panel" aria-labelledby="kontaktdaten-heading">
+        <h2 id="kontaktdaten-heading">
+            <i class="label-icon ti ti-at" aria-hidden="true"></i>Kontakt & Ort
         </h2>
 
-        <p>Diese Basisdaten werden von allen Mitgliedern erhoben.</p>
+        <p>
+            Bitte ermögliche, dass andere Mitglieder dich erreichen können.
+            Die Pflichtfelder benötigen wir, um das offizielle Mitgliederverzeichnis zu führen.
+        </p>
 
         {embed info-box, showCloseButton: false}{block info-box-text}
             Mit der Sichtbarkeits-Auswahl <i class="protected-value-icon ti ti-eye"></i>/<i class="protected-value-icon ti ti-eye-off"></i>
-            neben den Einträgen kannst du einstellen, ob Daten für alle Mitglieder oder nur für dich und die
-            Beauftragten der Mitgliederverwaltung sichtbar sind. Einträge ohne diese Symbole sind für alle Mitglieder sichtbar.
+            neben einigen Einträgen kannst du einstellen, ob die Daten für alle Mitglieder oder nur für dich und dazu
+            berechtigte Personen wie der Vorstand und die Mitgliederbetreuung sichtbar sind. Einträge ohne diese Symbole
+            sind für alle Mitglieder sichtbar.
         {/block}{/embed}
 
         <div class="form-row">
+            {include private-form-group, "Titel", titel, placeholder: "akademischer Titel wie Prof., Dr., Dr. med."}
             {include private-form-group, "Vorname", vorname, disabled: !$isAdmin}
             {include private-form-group, "Nachname", nachname, disabled: !$isAdmin}
         </div>
-        <div class="form-row">
-            {include private-form-group, "Straße + Hausnummer", strasse}
-            {include private-form-group, "ggf. Adresszusatz", adresszusatz, placeholder: "Adresszusatz"}
-        </div>
-        <div class="form-row">
-            {include private-form-group, "PLZ", plz, uncoverVariable: sichtbarkeit_plz_ort}
-            {include private-form-group, "Ort", ort, uncoverVariable: sichtbarkeit_plz_ort}
-            {include private-form-group, "Land", land}
-        </div>
-
-        {default $geburtstag = \DateTimeImmutable::createFromFormat('Y-m-d', '0000-00-00')}
-
-        {include private-form-group, "Geburtsdatum", geburtstag, type: date, disabled: !$isAdmin}
 
         <div class="form-group">
             <label for="input-email">E-Mail{if $email_auth_info} (wird geändert){/if}</label>
@@ -224,44 +234,52 @@
             {include private-input, label: "", name: email, placeholder: "E-Mail", type: email}
         </div>
 
+        <div class="form-row">
+            {include private-form-group, "Straße + Hausnummer", strasse}
+            {include private-form-group, "ggf. Adresszusatz", adresszusatz, placeholder: "Adresszusatz"}
+        </div>
+        <div class="form-row">
+            {include private-form-group, "PLZ", plz, uncoverVariable: sichtbarkeit_plz_ort}
+            {include private-form-group, "Ort", ort, uncoverVariable: sichtbarkeit_plz_ort}
+            {* Deutsch/Österreich/Schweiz oben in der Liste; Leerzeichen, um doppelte Keys zu vermeiden *}
+            {include private-form-group, "Land", land, type: select, options: [
+                ' DE ' => 'Deutschland',
+                ' AT ' => 'Österreich',
+                ' CH ' => 'Schweiz',
+                '---' => '---',
+                ...$iso3166Laendernamen,
+                '' => 'unbekannt',
+            ], value: in_array($land, ['DE', 'AT', 'CH']) ? " $land " : $land}
+        </div>
+
+        <details n:attr="open: $strasse2 || $plz2 || $ort2 || $land2">
+            <summary><h3 style="display: inline"><i class="ti ti-chevron-right" aria-hidden="true"></i>Zweitwohnsitz <small>z.B. Adresse der Eltern</small></h3></summary>
+
+            <div class="form-row">
+                {include private-form-group, "Straße + Hausnummer", strasse2}
+                {include private-form-group, "ggf. Adresszusatz", adresszusatz2, placeholder: "Adresszusatz"}
+            </div>
+            <div class="form-row">
+                {include private-form-group, "PLZ", plz2}
+                {include private-form-group, "Ort", ort2}
+                {include private-form-group, "Land", land2, type: select, options: [
+                    '' => 'nicht angegeben',
+                    ' DE ' => 'Deutschland',
+                    ' AT ' => 'Österreich',
+                    ' CH ' => 'Schweiz',
+                    '---' => '---',
+                    ...$iso3166Laendernamen,
+                ], value: in_array($land2, ['DE', 'AT', 'CH']) ? " $land2 " : $land2}
+            </div>
+        </details>
+
+        {include info-box, warning, "Die Telefonnummer wird demnächst nicht mehr ausblendbar sein. Wenn du nicht möchtest, dass wir den Wert löschen, schalte ihn frei.", class: info-sichtbarkeit, showCloseButton: false}
         {include private-form-group, "Telefon", telefon, type: tel}
 
-        {include private-form-group, "Beschäftigung", beschaeftigung, type: select, options: [
-            'Schueler' => 'Schüler:in',
-            'Hochschulstudent' => 'Hochschulstudent:in',
-            'Doktorand' => 'Doktorand:in',
-            'Berufstaetig' => 'berufstätig',
-            'Sonstiges' => 'sonstiges',
-        ]}
-    </section>
-    <section class="panel" aria-labelledby="about-heading">
-        <h2 id="about-heading">
-            <i class="label-icon ti ti-user" aria-hidden="true"></i>Über mich
-        </h2>
-
-        <p>Teile mehr von dir mit, damit du im Netzwerk leichter gefunden wirst.</p>
+        {include info-box, warning, "Die Mensa-Mitgliedsnummer wird demnächst nicht mehr ausblendbar sein. Wenn du nicht möchtest, dass wir den Wert löschen, schalte ihn frei.", class: info-sichtbarkeit, showCloseButton: false}
         {include private-form-group, "ggf. Mensa-Mitgliedsnummer", mensa_nr, placeholder: "Mensa-Mitgliedsnummer"}
-        {include private-form-group, "Titel", titel}
 
-        <h3>Kontaktdaten</h3>
         {include private-form-group, "Homepage", homepage, type: url}
-
-        <h3>Zweitwohnsitz <small>z.B. Adresse der Eltern</small></h3>
-
-        <div class="form-row">
-            {include private-form-group, "Straße + Hausnummer", strasse2}
-            {include private-form-group, "ggf. Adresszusatz", adresszusatz2, placeholder: "Adresszusatz"}
-        </div>
-        <div class="form-row">
-            {include private-form-group, "PLZ", plz2}
-            {include private-form-group, "Ort", ort2}
-            {include private-form-group, "Land", land2}
-        </div>
-
-        <h3>Sprachen, Hobbys, Interessen</h3>
-        {include private-form-group, "Sprachen", sprachen}
-        {include private-form-group, "Hobbys", hobbys}
-        {include private-form-group, "Interessen", interessen}
     </section>
 
     <section class="panel" aria-labelledby="career-heading">
@@ -270,36 +288,45 @@
         </h2>
 
         <p>
-            Angaben über deine Ausbildung und Beruf können anderen Mitgliedern helfen, Ansprechpartner/innen für Fragen zu ihrer eigenen Ausbildung zu finden. Dies ist einer der Kerngedanken des Netzwerks.
+            Angaben über deine Ausbildung und Beruf können anderen Mitgliedern helfen,
+            Ansprechpartner*innen für Fragen zu ihrer eigenen Ausbildung zu finden. Dies
+            ist einer der Kerngedanken des Netzwerks.
         </p>
 
+        {include info-box, warning, "Die Angaben zu Ausbildung und Beruf werden demnächst nicht mehr ausblendbar sein. Wenn du nicht möchtest, dass wir Werte löschen, schalte sie frei.", showCloseButton: false}
+
+        {include info-box, warning, "Die separate Angabe des Studien-/Ausbildungsortes wird es demnächst nicht mehr geben und an das Feld „Hochschule / Ausbildungsbetrieb, Ort“ (früher „Hochschultyp”) angehängt werden. Du kannst der Änderung vorgreifen, indem du den Wert dorthin überträgst und dieses Feld leer lässt.", class: info-nicht-leer, showCloseButton: false}
         <div class="form-row">
-            {include private-form-group, "Studienort", studienort}
-            {include private-form-group, "Hochschultyp", unityp, placeholder: "Universität, Fachhochschule, ..."}
+            {include private-form-group, "Studien-/Ausbildungsort", studienort}
+            {include private-form-group, "Hochschule / Ausbildungsbetrieb, Ort", unityp, placeholder: "Universität, Fachhochschule, ..."}
         </div>
+        {include info-box, warning, "Die Angabe von Schwerpunkt, Nebenfach und Zweitstudium werden demnächst an das Feld „Studiengänge, Ausbildung” angehängt werden. Du kannst der Änderung vorgreifen, indem du die Werte dorthin überträgst und die anderen Felder leer lässt.", class: info-nicht-leer, showCloseButton: false}
+
         <div class="form-row">
-            {include private-form-group, "Studiengang, Ausbildung", studienfach}
+            {include private-form-group, "Studiengänge, Ausbildung", studienfach}
             {include private-form-group, "Schwerpunkt", schwerpunkt}
         </div>
         {include private-form-group, "ggf. Nebenfach", nebenfach, placeholder: 'Nebenfach'}
         {include private-form-group, "Abschluss", abschluss}
         {include private-form-group, "ggf. Zweitstudium", zweitstudium, placeholder: 'Zweitstudium'}
-        {include private-form-group, "Ehrenamtliches Engagement", hochschulaktivitaeten, placeholder: 'Ehrenamtliches Engagement (Fachschaftsarbeit, ...)'}
         {include private-form-group, "Stipendien", stipendien}
         {include private-form-group, "Auslandsaufenthalte", auslandsaufenthalte}
         {include private-form-group, "Praktika, Fort- und Weiterbildungen", praktika}
         {include private-form-group, "Beruf", beruf}
 
+        {include box, name: mentoring, label: 'Ich stehe gerne als Mentor*in für andere MHN-Mitglieder in meinem Fachbereich zur Verfügung.'}
     </section>
 
-    <section class="panel" aria-labelledby="network-heading">
+    <section class="panel" aria-labelledby="engagement-heading">
         <h2 id="network-heading">
-            <i class="label-icon ti ti-affiliate" aria-hidden="true"></i>Netzwerk
+            <i class="label-icon ti ti-affiliate" aria-hidden="true"></i>Engagement für den Verein
         </h2>
 
         <p>
-            Wie möchtest du im Netzwerk aktiv sein? Diese Angaben können für alle Mitglieder sichtbar sein.
+            Wie möchtest du im Netzwerk aktiv sein?
         </p>
+
+        {include info-box, warning, "Dieser Bereich wird zur Zeit überarbeitet. Schau bitte demnächst noch einmal vorbei.", showCloseButton: false}
 
         <div>
             <h4>Ich gebe Auskunft über</h4>
@@ -308,7 +335,7 @@
             {include box, name: auskunft_auslandsaufenthalte, label: 'Auslandsaufenthalte'}
             {include box, name: auskunft_praktika, label: 'Praktika'}
             {include box, name: auskunft_beruf, label: 'Beruf'}
-            {include box, name: mentoring, label: 'Ich bin prinzipiell bereit zu beruflichem Mentoring'}
+
         </div>
 
         <div>
@@ -333,6 +360,27 @@
         </div>
 
     </section>
+
+    <section class="panel" aria-labelledby="about-heading">
+        <h2 id="about-heading">
+            <span class="label-icon" aria-hidden="true"><i class="ti ti-mood-spark"></i></span>Persönliches
+        </h2>
+
+        {default $geburtstag = \DateTimeImmutable::createFromFormat('Y-m-d', '0000-00-00')}
+        {include private-form-group, "Geburtsdatum", geburtstag, type: date, disabled: !$isAdmin}
+
+        {include private-form-group, "Sprachen", sprachen}
+
+        {include info-box, warning, "Hobbys und Interessen werden demnächst zusammengefasst zu einem einzigen Feld. Du kannst dem schon vorgreifen, indem du die Interessen in das Feld Hobbys einträgst und das Feld Interessen leer lässt.", class: info-nicht-leer, showCloseButton: false}
+        {include private-form-group, "Interessen", interessen}
+
+        {include private-form-group, "Hobbys", hobbys}
+
+        {include info-box, warning, "Das ehrenamtliche Engegament wird demnächst nicht mehr ausblendbar sein. Wenn du nicht möchtest, dass wir den Wert löschen, schalte ihn frei.", class: info-sichtbarkeit, showCloseButton: false}
+
+        {include private-form-group, "Ehrenamtliches Engagement", hochschulaktivitaeten, placeholder: 'Ehrenamtliches Engagement (Fachschaftsarbeit, ...)'}
+    </section>
+
 
     <section class="panel" aria-labelledby="membership-heading">
         <h2 id="membership-heading">

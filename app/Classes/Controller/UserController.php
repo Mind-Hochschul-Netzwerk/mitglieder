@@ -7,7 +7,6 @@ use App\Model\User;
 use App\Repository\UserAgreementRepository;
 use App\Repository\UserRepository;
 use App\Service\EmailService;
-use App\Service\Ldap;
 use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\PublicAccess;
 use Hengeb\Router\Attribute\RequireLogin;
@@ -22,16 +21,17 @@ class UserController extends Controller {
     const bearbeiten_strings_ungeprueft = ['titel', 'mensa_nr', 'strasse', 'adresszusatz', 'plz', 'ort', 'land', 'strasse2', 'adresszusatz2', 'plz2', 'ort2', 'land2', 'telefon', 'homepage', 'sprachen', 'hobbys', 'interessen', 'studienort', 'studienfach', 'unityp', 'schwerpunkt', 'nebenfach', 'abschluss', 'zweitstudium', 'hochschulaktivitaeten', 'stipendien', 'auslandsaufenthalte', 'praktika', 'beruf', 'aufgabe_sonstiges_beschreibung'];
 
     // Liste der vom Mitglied änderbaren Booleans
-    const bearbeiten_bool_ungeprueft = ['sichtbarkeit_email', 'sichtbarkeit_geburtstag', 'sichtbarkeit_mensa_nr', 'sichtbarkeit_strasse', 'sichtbarkeit_adresszusatz', 'sichtbarkeit_plz_ort', 'sichtbarkeit_land', 'sichtbarkeit_telefon', 'sichtbarkeit_beschaeftigung', 'sichtbarkeit_studienort', 'sichtbarkeit_studienfach', 'sichtbarkeit_unityp', 'sichtbarkeit_schwerpunkt', 'sichtbarkeit_nebenfach', 'sichtbarkeit_abschluss', 'sichtbarkeit_zweitstudium', 'sichtbarkeit_hochschulaktivitaeten', 'sichtbarkeit_stipendien', 'sichtbarkeit_auslandsaufenthalte', 'sichtbarkeit_praktika', 'sichtbarkeit_beruf', 'auskunft_studiengang', 'auskunft_stipendien', 'auskunft_auslandsaufenthalte', 'auskunft_praktika', 'auskunft_beruf', 'mentoring', 'aufgabe_ma', 'aufgabe_orte', 'aufgabe_vortrag', 'aufgabe_koord', 'aufgabe_graphisch', 'aufgabe_computer', 'aufgabe_texte_schreiben', 'aufgabe_texte_lesen', 'aufgabe_vermittlung', 'aufgabe_ansprechpartner', 'aufgabe_hilfe', 'aufgabe_sonstiges'];
+    const bearbeiten_bool_ungeprueft = ['sichtbarkeit_email', 'sichtbarkeit_geburtstag', 'sichtbarkeit_mensa_nr', 'sichtbarkeit_strasse', 'sichtbarkeit_adresszusatz', 'sichtbarkeit_plz_ort', 'sichtbarkeit_land', 'sichtbarkeit_telefon', 'sichtbarkeit_studienort', 'sichtbarkeit_studienfach', 'sichtbarkeit_unityp', 'sichtbarkeit_schwerpunkt', 'sichtbarkeit_nebenfach', 'sichtbarkeit_abschluss', 'sichtbarkeit_zweitstudium', 'sichtbarkeit_hochschulaktivitaeten', 'sichtbarkeit_stipendien', 'sichtbarkeit_auslandsaufenthalte', 'sichtbarkeit_praktika', 'sichtbarkeit_beruf', 'auskunft_studiengang', 'auskunft_stipendien', 'auskunft_auslandsaufenthalte', 'auskunft_praktika', 'auskunft_beruf', 'mentoring', 'aufgabe_ma', 'aufgabe_orte', 'aufgabe_vortrag', 'aufgabe_koord', 'aufgabe_graphisch', 'aufgabe_computer', 'aufgabe_texte_schreiben', 'aufgabe_texte_lesen', 'aufgabe_vermittlung', 'aufgabe_ansprechpartner', 'aufgabe_hilfe', 'aufgabe_sonstiges'];
 
     // Liste der von der Mitgliederverwaltung änderbaren Strings
     const bearbeiten_strings_admin = ['vorname', 'nachname'];
 
     public function __construct(
         private EmailService $emailService,
-        private Ldap $ldap,
         private UserRepository $userRepository,
-    ) {}
+    ) {
+        $this->setTemplateVariable('iso3166Laendernamen', User::getIso3166Laendernamen());
+    }
 
     #[Route('GET /user'), RequireLogin]
     public function showSelf(): Response {
@@ -64,7 +64,7 @@ class UserController extends Controller {
         // Dann die sichtgeschützten Felder gesondert behandeln, damit das Template möglichst frei von Logik bleiben kann
         if (!$isAdmin) {
             foreach (['email', 'geburtstag', 'mensa_nr', 'strasse', 'adresszusatz', 'land', 'telefon',
-                'beschaeftigung', 'studienort', 'studienfach', 'unityp', 'schwerpunkt', 'nebenfach', 'abschluss',
+                'studienort', 'studienfach', 'unityp', 'schwerpunkt', 'nebenfach', 'abschluss',
                 'zweitstudium', 'nebenfach', 'abschluss', 'zweitstudium', 'hochschulaktivitaeten', 'stipendien',
                 'auslandsaufenthalte', 'praktika', 'beruf'] as $feld) {
                 if (!$user->get('sichtbarkeit_' . $feld)) {
@@ -327,12 +327,6 @@ class UserController extends Controller {
         foreach ($input as $key=>$value) {
             $user->set($key, $value);
         }
-
-        $beschaeftigung = $this->validatePayload(['beschaeftigung' => 'string'])['beschaeftigung'];
-        if (!in_array($beschaeftigung, ['Schueler', 'Hochschulstudent', 'Doktorand', 'Berufstaetig', 'Sonstiges'], true)) {
-            throw new InvalidUserDataException("Wert für beschaeftigung ungültig.");
-        }
-        $user->set('beschaeftigung', $beschaeftigung);
 
         $this->updateEmail($user);
 

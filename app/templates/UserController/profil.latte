@@ -43,7 +43,7 @@
             $strasse,
             $adresszusatz,
             trim("$plz $ort"),
-            $land !== 'Deutschland' ? $land
+            $land !== 'DE' ? $user->landAusgeschrieben
         ])),
         sichtbarkeit: $uncoverAll ? ($sichtbarkeit_strasse && $sichtbarkeit_adresszusatz && $sichtbarkeit_plz_ort && $sichtbarkeit_land) : true,
     }
@@ -52,7 +52,7 @@
             $strasse2,
             $adresszusatz2,
             trim("$plz2 $ort2"),
-            $land2 !== 'Deutschland' ? $land2
+            $land2 !== 'DE' ? $user->land2Ausgeschrieben
         ]))
     }
     {include row, 'Telefon', name: telefon, href: ("tel:" . preg_replace('/(,.*$|\s)/', '', $telefon ?? ''))}
