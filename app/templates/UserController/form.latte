@@ -138,7 +138,10 @@ window.addEventListener("DOMContentLoaded", () => {
         ist einer der Kerngedanken des Netzwerks.
     </p>
 
-    {include info-box, warning, "Die Angaben zu Ausbildung und Beruf werden demnächst nicht mehr ausblendbar sein. Wenn du nicht möchtest, dass wir Werte löschen, schalte sie frei.", showCloseButton: false}
+    {include info-box, warning,
+        "Die Angaben zu Ausbildung und Beruf werden demnächst nicht mehr ausblendbar sein. Wenn du nicht möchtest, dass wir Werte löschen, schalte sie frei.",
+        class: info-sichtbarkeit-beruf
+    }
 
     {include private-form-group, "Beruf", beruf}
 
