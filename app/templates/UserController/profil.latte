@@ -36,58 +36,56 @@
 <section class="panel" aria-labelledby="contact-heading">
     <h2 id="contact-heading"><i class="label-icon ti ti-at" aria-hidden="true"></i>Kontakt &amp; Ort</h2>
     <dl n:ifcontent>
-    {include row, 'E-Mail', name: email, href: ("mailto:" . $email)}
-    {include row, 'Webseite', name: homepage, value: preg_replace('/(^https?:\/*(www\.)?|\/$)/', '', $homepage), href: ($homepage)}
-    {include row, 'Adresse',
-        value: implode(', ', array_filter([
-            $strasse,
-            $adresszusatz,
-            trim("$plz $ort"),
-            $land !== 'DE' ? $user->landAusgeschrieben
-        ])),
-        sichtbarkeit: $uncoverAll ? ($sichtbarkeit_strasse && $sichtbarkeit_adresszusatz && $sichtbarkeit_plz_ort && $sichtbarkeit_land) : true,
-    }
-    {include row, 'Zweitwohnsitz',
-        value: implode(', ', array_filter([
-            $strasse2,
-            $adresszusatz2,
-            trim("$plz2 $ort2"),
-            $land2 !== 'DE' ? $user->land2Ausgeschrieben
-        ]))
-    }
-    {include row, 'Telefon', name: telefon, href: ("tel:" . preg_replace('/(,.*$|\s)/', '', $telefon ?? ''))}
+        {include row, 'E-Mail', name: email, href: ("mailto:" . $email)}
+        {include row, 'Webseite', name: homepage, value: preg_replace('/(^https?:\/*(www\.)?|\/$)/', '', $homepage), href: ($homepage)}
+        {include row, 'Adresse',
+            value: implode(', ', array_filter([
+                $strasse,
+                $adresszusatz,
+                trim("$plz $ort"),
+                $land !== 'DE' ? ($countryNames[$land] ?? $land)
+            ])),
+            sichtbarkeit: $uncoverAll ? ($sichtbarkeit_strasse && $sichtbarkeit_adresszusatz && $sichtbarkeit_plz_ort && $sichtbarkeit_land) : true,
+        }
+        {include row, 'Zweitwohnsitz',
+            value: implode(', ', array_filter([
+                $strasse2,
+                $adresszusatz2,
+                trim("$plz2 $ort2"),
+                $land2 !== 'DE' ? ($countryNames[$land2] ?? $land2)
+            ]))
+        }
+     {include row, 'Telefon', name: telefon, href: ("tel:" . preg_replace('/(,.*$|\s)/', '', $telefon ?? ''))}
     </dl>
     <p n:else>{$vorname} hat keine Kontaktinformationen freigegeben.</p>
 </section>
 
 <section class="panel" aria-labelledby="career-heading">
     <h2 id="career-heading">
-    <i class="label-icon ti ti-school" aria-hidden="true"></i>Ausbildung &amp; Beruf
+        <i class="label-icon ti ti-school" aria-hidden="true"></i>Ausbildung &amp; Beruf
     </h2>
     <p n:if=$mentoring>Ich stehe in meinem Fachbereich gerne für berufliches Mentoring zu Verfügung.</p>
     <dl n:ifcontent>
-    {include row, 'Beruf', name: beruf}
-    {include row, 'Hochschultyp', name: unityp}
-    {include row, 'Studienort', name: studienort}
-    {include row, 'Studiengang, Ausbildung', name: studienfach}
-    {include row, 'Schwerpunkt', name: schwerpunkt}
-    {include row, 'Nebenfach', name: nebenfach}
-    {include row, 'Abschluss', name: abschluss}
-    {include row, 'Zweitstudium', name: zweitstudium}
-    {include row, 'Ehrenamtliches Engagement', name: ehrenamt}
-    {include row, 'Stipendien', name: stipendien}
-    {include row, 'Auslandsaufenthalte', name: auslandsaufenthalte}
-    {include row, 'Praktika, Fort- und Weiterbildung', name. praktika}
+        {include row, 'Beruf', name: beruf}
+        {include row, 'Hochschultyp', name: unityp}
+        {include row, 'Studienort', name: studienort}
+        {include row, 'Studiengang, Ausbildung', name: studienfach}
+        {include row, 'Schwerpunkt', name: schwerpunkt}
+        {include row, 'Nebenfach', name: nebenfach}
+        {include row, 'Abschluss', name: abschluss}
+        {include row, 'Zweitstudium', name: zweitstudium}
+        {include row, 'Stipendien', name: stipendien}
+        {include row, 'Auslandsaufenthalte', name: auslandsaufenthalte}
+        {include row, 'Praktika, Fort- und Weiterbildung', name: praktika}
+        {include row, 'frühere berufliche Tätigkeiten', name: fruehere_taetigkeiten}
     </dl>
     <p n:else>{$vorname} hat keine Angaben zu Ausbildung oder Beruf freigegeben.</p>
-
 </section>
 
 <section class="panel" aria-labelledby="activity-heading">
     <h2 id="activity-heading">
     <span class="label-icon" aria-hidden="true"><i class="ti ti-carambola"></i></span> Engagement für den Verein
     </h2>
-
 
     <h3>Ich könnte bei folgenden Aufgaben helfen</h3>
     <ul n:ifcontent class="feature-list">
@@ -120,6 +118,7 @@
     {include row, 'Sprachen', name: sprachen}
     {include row, 'Hobbys', name: hobbys}
     {include row, 'Interessen', name: interessen}
+    {include row, 'Ehrenamtliches Engagement', name: ehrenamt}
     </dl>
     <p n:else>{$vorname} hat keine persönlichen Angaben gemacht.</p>
 </section>
