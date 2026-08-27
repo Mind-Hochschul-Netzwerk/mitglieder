@@ -23,10 +23,11 @@
     </div>
 {/define}
 
-{define private-form-group, $label, $name, $type, $value, $class = "", $uncoverVariable, $type = 'text', $id, $placeholder, $autocomplete, $disabled, $required, $options = []}
+{define private-form-group, $label, $name, $type, $value, $class = "", $uncoverVariable, $type = 'text', $id, $placeholder, $autocomplete, $disabled, $required, $options = [], $infoboxText = "", $infoboxType = null, $infoboxClass = ""}
     {var $id = $id ?? ($name ? 'input-' . $name)}
     <div class='form-group'>
-        <label for={$id}>{$label}</label>
+        <label for={$id}>{$label} <i n:if=$required class="required-icon ti ti-asterisk" aria-hidden="true"></i></label>
+        {if $infoboxText}{include info-box, $infoboxType, $infoboxText, class: $infoboxClass}{/if}
         {include private-input, ...get_defined_vars(), label: null, placeholder: $placeholder ?: $label}
     </div>
 {/define}
@@ -54,7 +55,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     <p>
         Bitte ermögliche, dass andere Mitglieder dich erreichen können.
-        Die Pflichtfelder benötigen wir, um das offizielle Mitgliederverzeichnis zu führen.
+        Die Pflichtfelder (<i class="required-icon ti ti-asterisk" aria-hidden="true"></i>) benötigen wir, um das offizielle Mitgliederverzeichnis zu führen.
     </p>
 
     {embed info-box, showCloseButton: false}{block info-box-text}
@@ -66,27 +67,24 @@ window.addEventListener("DOMContentLoaded", () => {
 
     <div class="form-row">
         {include private-form-group, "Titel", titel, placeholder: "akademischer Titel wie Prof., Dr., Dr. med."}
-        {include private-form-group, "Vorname", vorname, disabled: !$isAdmin}
-        {include private-form-group, "Nachname", nachname, disabled: !$isAdmin}
+        {include private-form-group, "Vorname", vorname, disabled: !$isAdmin, required: true}
+        {include private-form-group, "Nachname", nachname, disabled: !$isAdmin, required: true}
     </div>
 
-    <div class="form-group">
-        <label for="input-email">E-Mail{if $email_auth_info} (wird geändert){/if}</label>
-        {if str_ends_with(strtolower($email), '.invalid')}
-            {include info-box, info, "Die Endung .invalid wurde angefügt, weil E-Mails an diese Adresse nicht zugestellt werden konnten."}
-        {/if}
-        {include private-input, label: "", name: email, placeholder: "E-Mail", type: email}
-    </div>
+    {include private-form-group, "E-Mail" . ($email_auth_info ? " (wird geändert)"), "email", email, type: email, required: true,
+        infoboxText: str_ends_with(strtolower($email), '.invalid') ? "Die Endung .invalid wurde angefügt, weil E-Mails an diese Adresse nicht zugestellt werden konnten.",
+        uncoverVariable: sichtbarkeit_email, placeholder: "E-Mail"
+    }
 
     <div class="form-row">
-        {include private-form-group, "Straße + Hausnummer", strasse}
+        {include private-form-group, "Straße + Hausnummer", strasse, required: true}
         {include private-form-group, "ggf. Adresszusatz", adresszusatz, placeholder: "Adresszusatz"}
     </div>
     <div class="form-row">
-        {include private-form-group, "PLZ", plz, uncoverVariable: sichtbarkeit_plz_ort}
-        {include private-form-group, "Ort", ort, uncoverVariable: sichtbarkeit_plz_ort}
+        {include private-form-group, "PLZ", plz, uncoverVariable: sichtbarkeit_plz_ort, required: true}
+        {include private-form-group, "Ort", ort, uncoverVariable: sichtbarkeit_plz_ort, required: true}
         {* Deutsch/Österreich/Schweiz oben in der Liste; Leerzeichen, um doppelte Keys zu vermeiden *}
-        {include private-form-group, "Land", land, type: select, options: [
+        {include private-form-group, "Land", land, type: select, required: true, options: [
             ' DE ' => 'Deutschland',
             ' AT ' => 'Österreich',
             ' CH ' => 'Schweiz',
@@ -117,11 +115,14 @@ window.addEventListener("DOMContentLoaded", () => {
         </div>
     </details>
 
-    {include info-box, warning, "Die Telefonnummer wird demnächst nicht mehr ausblendbar sein. Wenn du nicht möchtest, dass wir den Wert löschen, schalte ihn frei.", class: info-sichtbarkeit, showCloseButton: false}
-    {include private-form-group, "Telefon", telefon, type: tel}
+    {include private-form-group, "Telefon", telefon, type: tel,
+        infoboxClass: info-sichtbarkeit,
+        infoboxType: warning, infoboxText: "Die Telefonnummer wird demnächst nicht mehr ausblendbar sein. Wenn du nicht möchtest, dass wir den Wert löschen, schalte ihn frei."
+    }
 
-    {include info-box, warning, "Die Mensa-Mitgliedsnummer wird demnächst nicht mehr ausblendbar sein. Wenn du nicht möchtest, dass wir den Wert löschen, schalte ihn frei.", class: info-sichtbarkeit, showCloseButton: false}
-    {include private-form-group, "ggf. Mensa-Mitgliedsnummer", mensa_nr, placeholder: "Mensa-Mitgliedsnummer"}
+    {include private-form-group, "ggf. Mensa-Mitgliedsnummer", mensa_nr, placeholder: "Mensa-Mitgliedsnummer",
+        infoboxClass: info-sichtbarkeit, infoboxType: warning, infoboxText: "Die Mensa-Mitgliedsnummer wird demnächst nicht mehr ausblendbar sein. Wenn du nicht möchtest, dass wir den Wert löschen, schalte ihn frei."
+    }
 
     {include private-form-group, "Homepage", homepage, type: url}
 </section>
@@ -139,31 +140,38 @@ window.addEventListener("DOMContentLoaded", () => {
 
     {include info-box, warning, "Die Angaben zu Ausbildung und Beruf werden demnächst nicht mehr ausblendbar sein. Wenn du nicht möchtest, dass wir Werte löschen, schalte sie frei.", showCloseButton: false}
 
-    {include info-box, warning, "Die separate Angabe des Studien-/Ausbildungsortes wird es demnächst nicht mehr geben und an das Feld „Hochschule / Ausbildungsbetrieb, Ort“ (früher „Hochschultyp”) angehängt werden. Du kannst der Änderung vorgreifen, indem du den Wert dorthin überträgst und dieses Feld leer lässt.", class: info-nicht-leer, showCloseButton: false}
-    <div class="form-row">
-        {include private-form-group, "Studien-/Ausbildungsort", studienort}
-        {include private-form-group, "Hochschule / Ausbildungsbetrieb, Ort", unityp, placeholder: "Universität, Fachhochschule, ..."}
-    </div>
-    {include info-box, warning, "Die Angabe von Schwerpunkt, Nebenfach und Zweitstudium werden demnächst an das Feld „Studiengänge, Ausbildung” angehängt werden. Du kannst der Änderung vorgreifen, indem du die Werte dorthin überträgst und die anderen Felder leer lässt.", class: info-nicht-leer, showCloseButton: false}
+    {include private-form-group, "Beruf", beruf}
 
-    <div class="form-row">
-        {include private-form-group, "Studiengänge, Ausbildung", studienfach}
-        {include private-form-group, "Schwerpunkt", schwerpunkt}
-    </div>
-    {include private-form-group, "ggf. Nebenfach", nebenfach, placeholder: 'Nebenfach'}
+    {include private-form-group, "Studiengänge, Ausbildung", studienfach}
+
+    {include private-form-group, "Hochschule / Ausbildungsbetrieb, Ort", unityp, placeholder: "Universität, Fachhochschule, ...",}
+
+    {include private-form-group, "Studien-/Ausbildungsort", studienort,
+        infoboxClass: info-nicht-leer, infoboxType: warning, infoboxText: "Die separate Angabe des Studien-/Ausbildungsortes wird es demnächst nicht mehr geben und an das Feld „Hochschule / Ausbildungsbetrieb, Ort“ (früher „Hochschultyp”) angehängt. Du kannst der Änderung vorgreifen, indem du die Angabe dorthin überträgst und dieses Feld leerst."
+    }
+
+    {include private-form-group, "Schwerpunkt", schwerpunkt,
+        infoboxClass: info-nicht-leer, infoboxType: warning, infoboxText: "Die Angabe des Schwerpunkts wird demnächst an das Feld „Studiengänge, Ausbildung” angehängt. Du kannst der Änderung vorgreifen, indem du die Angabe dorthin überträgst und dieses Feld leerst."
+    }
+
+    {include private-form-group, "ggf. Nebenfach", nebenfach, placeholder: 'Nebenfach',
+        infoboxClass: info-nicht-leer, infoboxType: warning, infoboxText: "Die Angabe des Nebenfachs wird demnächst an das Feld „Studiengänge, Ausbildung” angehängt. Du kannst der Änderung vorgreifen, indem du die Angabe dorthin überträgst und dieses Feld leerst."
+    }
+
     {include private-form-group, "Abschluss", abschluss}
-    {include private-form-group, "ggf. Zweitstudium", zweitstudium, placeholder: 'Zweitstudium'}
+    {include private-form-group, "ggf. Zweitstudium", zweitstudium, placeholder: 'Zweitstudium',
+        infoboxClass: info-nicht-leer, infoboxType: warning, infoboxText: "Die Angabe des Zweitstudiums wird demnächst an das Feld „Studiengänge, Ausbildung” angehängt. Du kannst der Änderung vorgreifen, indem du die Angabe dorthin überträgst und dieses Feld leerst."
+    }
     {include private-form-group, "Stipendien", stipendien}
     {include private-form-group, "Auslandsaufenthalte", auslandsaufenthalte}
     {include private-form-group, "Praktika, Fort- und Weiterbildungen", praktika}
-    {include private-form-group, "Beruf", beruf}
     {include private-form-group, "Frühere berufliche Tätigkeiten", fruehere_taetigkeiten}
     {include box, name: mentoring, label: 'Ich stehe gerne als Mentor*in für andere MHN-Mitglieder in meinem Fachbereich zur Verfügung.'}
 </section>
 
 <section class="panel" aria-labelledby="engagement-heading">
     <h2 id="network-heading">
-        <i class="label-icon ti ti-affiliate" aria-hidden="true"></i>Engagement für den Verein
+        <i class="label-icon ti ti-carambola" aria-hidden="true"></i>Engagement für den Verein
     </h2>
 
     <p>
@@ -199,16 +207,17 @@ window.addEventListener("DOMContentLoaded", () => {
     </h2>
 
     {default $geburtstag = \DateTimeImmutable::createFromFormat('Y-m-d', '0000-00-00')}
-    {include private-form-group, "Geburtsdatum", geburtstag, type: date, disabled: !$isAdmin}
+    {include private-form-group, "Geburtsdatum", geburtstag, type: date, disabled: !$isAdmin, required: true}
 
     {include private-form-group, "Sprachen", sprachen}
 
-    {include private-form-group, "Hobbys", hobbys}
+    {include private-form-group, "Hobbys und Interessen", hobbys}
 
-    {include info-box, warning, "Hobbys und Interessen werden demnächst zusammengefasst zu einem einzigen Feld. Du kannst dem schon vorgreifen, indem du die Interessen in das Feld Hobbys einträgst und das Feld Interessen leer lässt.", class: info-nicht-leer, showCloseButton: false}
-    {include private-form-group, "Interessen", interessen}
+    {include private-form-group, "Interessen", interessen,
+        infoboxClass: info-nicht-leer, infoboxType: warning, infoboxText: "Die Interessen werden demnächst an das Feld „Hobbys und Interessen” (früher „Hobbys”) angehängt. Du kannst der Änderung vorgreifen, indem du die Angabe dorthin überträgst und dieses Feld leerst."
+    }
 
-    {include info-box, warning, "Das ehrenamtliche Engegament wird demnächst nicht mehr ausblendbar sein. Wenn du nicht möchtest, dass wir den Wert löschen, schalte ihn frei.", class: info-sichtbarkeit, showCloseButton: false}
-
-    {include private-form-group, "Ehrenamtliches Engagement", hochschulaktivitaeten, placeholder: 'Ehrenamtliches Engagement (Fachschaftsarbeit, ...)'}
+    {include private-form-group, "Ehrenamtliches Engagement", ehrenamt, placeholder: 'Ehrenamtliches Engagement (Fachschaftsarbeit, ...)',
+        infoboxClass: info-sichtbarkeit, infoboxType: warning, infoboxText: "Das ehrenamtliche Engegament wird demnächst nicht mehr ausblendbar sein. Wenn du nicht möchtest, dass wir den Wert löschen, schalte ihn frei."
+    }
 </section>

@@ -15,12 +15,15 @@
 </div>
 {/define}
 
-{define input, $name, $label, $type, $value, $class = "", $uncoverVariable, $type = 'text', $elementId, $placeholder, $autocomplete, $disabled, $required, $options = []}
+{define input, $name, $label, $type, $value, $class = "", $uncoverVariable, $type = 'text', $elementId, $placeholder, $autocomplete, $disabled, $required, $options = [], $infoboxText, $infoboxType, $infoboxClass}
     {var $elementId = $elementId ?? 'input-' . $name}
     {var $value = $value ?? get_defined_vars()[$name]}
     {if $value instanceof \DateTimeInterface}{var $value = ($value|format:'Y-m-d')}{/if}
     <div class="form-group" n:tag-if=$label>
-        <label n:ifcontent for="$elementId">{$label}</label>
+        <label n:ifcontent for="$elementId">{$label} <i n:if="$label && $required" class="required-icon ti ti-asterisk" aria-hidden="true"></i></label>
+        {if $infoboxText}
+            {include info-box, $infoboxType, $infoboxText, class: $infoboxClass}
+        {/if}
         {if $type === select}
             <select n:attr="id: $elementId, name: $name, class: $class">
                 {foreach $options as $option=>$optionlabel}
@@ -75,12 +78,15 @@
     "> {block box-label}{$label}{/block}</label>
 {/define}
 
-{define form-group, $label, $name, $type, $value, $class = "", $type = 'text', $id, $placeholder, $autocomplete, $disabled, $required, $options = []}
+{define form-group, $label, $name, $type, $value, $class = "", $type = 'text', $id, $placeholder, $autocomplete, $disabled, $required, $options = [], $infoboxText = "", $infoboxType = null}
     {var $id = $id ?? ($name ? 'input-' . $name)}
     <div class='form-group'>
-        <label for={$id}>{$label}</label>
+        <label for={$id}>{$label} <i n:if=$required class="required-icon ti ti-asterisk" aria-hidden="true"></i></label>
+        {if $infoboxText}
+            {include info-box, $infoboxType, $infoboxText}
+        {/if}
         {block inputs}
-            {include input, ...get_defined_vars(), label: null, placeholder: $placeholder ?: $label}
+            {include input, ...get_defined_vars(), label: null, placeholder: $placeholder ?: $label, class: $infoboxClass}
         {/block}
     </div>
 {/define}

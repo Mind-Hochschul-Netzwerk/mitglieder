@@ -103,7 +103,7 @@ class User
         'aufgabe_mitgliederbetreuung' => "Mitgliederbetreuung, d.h. Daten verwalten und/oder Personen ansprechen und zusammenbringen, z.B. für neue Veranstaltungen",
         'aufgabe_seminarteam' => "Seminarteam, d.h. Seminare anstoßen und den Überblick darüber behalten",
         'aufgabe_oeffentlichkeitsarbeit' => "Öffentlichkeitsarbeit, d.h. Webseiten-Inhalte, Social Media, Kooperationen mit Partnervereinen",
-        'aufgabe_mentoringprogramm' => "Das Mentoring-Programm organiseren, d.h. Mentor*innen und Mentees zusammenbringen",
+        'aufgabe_mentoringprogramm' => "Das Mentoring-Programm organisieren, d.h. Mentor*innen und Mentees zusammenbringen",
     ];
 
     public $hashedPassword = '';

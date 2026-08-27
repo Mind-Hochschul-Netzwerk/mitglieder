@@ -856,7 +856,6 @@ dl {
 /* ── Icons ────────────────── */
 .label-icon {
   display: inline-flex;
-  align-items: center;
   justify-content: center;
   width: 1.2em; height: 1.2em;
   margin-right: 0.35em;
@@ -880,6 +879,10 @@ dl {
   dd & {
     margin-left: 0.35em;
   }
+}
+
+.required-icon {
+    color: var(--accent);
 }
 
 /* ── Prose (Datenschutz etc.) ─────────────────────────────── */
@@ -1128,9 +1131,6 @@ pre {
     100%  {transform:scaleY(-1) rotate(-135deg)}
 }
 
-
-
-
 details:has(summary .ti-chevron-right) {
     summary { cursor: pointer; }
     summary::marker { content: ""; }
@@ -1138,7 +1138,7 @@ details:has(summary .ti-chevron-right) {
     &[open] summary .ti-chevron-right { rotate: 90deg; }
 }
 
-.info-sichtbarkeit:has(+ div.form-group :is(input[type="checkbox"]:checked, input:placeholder-shown)) {
+.info-sichtbarkeit:has(+ div.input-group :is(input[type="checkbox"]:checked, input:placeholder-shown)) {
     display: none;
 }
 .info-nicht-leer:has(+ div input:placeholder-shown) {
