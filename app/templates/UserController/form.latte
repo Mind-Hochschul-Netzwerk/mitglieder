@@ -45,7 +45,7 @@ window.addEventListener("DOMContentLoaded", () => {
         });
         sichtbarkeit_plz_ort_recursion = false;
     });
-}
+});
 </script>
 
 <section class="panel" aria-labelledby="kontaktdaten-heading">
@@ -134,10 +134,15 @@ window.addEventListener("DOMContentLoaded", () => {
         ist einer der Kerngedanken des Netzwerks.
     </p>
 
-    {include info-box, warning,
+    {embed info-box, warning,
         "Die Angaben zu Ausbildung und Beruf werden demnächst nicht mehr ausblendbar sein. Wenn du nicht möchtest, dass wir Werte löschen, schalte sie frei.",
         class: info-sichtbarkeit-beruf
-    }
+    }{block info-box-button}
+        <button type="button" class="secondary"
+            onclick="document.querySelectorAll('.info-sichtbarkeit-beruf ~ div .uncover-toggle input').forEach(e => e.checked = true);">
+            <i class="ti ti-eye protected-value-icon" aria-hidden="true"></i> Alles freigeben
+        </button>
+    {/block}{/embed}
 
     {include private-form-group, "Beruf", beruf}
 
