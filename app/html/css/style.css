@@ -1141,6 +1141,6 @@ details:has(summary .ti-chevron-right) {
 .info-sichtbarkeit:has(+ div.input-group :is(input[type="checkbox"]:checked, input:placeholder-shown)) {
     display: none;
 }
-.info-nicht-leer:has(+ div input:placeholder-shown) {
+.info-nicht-leer:has(+ input:placeholder-shown) {
     display: none;
 }
