@@ -856,7 +856,8 @@ dl {
 /* ── Icons ────────────────── */
 .label-icon {
   display: inline-flex;
-  align-items: center; justify-content: center;
+  align-items: center;
+  justify-content: center;
   width: 1.2em; height: 1.2em;
   margin-right: 0.35em;
   color: var(--accent);

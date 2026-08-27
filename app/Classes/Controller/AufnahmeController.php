@@ -47,34 +47,30 @@ class AufnahmeController extends Controller
         'hobbys' => 'mhn_hobbies',
         'interessen' => 'mhn_interessen',
         'studienfach' => 'mhn_studienfach',
-        'hochschulaktivitaeten' => 'mhn_hochschulaktivitaet', // mittlerweile ehrenamtliches Engagement
+        'ehrenamt' => 'mhn_hochschulaktivitaet',
         'stipendien' => 'mhn_stipendien',
         'auslandsaufenthalte' => 'mhn_ausland',
         'praktika' => 'mhn_praktika',
         'beruf' => 'mhn_beruf',
-        'auskunft_studiengang' => 'mhn_auskunft_studiengang',
-        'auskunft_stipendien' => 'mhn_auskunft_stipendien',
-        'auskunft_auslandsaufenthalte' => 'mhn_auskunft_ausland',
-        'auskunft_praktika' => 'mhn_auskunft_praktika',
-        'auskunft_beruf' => 'mhn_auskunft_beruf',
         'mentoring' => 'mhn_mentoring',
-        'aufgabe_orte' => 'mhn_aufgabe_orte',
         'aufgabe_vortrag' => 'mhn_aufgabe_vortrag',
-        'aufgabe_koord' => 'mhn_aufgabe_koord',
-        'aufgabe_computer' => 'mhn_aufgabe_computer',
-        'aufgabe_texte_schreiben' => 'mhn_aufgabe_texte_schreiben',
-        'aufgabe_ansprechpartner' => 'mhn_aufgabe_ansprechpartner',
-        'aufgabe_hilfe' => 'mhn_aufgabe_hilfe',
+        'aufgabe_it' => 'mhn_aufgabe_computer',
+        'aufgabe_oeffentlichkeitsarbeit' => 'mhn_aufgabe_texte_schreiben',
+        'aufgabe_lokal' => 'mhn_aufgabe_ansprechpartner',
     ];
 
    /* Felder, die nicht gesetzt werden (Default siehe Mitglied::)
-     'aufgabe_sonstiges_beschreibung'=>'',
-     'sichtbarkeit_*',
-     'aufgabe_ma' => '',
-     'aufgabe_graphisch' => '',
-     'aufgabe_texte_lesen' => '',
-     'aufgabe_vermittlung' => '',
-     'aufgabe_sonstiges' => '',
+     sichtbarkeit_*
+     fruehere_taetigkeiten
+     aufgabe_koord
+     aufgabe_ma
+     aufgabe_veranstaltungen
+     aufgabe_mentoringprogramm
+     aufgabe_seminar
+     aufgabe_finanzen
+     aufgabe_mitgliederbetreuung
+     aufgabe_seminarteam
+     aufgabe_freitext
     */
 
     private string $token = '';
@@ -249,11 +245,22 @@ class AufnahmeController extends Controller
 
     private function showForm(): Response
     {
+        $data = [];
+        foreach (self::MAP as $key_neu => $key_alt) {
+            if (!isset($this->data[$key_alt])) {
+                throw new \RuntimeException($key_alt . ' is missing');
+            }
+            $data[$key_neu] = $this->data[$key_alt];
+        }
+
         return $this->render('AufnahmeController/form', $this->accessFlags + [
             'username' => $this->username ? $this->username : $this->suggestUsername(),
             'password' => '',
             'password2' => '',
+            'countryNames' => UserController::COUNTRY_NAMES,
+            'aufgabenLabels' => User::AUFGABEN,
             ...$this->data,
+            ...$data,
         ]);
     }
 
@@ -308,7 +315,6 @@ class AufnahmeController extends Controller
         $user->set('sichtbarkeit_geburtstag', (bool) $this->accessFlags['sichtbarkeit_geburtstag']);
         $user->set('sichtbarkeit_mensa_nr', (bool) $this->accessFlags['sichtbarkeit_mensa_nr']);
         $user->set('sichtbarkeit_telefon', (bool) $this->accessFlags['sichtbarkeit_telefon']);
-        $user->set('sichtbarkeit_beschaeftigung', (bool) $this->accessFlags['sichtbarkeit_beruf']);
         $user->set('sichtbarkeit_beruf', (bool) $this->accessFlags['sichtbarkeit_beruf']);
         $user->set('sichtbarkeit_studienort', (bool) $this->accessFlags['sichtbarkeit_studium']);
         $user->set('sichtbarkeit_studienfach', (bool) $this->accessFlags['sichtbarkeit_studium']);
@@ -317,7 +323,7 @@ class AufnahmeController extends Controller
         $user->set('sichtbarkeit_nebenfach', (bool) $this->accessFlags['sichtbarkeit_studium']);
         $user->set('sichtbarkeit_abschluss', (bool) $this->accessFlags['sichtbarkeit_studium']);
         $user->set('sichtbarkeit_zweitstudium', (bool) $this->accessFlags['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_hochschulaktivitaeten', (bool) $this->accessFlags['sichtbarkeit_studium']);
+        $user->set('sichtbarkeit_ehrenamt', (bool) $this->accessFlags['sichtbarkeit_studium']);
         $user->set('sichtbarkeit_stipendien', (bool) $this->accessFlags['sichtbarkeit_studium']);
         $user->set('sichtbarkeit_auslandsaufenthalte', (bool) $this->accessFlags['sichtbarkeit_studium']);
         $user->set('sichtbarkeit_praktika', (bool) $this->accessFlags['sichtbarkeit_studium']);
@@ -341,7 +347,7 @@ class AufnahmeController extends Controller
             $user->set('sprachen', '');
             $user->set('hobbys', '');
             $user->set('interessen', '');
-            $user->set('hochschulaktivitaeten', '');
+            $user->set('ehrenamt', '');
         }
     }
 
