@@ -120,10 +120,6 @@ window.addEventListener("DOMContentLoaded", () => {
         infoboxType: warning, infoboxText: "Die Telefonnummer wird demnächst nicht mehr ausblendbar sein. Wenn du nicht möchtest, dass wir den Wert löschen, schalte ihn frei."
     }
 
-    {include private-form-group, "ggf. Mensa-Mitgliedsnummer", mensa_nr, placeholder: "Mensa-Mitgliedsnummer",
-        infoboxClass: info-sichtbarkeit, infoboxType: warning, infoboxText: "Die Mensa-Mitgliedsnummer wird demnächst nicht mehr ausblendbar sein. Wenn du nicht möchtest, dass wir den Wert löschen, schalte ihn frei."
-    }
-
     {include private-form-group, "Homepage", homepage, type: url}
 </section>
 
@@ -185,21 +181,21 @@ window.addEventListener("DOMContentLoaded", () => {
     </p>
 
     <div>
-        <h4>Ich könnte bei folgenden Aufgaben helfen</h4>
+        <h3>Ich könnte bei folgenden Aufgaben helfen</h3>
         {foreach [aufgabe_ma, aufgabe_veranstaltungen, aufgabe_seminar, aufgabe_lokal, aufgabe_vortrag] as $key}
             {include box, $key, $aufgabenLabels[$key]}
         {/foreach}
     </div>
 
     <div>
-        <h4>Ich könnte bei folgenden Teams mitarbeiten</h4>
+        <h3>Ich könnte bei folgenden Teams mitarbeiten</h3>
         {foreach [aufgabe_it, aufgabe_finanzen, aufgabe_mitgliederbetreuung, aufgabe_seminarteam, aufgabe_oeffentlichkeitsarbeit, aufgabe_mentoringprogramm] as $key}
             {include box, $key, $aufgabenLabels[$key]}
         {/foreach}
     </div>
 
     <div>
-        <h4>Falls du konkrete Ideen zu deinem Engagement hast, lass es uns hier gerne wissen:</h4>
+        <h3>Falls du konkrete Ideen zu deinem Engagement hast, lass es uns hier gerne wissen:</h3>
         {include input, name: aufgabe_freitext, placeholder: "Ideen für Engagement"}
     </div>
 </section>
@@ -211,6 +207,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
     {default $geburtstag = \DateTimeImmutable::createFromFormat('Y-m-d', '0000-00-00')}
     {include private-form-group, "Geburtsdatum", geburtstag, type: date, disabled: !$isAdmin, required: true}
+
+    {include private-form-group, "ggf. Mensa-Mitgliedsnummer", mensa_nr, placeholder: "Mensa-Mitgliedsnummer",
+        infoboxClass: info-sichtbarkeit, infoboxType: warning, infoboxText: "Die Mensa-Mitgliedsnummer wird demnächst nicht mehr ausblendbar sein. Wenn du nicht möchtest, dass wir den Wert löschen, schalte ihn frei."
+    }
 
     {include private-form-group, "Sprachen", sprachen}
 
