@@ -19,6 +19,7 @@ use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\PublicAccess;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\InvalidUserDataException;
+use Hengeb\Router\ServiceContainer;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -78,19 +79,7 @@ class AufnahmeController extends Controller
 
     private string $username = '';
     private string $password = '';
-    private array $accessFlags = [
-        'sichtbarkeit_adresse' => -1,
-        'sichtbarkeit_email' => -1,
-        'sichtbarkeit_telefon' => -1,
-        'sichtbarkeit_geburtstag' => -1,
-        'sichtbarkeit_mensa_nr' => -1,
-        'sichtbarkeit_studium' => -1,
-        'sichtbarkeit_beruf' => -1,
-        'uebernahme_titel' => -1,
-        'uebernahme_homepage' => -1,
-        'uebernahme_zweitwohnsitz' => -1,
-        'uebernahme_interessen' => -1,
-    ];
+
     private bool $readyToSave = true;
 
     public function __construct(
@@ -114,20 +103,6 @@ class AufnahmeController extends Controller
         $this->checkEnteredUsername();
         $this->checkEnteredPassword();
 
-        $this->accessFlags = $this->validatePayload([
-            'sichtbarkeit_adresse' => 'uint',
-            'sichtbarkeit_email' => 'uint',
-            'sichtbarkeit_telefon' => 'uint',
-            'sichtbarkeit_geburtstag' => 'uint',
-            'sichtbarkeit_mensa_nr' => 'uint',
-            'sichtbarkeit_studium' => 'uint',
-            'sichtbarkeit_beruf' => 'uint',
-            'uebernahme_titel' => 'uint',
-            'uebernahme_homepage' => 'uint',
-            'uebernahme_zweitwohnsitz' => 'uint',
-            'uebernahme_interessen' => 'uint',
-        ]);
-
         if ($this->readyToSave) {
             $this->save();
             return $this->redirect('/user/self/edit');
@@ -149,6 +124,10 @@ class AufnahmeController extends Controller
         $curl = curl_init('http://aufnahme:8080/onboarding/?token=' . $this->token);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $response = curl_exec($curl);
+
+        if ($response === false) {
+            error_log('curl_exec: ' . curl_error($curl));
+        }
 
         $this->data = json_decode($response, associative: true) ?? throw new InvalidUserDataException('Der Link ist ungültig. Wurde der Zugang schon aktiviert?');
     }
@@ -245,22 +224,38 @@ class AufnahmeController extends Controller
 
     private function showForm(): Response
     {
-        $data = [];
+        $data = User::getDefaults();
+        foreach ($data as $key => $value) {
+            if (is_bool($value)) {
+                $data[$key] = !!($_POST[$key] ?? $value);
+                continue;
+            }
+            $data[$key] = (string) $_POST[$key] ?: $value;
+        }
+
         foreach (self::MAP as $key_neu => $key_alt) {
             if (!isset($this->data[$key_alt])) {
                 throw new \RuntimeException($key_alt . ' is missing');
             }
-            $data[$key_neu] = $this->data[$key_alt];
+            $data[$key_neu] = (string) $_POST[$key_neu] ?: $this->data[$key_alt];
+        }
+        $data['geburtstag'] = User::makeDateTime($this->data['mhn_geburtstag']);
+
+        foreach (User::AUFGABEN as $key => $label) {
+            $data[$key] = !!($_POST[$key] ?? false);
         }
 
-        return $this->render('AufnahmeController/form', $this->accessFlags + [
-            'username' => $this->username ? $this->username : $this->suggestUsername(),
-            'password' => '',
-            'password2' => '',
+        return $this->render('AufnahmeController/form', [
             'countryNames' => UserController::COUNTRY_NAMES,
             'aufgabenLabels' => User::AUFGABEN,
             ...$this->data,
             ...$data,
+            'username' => (string) $_POST['username'] ?: $this->suggestUsername(),
+            'password' => '',
+            'password2' => '',
+            'voreinstellung_adresse' => (int) ($_POST['voreinstellung_adresse'] ?? -1),
+            'voreinstellung_email' => (int) ($_POST['voreinstellung_email'] ?? -1),
+            'voreinstellung_geburtstag' => (int) ($_POST['voreinstellung_geburtstag'] ?? -1),
         ]);
     }
 
@@ -274,18 +269,16 @@ class AufnahmeController extends Controller
             userRepository: $this->userRepository,
         );
 
-        foreach (self::MAP as $key_neu => $key_alt) {
-            if (!isset($this->data[$key_alt])) {
-                throw new \RuntimeException($key_alt . ' is missing');
-            }
-            $user->set($key_neu, $this->data[$key_alt]);
-        }
+        $user->set('vorname', $this->data['mhn_vorname']);
+        $user->set('nachname', $this->data['mhn_nachname']);
+
+        $userController = new UserController(emailService: $this->emailService, userRepository: $this->userRepository);
+        $userController->request = $this->request;
+        $userController->copyFromForm($user);
 
         if (isset($this->data['mhn_geburtstag'])) {
             $user->set('geburtstag', $this->data['mhn_geburtstag']);
         }
-
-        $this->processAccessFlags($user);
 
         $this->userRepository->save($user);
 
@@ -303,52 +296,6 @@ class AufnahmeController extends Controller
         $this->currentUser->logIn($user); // Status neu laden
 
         $this->sendMailToActivationTeam($user);
-    }
-
-    private function processAccessFlags(User $user)
-    {
-        $user->set('sichtbarkeit_strasse', $this->accessFlags['sichtbarkeit_adresse'] === 1);
-        $user->set('sichtbarkeit_adresszusatz', $this->accessFlags['sichtbarkeit_adresse'] === 1);
-        $user->set('sichtbarkeit_plz_ort', $this->accessFlags['sichtbarkeit_adresse'] >= 1);
-        $user->set('sichtbarkeit_land', $this->accessFlags['sichtbarkeit_adresse'] >= 1);
-        $user->set('sichtbarkeit_email', (bool) $this->accessFlags['sichtbarkeit_email']);
-        $user->set('sichtbarkeit_geburtstag', (bool) $this->accessFlags['sichtbarkeit_geburtstag']);
-        $user->set('sichtbarkeit_mensa_nr', (bool) $this->accessFlags['sichtbarkeit_mensa_nr']);
-        $user->set('sichtbarkeit_telefon', (bool) $this->accessFlags['sichtbarkeit_telefon']);
-        $user->set('sichtbarkeit_beruf', (bool) $this->accessFlags['sichtbarkeit_beruf']);
-        $user->set('sichtbarkeit_studienort', (bool) $this->accessFlags['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_studienfach', (bool) $this->accessFlags['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_unityp', (bool) $this->accessFlags['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_schwerpunkt', (bool) $this->accessFlags['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_nebenfach', (bool) $this->accessFlags['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_abschluss', (bool) $this->accessFlags['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_zweitstudium', (bool) $this->accessFlags['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_ehrenamt', (bool) $this->accessFlags['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_stipendien', (bool) $this->accessFlags['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_auslandsaufenthalte', (bool) $this->accessFlags['sichtbarkeit_studium']);
-        $user->set('sichtbarkeit_praktika', (bool) $this->accessFlags['sichtbarkeit_studium']);
-
-        if (!$this->accessFlags['uebernahme_titel']) {
-            $user->set('titel', '');
-        }
-        if ($this->accessFlags['uebernahme_zweitwohnsitz'] !== 1) {
-            $user->set('strasse2', '');
-            $user->set('adresszusatz2', '');
-        }
-        if ($this->accessFlags['uebernahme_zweitwohnsitz'] === 0) {
-            $user->set('plz2', '');
-            $user->set('ort2', '');
-            $user->set('land2', '');
-        }
-        if (!$this->accessFlags['uebernahme_homepage']) {
-            $user->set('homepage', '');
-        }
-        if (!$this->accessFlags['uebernahme_interessen']) {
-            $user->set('sprachen', '');
-            $user->set('hobbys', '');
-            $user->set('interessen', '');
-            $user->set('ehrenamt', '');
-        }
     }
 
     private function saveUserAgreement(User $user, string $name, int $version, \DateTimeInterface $timestamp): void

@@ -37,7 +37,7 @@ class User
         'sichtbarkeit_geburtstag' => false,
         'profilbild' => '',
         'mensa_nr' => '',
-        'sichtbarkeit_mensa_nr' => false,
+        'sichtbarkeit_mensa_nr' => true,
         'strasse' => '',
         'sichtbarkeit_strasse' => false,
         'adresszusatz' => '',
@@ -53,35 +53,35 @@ class User
         'ort2' => '',
         'land2' => '', // ISO 3166-1 alpha-2 code
         'telefon' => '',
-        'sichtbarkeit_telefon' => false,
+        'sichtbarkeit_telefon' => true,
         'homepage' => '',
         'sprachen' => '',
         'hobbys' => '',
         'interessen' => '',
         'studienort' => '',
-        'sichtbarkeit_studienort' => false,
+        'sichtbarkeit_studienort' => true,
         'studienfach' => '',
-        'sichtbarkeit_studienfach' => false,
+        'sichtbarkeit_studienfach' => true,
         'unityp' => '',
-        'sichtbarkeit_unityp' => false,
+        'sichtbarkeit_unityp' => true,
         'schwerpunkt' => '',
-        'sichtbarkeit_schwerpunkt' => false,
+        'sichtbarkeit_schwerpunkt' => true,
         'nebenfach' => '',
-        'sichtbarkeit_nebenfach' => false,
+        'sichtbarkeit_nebenfach' => true,
         'abschluss' => '',
-        'sichtbarkeit_abschluss' => false,
+        'sichtbarkeit_abschluss' => true,
         'zweitstudium' => '',
-        'sichtbarkeit_zweitstudium' => false,
+        'sichtbarkeit_zweitstudium' => true,
         'ehrenamt' => '',
-        'sichtbarkeit_ehrenamt' => false,
+        'sichtbarkeit_ehrenamt' => true,
         'stipendien' => '',
-        'sichtbarkeit_stipendien' => false,
+        'sichtbarkeit_stipendien' => true,
         'auslandsaufenthalte' => '',
-        'sichtbarkeit_auslandsaufenthalte' => false,
+        'sichtbarkeit_auslandsaufenthalte' => true,
         'praktika' => '',
-        'sichtbarkeit_praktika' => false,
+        'sichtbarkeit_praktika' => true,
         'beruf' => '',
-        'sichtbarkeit_beruf' => false,
+        'sichtbarkeit_beruf' => true,
         'fruehere_taetigkeiten' => '',
         'mentoring' => false,
         'aufgabe_freitext' => '',
@@ -253,7 +253,7 @@ class User
             case 'last_login':
             case 'resignation':
             case 'membership_confirmation':
-                $this->data[$key] = $this->makeDateTime($value);
+                $this->data[$key] = self::makeDateTime($value);
                 return;
             default:
                 if ($defaultType === 'integer') {
@@ -351,7 +351,7 @@ class User
      * @param null|string|int|DateTimeInterface $dateTime string (für strtotime), int (Timestamp) oder DateTimeInterface
      * @throws \TypeError wenn $dateTime einen nicht unterstützten Datentyp hat
      */
-    private function makeDateTime(null|string|int|DateTimeInterface $dateTime): ?DateTimeInterface
+    public static function makeDateTime(null|string|int|DateTimeInterface $dateTime): ?DateTimeInterface
     {
         if ($dateTime === null || $dateTime === '1970-01-01 00:00:00' || $dateTime === '0000-00-00' || $dateTime === '0000-00-00 00:00:00') {
             return null;

@@ -32,22 +32,6 @@
     </div>
 {/define}
 
-<script>
-window.addEventListener("DOMContentLoaded", () => {
-    let sichtbarkeit_plz_ort_recursion = false;
-    document.querySelectorAll('[name=sichtbarkeit_plz_ort]').forEach(a => a.onchange = function () {
-        if (sichtbarkeit_plz_ort_recursion) return;
-        sichtbarkeit_plz_ort_recursion = true;
-        const check = this.checked;
-        document.querySelectorAll('[name=sichtbarkeit_plz_ort]').forEach(b => {
-            if (a == b) return;
-            b.checked = check;
-        });
-        sichtbarkeit_plz_ort_recursion = false;
-    });
-});
-</script>
-
 <section class="panel" aria-labelledby="kontaktdaten-heading">
     <h2 id="kontaktdaten-heading">
         <i class="label-icon ti ti-at" aria-hidden="true"></i>Kontakt & Ort
@@ -73,13 +57,15 @@ window.addEventListener("DOMContentLoaded", () => {
 
     {include private-form-group, "E-Mail" . ($email_auth_info ? " (wird geändert)"), "email", email, type: email, required: true,
         infoboxText: str_ends_with(strtolower($email), '.invalid') ? "Die Endung .invalid wurde angefügt, weil E-Mails an diese Adresse nicht zugestellt werden konnten.",
-        uncoverVariable: sichtbarkeit_email, placeholder: "E-Mail"
+        uncoverVariable: sichtbarkeit_email, placeholder: "E-Mail",
+        disabled: $isOnboardingForm
     }
 
     <div class="form-row">
         {include private-form-group, "Straße + Hausnummer", strasse, required: true}
         {include private-form-group, "ggf. Adresszusatz", adresszusatz, placeholder: "Adresszusatz"}
     </div>
+
     <div class="form-row">
         {include private-form-group, "PLZ", plz, uncoverVariable: sichtbarkeit_plz_ort, required: true}
         {include private-form-group, "Ort", ort, uncoverVariable: sichtbarkeit_plz_ort, required: true}
@@ -93,6 +79,22 @@ window.addEventListener("DOMContentLoaded", () => {
             ...($land === '' ? ['' => 'unbekannt'] : []),
         ], value: in_array($land, ['DE', 'AT', 'CH']) ? " $land " : $land}
     </div>
+
+    <script>
+    window.addEventListener("DOMContentLoaded", () => {
+        let sichtbarkeit_plz_ort_recursion = false;
+        document.querySelectorAll('[name=sichtbarkeit_plz_ort]').forEach(a => a.onchange = function () {
+            if (sichtbarkeit_plz_ort_recursion) return;
+            sichtbarkeit_plz_ort_recursion = true;
+            const check = this.checked;
+            document.querySelectorAll('[name=sichtbarkeit_plz_ort]').forEach(b => {
+                if (a == b) return;
+                b.checked = check;
+            });
+            sichtbarkeit_plz_ort_recursion = false;
+        });
+    });
+    </script>
 
     <details n:attr="open: $strasse2 || $adresszusatz2 || $plz2 || $ort2 || $land2">
         <summary><h3 style="display: inline"><i class="ti ti-chevron-right" aria-hidden="true"></i>Zweitwohnsitz <small>z.B. Adresse der Eltern</small></h3></summary>

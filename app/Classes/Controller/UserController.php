@@ -582,12 +582,8 @@ class UserController extends Controller {
         return $this->render("UserController/delete-success");
     }
 
-    #[
-        Route('POST /user/{username=>user}/edit'),
-        AllowIf(role: 'mvedit'),
-        AllowIf(id: '$user->get("id")'),
-    ]
-    public function update(User $user): Response {
+    public function copyFromForm(User $user): void
+    {
         $input = $this->validatePayload(array_fill_keys($this->bearbeiten_strings_ungeprueft, 'string'));
         foreach ($input as $key=>$value) {
             $user->set($key, $value);
@@ -604,6 +600,15 @@ class UserController extends Controller {
                 $user->set($key, $value);
             }
         }
+    }
+
+    #[
+        Route('POST /user/{username=>user}/edit'),
+        AllowIf(role: 'mvedit'),
+        AllowIf(id: '$user->get("id")'),
+    ]
+    public function update(User $user): Response {
+        $this->copyFromForm($user);
 
         $this->updateEmail($user);
 
