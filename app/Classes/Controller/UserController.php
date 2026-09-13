@@ -473,6 +473,15 @@ class UserController extends Controller {
             return;
         }
 
+        // die private Adresse wird erst danach in updateEmail() übernommen; hier schon
+        // gegen die im selben Formular eingereichte (neue) private Adresse prüfen, damit
+        // mail nie zwei identische Werte erhalten soll
+        $newEmail = $this->validatePayload(['email' => 'string'])['email'];
+        if ($orgEmail !== '' && strcasecmp($orgEmail, $newEmail) === 0) {
+            $this->setTemplateVariable('orgEmail_error', true);
+            return;
+        }
+
         $user->setOrgEmail($orgEmail);
     }
 
@@ -634,8 +643,6 @@ class UserController extends Controller {
     public function update(User $user): Response {
         $this->copyFromForm($user);
 
-        $this->updateEmail($user);
-
         // nur für die Mitgliederverwaltung
         if ($this->currentUser->hasRole('mvedit')) {
             $this->updateAdmin($user);
@@ -645,6 +652,8 @@ class UserController extends Controller {
                 return $this->delete($user);
             }
         }
+
+        $this->updateEmail($user);
 
         // Austritt erklären
         $this->handleResign($user);

@@ -36,7 +36,7 @@
 <section class="panel" aria-labelledby="contact-heading">
     <h2 id="contact-heading"><i class="label-icon ti ti-at" aria-hidden="true"></i>Kontakt &amp; Ort</h2>
     <dl n:ifcontent>
-        {include row, $email ? 'MHNAdresse' : 'E-Mail, name: orgEmail, href: ("mailto:" . $orgEmail)}
+        {include row, $email ? 'MHN-Adresse' : 'E-Mail', name: orgEmail, href: ("mailto:" . $orgEmail)}
         {include row, $orgEmail ? 'private E-Mail-Adresse' : 'E-Mail', name: email, href: ("mailto:" . $email)}
         {include row, 'Webseite', name: homepage, value: preg_replace('/(^https?:\/*(www\.)?|\/$)/', '', $homepage), href: ($homepage)}
         {include row, 'Adresse',
