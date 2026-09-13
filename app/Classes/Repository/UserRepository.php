@@ -60,7 +60,9 @@ class UserRepository
         }
 
         $user->hashedPassword = $user->ldapEntry->getAttribute('userPassword')[0] ?? '';
-        $user->setEmail($user->ldapEntry->getAttribute('mail')[0]);
+        $mail = Ldap::splitMail($user->ldapEntry->getAttribute('mail'));
+        $user->setEmail($mail['email']);
+        $user->setOrgEmail($mail['org'] ?? '');
 
         return $user;
     }
@@ -178,6 +180,7 @@ class UserRepository
             'familyName' => $user->get('nachname'),
             'fullName' => $user->get('fullName'),
             'email' => $user->get('email'),
+            'orgEmail' => $user->get('orgEmail'),
         ];
         if ($user->hasPasswordChanged()) {
             $ldapData['password'] = $user->getPassword();

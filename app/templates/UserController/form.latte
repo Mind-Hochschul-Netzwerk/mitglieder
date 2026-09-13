@@ -61,6 +61,13 @@
         disabled: $isOnboardingForm
     }
 
+    {if $orgEmail || $isAdmin}
+        {include private-form-group, "MHN-Adresse", "orgEmail", orgEmail, type: email, placeholder: "MHN-Adresse",
+            disabled: !$isAdmin,
+            infoboxText: !$isAdmin && !$isOnboardingForm ? "Die MHN-Adresse kann nur von der Mitgliederverwaltung geändert werden. Sie ist immer für alle Mitglieder sichtbar."
+        }
+    {/if}
+
     <div class="form-row">
         {include private-form-group, "Straße + Hausnummer", strasse, required: true}
         {include private-form-group, "ggf. Adresszusatz", adresszusatz, placeholder: "Adresszusatz"}

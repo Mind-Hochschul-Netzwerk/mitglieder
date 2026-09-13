@@ -109,6 +109,7 @@ class User
     public $hashedPassword = '';
     private $newPassword = '';
     private string $email = '';
+    private string $orgEmail = '';
 
     public string $profilePicturePath {
         get => User::PROFILE_PICUTRE_DIRECTORY . '/' . $this->get('profilbild');
@@ -185,6 +186,8 @@ class User
             return implode(' ', array_filter([$this->data['vorname'], $this->data['nachname']])) ?? ('#' . $this->data['id']);
         case 'email':
             return $this->email;
+        case 'orgEmail':
+            return $this->orgEmail;
         case 'hashedPassword':
             return $this->hashedPassword;
         case 'profilUrl':
@@ -288,6 +291,9 @@ class User
         case 'email':
             throw new \LogicException("Verwende setEmail(), um den Wert zu ändern.", 1494002758);
             break;
+        case 'orgEmail':
+            throw new \LogicException("Verwende setOrgEmail(), um den Wert zu ändern.", 1757761200);
+            break;
         case 'password':
             throw new \LogicException("Verwende setPassword(), um den Wert zu ändern.", 1755302008);
             break;
@@ -328,6 +334,16 @@ class User
         }
 
         $this->email = $email;
+    }
+
+    /**
+     * Setzt die MHN-Adresse (Funktions-/Rolle-Adresse, z.B. vorstand@...).
+     * Nur die Mitgliederverwaltung darf diese Adresse ändern (siehe UserController::updateOrgEmail()).
+     * Anders als bei setEmail() gibt es keine Duplikatsprüfung.
+     */
+    public function setOrgEmail(string $orgEmail): void
+    {
+        $this->orgEmail = $orgEmail;
     }
 
     public function setPassword(string $newPassword): void

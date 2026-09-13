@@ -62,16 +62,34 @@ class Ldap
         }
         $list = [];
         foreach ($result as $user) {
+            $mail = self::splitMail($user->getAttribute('mail'));
             $list[] = [
                 'id' => $user->getAttribute('employeeNumber')[0],
                 'username' => $user->getAttribute('cn')[0],
                 'givenName' => $user->getAttribute('givenName')[0],
                 'familyName' => $user->getAttribute('sn')[0],
                 'fullName' => $user->getAttribute('displayName')[0],
-                'email' => $user->getAttribute('mail')[0],
+                'email' => $mail['email'],
+                'orgEmail' => $mail['org'],
             ];
         }
         return $list;
+    }
+
+    /**
+     * Splits the (possibly multi-valued) `mail` attribute into the org email
+     * (index 0, only present if there are two values) and the personal email
+     * (the remaining/only value).
+     *
+     * @return array{org: ?string, email: string}
+     */
+    public static function splitMail(array $mail): array
+    {
+        $mail = array_values($mail);
+        if (count($mail) >= 2) {
+            return ['org' => $mail[0], 'email' => $mail[1]];
+        }
+        return ['org' => null, 'email' => $mail[0] ?? ''];
     }
 
     public function getUserIdsByQuery(string $query): array
@@ -110,11 +128,17 @@ class Ldap
         }
         $list = [];
         foreach ($result as $user) {
-            $list[] = $user->getAttribute('mail')[0];
+            $list[] = self::splitMail($user->getAttribute('mail'))['email'];
         }
         return $list;
     }
 
+    /**
+     * Finds a user by their personal email address. Matches only against the
+     * personal address, never against the org email, so that a shared org
+     * mailbox cannot be used to log in as or reset the password of the member
+     * it belongs to.
+     */
     public function getEntryByEmail(string $email): ?Entry
     {
         try {
@@ -122,11 +146,34 @@ class Ldap
         } catch (\Exception) {
             return null;
         }
-        if ($result) {
-            return $result[0];
-        } else {
-            return null;
+        foreach ($result as $entry) {
+            if (strcasecmp(self::splitMail($entry->getAttribute('mail'))['email'], $email) === 0) {
+                return $entry;
+            }
         }
+        return null;
+    }
+
+    /**
+     * Finds users whose `mail` attribute (org or personal address) matches an
+     * LDAP filter, returning both parts of the mail attribute for each match.
+     * Used by the search feature, which needs to tell whether a match came
+     * from the (always public) org email or the (optionally hidden) personal
+     * one.
+     *
+     * @return array<array{id: int, org: ?string, email: string}>
+     */
+    public function findMailMatches(string $query): array
+    {
+        try {
+            $result = $this->ldap->query($this->peopleDn, '(&(objectclass=inetOrgPerson)' . $query . ')')->execute();
+        } catch (\Exception) {
+            return [];
+        }
+        return array_map(fn($entry) => [
+            'id' => (int) $entry->getAttribute('employeeNumber')[0],
+            ...self::splitMail($entry->getAttribute('mail')),
+        ], $result->toArray());
     }
 
     private function setAttributes(Entry $entry, array $data): void
@@ -140,8 +187,11 @@ class Ldap
         if (!empty($data['fullName'])) {
             $entry->setAttribute('displayName', [$data['fullName']]);
         }
-        if (!empty($data['email'])) {
-            $entry->setAttribute('mail', [$data['email']]);
+        if (array_key_exists('email', $data) || array_key_exists('orgEmail', $data)) {
+            // both keys are always supplied together by UserRepository::save(), so neither
+            // address is ever lost when only one of them actually changed
+            $orgEmail = $data['orgEmail'] ?? null;
+            $entry->setAttribute('mail', $orgEmail ? [$orgEmail, $data['email']] : [$data['email']]);
         }
         if (!empty($data['description'])) {
             $entry->setAttribute('description', [$data['description']]);

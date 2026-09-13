@@ -192,18 +192,24 @@ class SearchController extends Controller {
         return $this->showResults($ids);
     }
 
+    // operators for which we can tell in PHP whether a single mail value matches
+    // (needed to decide if an email-filter match came from the org address)
+    const EMAIL_SPLITTABLE_OPS = [FilterOp::Equal, FilterOp::Contains, FilterOp::StartsWith, FilterOp::EndsWith];
+
     /**
      * @return array|null (null if no filter is an LDAP filter)
      */
     function getLdapIds(array $filters, array $values): ?array
     {
         $query = '';
+        $resultSets = [];
 
         foreach ($filters as [$fields, $op, $valueName]) {
             $field = $fields[0]; // TODO multi
             if ($field === 'email') {
-                $query .= $this->generateLdapQuery('mail', $op, $values[$valueName]);
-                // email protection is handled in generateFilterSql()
+                // the org email is always public, so it needs its own visibility handling
+                // instead of the blanket sichtbarkeit_email check in generateFilterSql()
+                $resultSets[] = $this->getEmailMatchIds($op, $values[$valueName]);
             } elseif ($field === 'emailInvalid') {
                 if ($op === FilterOp::isTrue) {
                     $query .= '(mail=*.invalid)';
@@ -216,11 +222,67 @@ class SearchController extends Controller {
             }
         }
 
-        if (!$query) {
-            return null;
-        } else {
-            return $this->ldap->getUserIdsByQuery($query);
+        if ($query) {
+            $resultSets[] = $this->ldap->getUserIdsByQuery($query);
         }
+
+        if (!$resultSets) {
+            return null;
+        }
+
+        $ids = array_shift($resultSets);
+        foreach ($resultSets as $set) {
+            $ids = array_intersect($ids, $set);
+        }
+        return $ids;
+    }
+
+    /**
+     * Finds member IDs whose mail attribute matches the given filter, restricted so that a
+     * match against the (optionally hidden) personal address only counts for members who
+     * made it visible; a match against the (always public) org address always counts.
+     *
+     * @return int[]
+     */
+    private function getEmailMatchIds(FilterOp $op, string $searchValue): array
+    {
+        $matches = $this->ldap->findMailMatches($this->generateLdapQuery('mail', $op, $searchValue));
+
+        if ($this->currentUser->hasRole('mvread')) {
+            return array_column($matches, 'id');
+        }
+
+        $viaOrgEmail = [];
+        $needsVisibilityCheck = [];
+        foreach ($matches as $match) {
+            if (in_array($op, self::EMAIL_SPLITTABLE_OPS, true)
+                && $match['org'] !== null
+                && $this->mailValueMatches($match['org'], $op, $searchValue)
+            ) {
+                $viaOrgEmail[] = $match['id'];
+            } else {
+                $needsVisibilityCheck[] = $match['id'];
+            }
+        }
+
+        $visibleIds = $needsVisibilityCheck
+            ? $this->db->query('SELECT id FROM mitglieder WHERE id IN (' . implode(',', array_map('intval', $needsVisibilityCheck)) . ') AND sichtbarkeit_email = true')->getColumn()
+            : [];
+
+        return [...$viaOrgEmail, ...$visibleIds];
+    }
+
+    private function mailValueMatches(string $haystack, FilterOp $op, string $needle): bool
+    {
+        $haystack = mb_strtolower($haystack);
+        $needle = mb_strtolower($needle);
+        return match ($op) {
+            FilterOp::Equal => $haystack === $needle,
+            FilterOp::Contains => str_contains($haystack, $needle),
+            FilterOp::StartsWith => str_starts_with($haystack, $needle),
+            FilterOp::EndsWith => str_ends_with($haystack, $needle),
+            default => false,
+        };
     }
 
     function generateLdapQuery(string $field, FilterOp $op, string $value): string
@@ -327,8 +389,8 @@ class SearchController extends Controller {
         };
 
         return match ($field) {
-            // email is in LDAP but protection flag is in DB
-            'email' => !$this->currentUser->hasRole('mvread') ? '(sichtbarkeit_email = true)' : '',
+            // email is entirely handled in getEmailMatchIds(), including visibility
+            'email' => '',
             'studienfach' => '(' . $this->generateSingleFilterExpression($field, $op, $valueName)
                     . $combinationLogic . $this->generateSingleFilterExpression('nebenfach', $op, $valueName) . ')',
             'aufnahmedatum', 'resignation', 'db_modified' => match ($op) {

@@ -328,8 +328,10 @@ class UserController extends Controller {
         foreach (User::getAllKeys() as $feld) {
             $templateVars[$feld] = $user->get($feld);
         }
-        // E-Mail ist in User::getAllKeys() nicht enthalten, da sie in LDAP liegt
+        // E-Mail-Adressen sind in User::getAllKeys() nicht enthalten, da sie in LDAP liegen.
+        // Die MHN-Adresse (orgEmail) ist immer für alle Mitglieder sichtbar.
         $templateVars['email'] = $user->get('email');
+        $templateVars['orgEmail'] = $user->get('orgEmail');
 
         // Dann die sichtgeschützten Felder gesondert behandeln, damit das Template möglichst frei von Logik bleiben kann
         if (!$isAdmin) {
@@ -385,6 +387,7 @@ class UserController extends Controller {
             'isSelf' => $this->currentUser->get('id') ===  $user->get('id'),
             'user' => $user,
             'email' => $user->get('email'),
+            'orgEmail' => $user->get('orgEmail'),
             'delete' => false,
             'resign' => (bool)$user->get('resignation'),
             'password' => '',
@@ -450,6 +453,27 @@ class UserController extends Controller {
             ]);
             $this->emailService->send($email, $return->subject, $text);
         }
+    }
+
+    /**
+     * Nur die Mitgliederverwaltung darf die MHN-Adresse ändern. Wird aufgerufen aus
+     * update() ausschließlich innerhalb des mvedit-Zweigs, sodass ein Payload-Wert von
+     * Nicht-Admins hier gar nicht erst betrachtet wird. Anders als bei der privaten
+     * Adresse ist keine Bestätigung per Link nötig.
+     */
+    private function updateOrgEmail(User $user): void {
+        $orgEmail = $this->validatePayload(['orgEmail' => 'string'])['orgEmail'];
+
+        if ($user->get('orgEmail') === $orgEmail) {
+            return;
+        }
+
+        if ($orgEmail !== '' && !filter_var($orgEmail, FILTER_VALIDATE_EMAIL)) {
+            $this->setTemplateVariable('orgEmail_error', true);
+            return;
+        }
+
+        $user->setOrgEmail($orgEmail);
     }
 
     private function updateAdmin(User $user): void {
@@ -615,6 +639,7 @@ class UserController extends Controller {
         // nur für die Mitgliederverwaltung
         if ($this->currentUser->hasRole('mvedit')) {
             $this->updateAdmin($user);
+            $this->updateOrgEmail($user);
 
             if ($this->request->getPayload()->getBoolean('delete')) {
                 return $this->delete($user);
