@@ -14,30 +14,43 @@ use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 class MailboxSelectorController extends Controller {
+    private array $mailboxes = [];
+
     public function __construct(
-        private GroupRepository $groupRepository,
-    ) {}
+        GroupRepository $groupRepository,
+        CurrentUser $currentUser,
+    ) {
+        $this->mailboxes = $this->getAvailableMailboxes($currentUser->getWrappedUser(), $groupRepository);
+    }
 
     #[Route('GET /mail-login'), RequireLogin]
     public function show(): Response
     {
-        $mailboxes = $this->getAvailableMailboxes($this->currentUser->getWrappedUser(), $this->groupRepository);
-
-        return match (count($mailboxes)) {
-            0 => $this->showError('Du hast kein MHN-Postfach zugeordnet.'),
-            1 => $this->redirectToMailbox($mailboxes[0]),
-            default => $this->render('MailboxSelectorController/show', [
-                'mailboxes' => $mailboxes,
-            ]),
+        return match (count($this->mailboxes)) {
+            0 => $this->showError('Dir ist kein MHN-Postfach zugeordnet.'),
+            1 => $this->redirectToMailbox($this->mailboxes[0]),
+            default => $this->showSelector(),
         };
+    }
+
+    private function showSelector(): Response
+    {
+        return $this->render('MailboxSelectorController/show', [
+            'mailboxes' => $this->mailboxes,
+        ]);
     }
 
     #[Route('GET /mail-login?mailbox={mailbox}'), RequireLogin]
     public function select(string $mailbox): Response
     {
-        if (!in_array($mailbox, $this->getAvailableMailboxes($this->currentUser->getWrappedUser(), $this->groupRepository), true)) {
+        if ($mailbox === '') {
+            return $this->showSelector();
+        }
+
+        if (!in_array($mailbox, $this->mailboxes, true)) {
             return $this->showError('Diese Postfach-Adresse ist nicht gültig.');
         }
+
         return $this->redirectToMailbox($mailbox);
     }
 
