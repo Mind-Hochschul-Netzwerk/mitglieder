@@ -82,7 +82,7 @@ class MailboxSelectorController extends Controller {
             }
 	    }
 
-        return array_unique($mailboxes);
+        return array_values(array_unique($mailboxes));
     }
 
     private function redirectToMailbox(string $mailbox): Response
