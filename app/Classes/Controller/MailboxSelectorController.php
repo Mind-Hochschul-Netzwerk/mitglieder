@@ -9,6 +9,7 @@ namespace App\Controller;
 
 use App\Model\User;
 use App\Repository\GroupRepository;
+use App\Service\CurrentUser;
 use Hengeb\Router\Attribute\RequireLogin;
 use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
