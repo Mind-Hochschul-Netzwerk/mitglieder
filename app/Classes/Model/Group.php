@@ -45,6 +45,11 @@ class Group
         $this->displayName = $displayName;
     }
 
+    public function isMailingList(): bool
+    {
+        return $this->mailAddress !== null && $this->hasListPassword();
+    }
+
     public function hasListPassword(): bool
     {
         return $this->listPasswordCiphertext !== '';

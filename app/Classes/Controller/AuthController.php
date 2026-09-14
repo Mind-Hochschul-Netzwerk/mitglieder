@@ -5,6 +5,7 @@ namespace App\Controller;
 
 use App\Model\User;
 use App\Repository\AgreementRepository;
+use App\Repository\GroupRepository;
 use App\Repository\UserAgreementRepository;
 use App\Repository\UserRepository;
 use App\Service\OpenIdConnect;
@@ -25,7 +26,7 @@ class AuthController extends Controller {
      * in which case the originally requested path is preserved as the post-login target.
      */
     #[Route('GET /login'), PublicAccess]
-    public function login(OpenIDConnect $openIdConnect): Response {
+    public function login(OpenIDConnect $openIdConnect, GroupRepository $groupRepository): Response {
         $session = $this->request->getSession();
         $isCallback = $this->request->query->has('code') || $this->request->query->has('error');
 
@@ -62,6 +63,8 @@ class AuthController extends Controller {
         if ($isStepUp) {
             $this->currentUser->recordStepUp();
         }
+
+        $session->set('hasMailboxAccess', MailboxSelectorController::getAvailableMailboxes($this->currentUser->getWrappedUser(), $groupRepository) !== []);
 
         $redirectUrl = $this->sanitizeLocalPath((string) $session->get('oidc_redirect', '/'));
         $session->remove('oidc_redirect');

@@ -51,11 +51,15 @@ class Controller {
     }
 
     protected function renderToString(string $templateName, array $data = []): string {
+        $session = $this->request->getSession();
+        $hasMailboxAccess = (bool) $session->get('hasMailboxAccess', false);
+
         $er = error_reporting();
         // surpress 'undefined variable' warnings
         error_reporting($er & ~E_WARNING);
         $res = $this->latte->renderToString($templateName . '.latte', [
             ...$this->templateVariables,
+            'hasMailboxAccess' => $hasMailboxAccess,
             ...$data
         ]);
         error_reporting($er);

@@ -1,0 +1,43 @@
+{var $navId = mail}
+
+{block page-label}<i class="ti ti-mail" aria-hidden="true"></i> Kommunikation{/block}
+
+{block title}Mailbox-Auswahl{/block}
+
+{block css}
+<style>
+.mailbox-list {
+    a  {
+        border-radius: var(--radius-btn);
+        border: solid var(--border) 1px;
+	    display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1.25rem;
+        text-decoration: none;
+        font-size: 0.95rem;
+	    margin-bottom: 1rem;
+
+        transition: translate 0.2s;
+
+        &:hover {
+            border-color: var(--accent);
+            translate: 0px -2px;
+            background-color: var(--accent-soft);
+        }
+    }
+}
+</style>
+{/block}
+
+{block content}
+<section class="panel">
+    <h2>Verfügbare Postfach-Adressen</h2>
+
+    <p>Du hast Zugriff auf die folgenden MHN-Postfächer. Bitte wähle eine Adresse aus, um das zugehörige Postfach zu öffnen.</p>
+
+    <div class="mailbox-list" n:inner-foreach="$mailboxes as $mailbox">
+        <div><a href="/mail-login?mailbox={urlencode($mailbox)}"><i class="ti ti-mail" aria-hidden="true"></i> {$mailbox}</a></div>
+    </div>
+</section>
+{/block}
