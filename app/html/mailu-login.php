@@ -25,7 +25,7 @@ function verifyToken(string $token): ?array {
     $expected = base64urlencode(hash_hmac('sha256', $body, getenv('TOKEN_KEY'), true));
     if (!hash_equals($expected, $sig)) return null; // manipulated
     $payload = json_decode(base64urldecode($body), true);
-    if (!is_array($payload) || !isset($payload['exp'], $payload['email'])) return null;
+    if (!is_array($payload) || !isset($payload['exp'], $payload['sub'])) return null; // missing keys
     if ($payload['exp'] < time()) return null; // expired
     return $payload;
 }
@@ -70,7 +70,7 @@ if ($rawToken === null) {
 
 // Signatur + Ablauf prüfen (verify_token gibt bei Ablauf ebenfalls null zurück)
 $payload = verifyToken($rawToken);
-if ($payload === null || !isset($payload['mailbox'], $payload['sub'])) {
+if ($payload === null || !isset($payload['mailbox'])) {
     // ungültig ODER abgelaufen -> zurück zur Auswahl statt Fehlermeldung
     redirect_to_selector($currentUrl);
 }
