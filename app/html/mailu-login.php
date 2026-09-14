@@ -48,7 +48,7 @@ parse_str(parse_url($uri, PHP_URL_QUERY) ?? '', $params);
 
 function redirect_to_selector(string $currentUrl): void {
     http_response_code(302);
-    $selectorUrl = 'https://mitglieder.' . getenv('DOMAINNAME') . '/mail';
+    $selectorUrl = 'https://mitglieder.' . getenv('DOMAINNAME') . '/mail-login';
     header('Location: ' . $selectorUrl . '?redirect=' . urlencode($currentUrl));
     exit;
 }

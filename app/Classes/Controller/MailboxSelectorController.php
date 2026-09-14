@@ -92,7 +92,7 @@ class MailboxSelectorController extends Controller {
             'sub'     => $this->currentUser->get('username'),
             'exp'     => time() + 12*3600,
         ]);
-        $url = 'https://mail.' . getenv('DOMAINNAME') . '/';
+        $url = 'https://mail.' . getenv('DOMAINNAME') . '/mail?mailbox=' . urlencode($mailbox);
         return $this->redirect($url . '&mbx=' . urlencode($token));
     }
 
