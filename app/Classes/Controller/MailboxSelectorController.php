@@ -31,7 +31,7 @@ class MailboxSelectorController extends Controller {
     {
         return match (count($this->mailboxes)) {
             0 => $this->redirectToMailbox(self::LOGIN_FORM),
-            1 => $this->redirectToMailbox($this->mailboxes[0]),
+            //1 => $this->redirectToMailbox($this->mailboxes[0]),
             default => $this->showSelector(),
         };
     }
