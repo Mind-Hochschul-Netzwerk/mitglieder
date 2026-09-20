@@ -15,6 +15,8 @@ use Hengeb\Router\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 class MailboxSelectorController extends Controller {
+    const string LOGIN_FORM = 'login';
+
     private array $mailboxes = [];
 
     public function __construct(
@@ -28,7 +30,7 @@ class MailboxSelectorController extends Controller {
     public function show(): Response
     {
         return match (count($this->mailboxes)) {
-            0 => $this->showError('Dir ist kein MHN-Postfach zugeordnet.'),
+            0 => $this->redirectToMailbox(self::LOGIN_FORM),
             1 => $this->redirectToMailbox($this->mailboxes[0]),
             default => $this->showSelector(),
         };
@@ -48,7 +50,7 @@ class MailboxSelectorController extends Controller {
             return $this->showSelector();
         }
 
-        if (!in_array($mailbox, $this->mailboxes, true)) {
+        if ($mailbox !== self::LOGIN_FORM && !in_array($mailbox, $this->mailboxes)) {
             return $this->showError('Diese Postfach-Adresse ist nicht gültig.');
         }
 

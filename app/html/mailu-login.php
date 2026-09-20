@@ -33,7 +33,6 @@ function verifyToken(string $token): ?array {
 const TOKEN_COOKIE_NAME   = 'mailbox-token';
 const TOKEN_QUERY_PARAM   = 'mbx';
 
-
 $username = $_SERVER['HTTP_REMOTE_USER'] ?? '';
 if ($username === '') {
     http_response_code(401);
@@ -93,4 +92,7 @@ if ($fromQuery) {
 }
 
 http_response_code(200);
-header('Remote-Email: ' . $payload['mailbox']);
+
+if ($payload['mailbox'] !== 'login') {
+    header('Remote-Email: ' . $payload['mailbox']);
+}

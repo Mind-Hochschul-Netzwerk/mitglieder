@@ -7,6 +7,10 @@
 {block css}
 <style>
 .mailbox-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
     a  {
         border-radius: var(--radius-btn);
         border: solid var(--border) 1px;
@@ -36,8 +40,11 @@
 
     <p>Du hast Zugriff auf die folgenden MHN-Postfächer. Bitte wähle eine Adresse aus, um das zugehörige Postfach zu öffnen.</p>
 
-    <div class="mailbox-list" n:inner-foreach="$mailboxes as $mailbox">
-        <div><a href="/mail-login?mailbox={urlencode($mailbox)}"><i class="ti ti-mail" aria-hidden="true"></i> {$mailbox}</a></div>
-    </div>
+    <ul class="mailbox-list">
+        <li n:foreach="$mailboxes as $mailbox">
+            <a href="/mail-login?mailbox={urlencode($mailbox)}"><i class="ti ti-mail" aria-hidden="true"></i> {$mailbox}</a>
+        </li>
+        <li><a href="/mail-login?mailbox=login"><i class="ti ti-lock" aria-hidden="true"></i> Mit E-Mail-Adresse und Passwort anmelden</a></li>
+    </ul>
 </section>
 {/block}
