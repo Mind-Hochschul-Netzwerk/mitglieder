@@ -101,7 +101,16 @@ class GroupController extends Controller
         $showMailAddress = !$group->hasListPassword()
             || $isMember || $isOwner || $isGroupAdmin || $group->postAccessPublic !== PostAccessLevel::Deny;
 
-        $canViewArchive = $group->hasListPassword() && match ($group->archive) {
+        // anschreiben darf, wer die Gruppenadresse tatsächlich nutzen kann: bei normalen Adressen jede*r,
+        // bei Mailinglisten Owner, Mitglieder (sofern Mitglieder-Posting erlaubt) bzw. alle (sofern externes Posting erlaubt)
+        $canWriteMail = $group->mailAddress !== null && $group->mailAddress !== '' && (
+            !$group->hasListPassword()
+            || ($isMember && $group->postAccessMembers !== PostAccessLevel::Deny)
+            || $group->postAccessPublic !== PostAccessLevel::Deny
+            || $isOwner
+        );
+
+        $canViewArchive =$group->hasListPassword() && match ($group->archive) {
             ArchiveMode::Public          => true,
             ArchiveMode::Members         => $isMember || $isOwner,
             ArchiveMode::Owners          => $isOwner,
@@ -156,6 +165,7 @@ class GroupController extends Controller
             'mayManage' => $mayManage,
             'showMembers' => $showMembers,
             'showMailAddress' => $showMailAddress,
+            'canWriteMail' => $canWriteMail,
             'archiveUrl' => $archiveUrl,
             'displayInfos' => $displayInfos,
             'nonMembers' => $nonMembers,

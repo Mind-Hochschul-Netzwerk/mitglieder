@@ -149,10 +149,15 @@
 {block page-header}
 <div class="summary">{$group->description|breakLines}</div>
 <div class="meta">
-    <span n:if="$group->mailAddress && $showMailAddress"><i class="ti ti-mail" aria-hidden="true"></i> {$group->mailAddress}</span>
-    <span n:if="$archiveUrl"><a href="{$archiveUrl}"><i class="ti ti-archive" aria-hidden="true"></i> Archiv</a></span>
+    <span n:if="$group->mailAddress && $showMailAddress"><i class="ti ti-mail" aria-hidden="true"></i> <a n:tag-if="$canWriteMail" href="mailto:{$group->mailAddress}">{$group->mailAddress}</a></span>
 </div>
 <div class="action-links" n:ifcontent>
+    <a n:if="$canWriteMail && $group->mailAddress" href="mailto:{$group->mailAddress}">
+        <i class="ti ti-mail" aria-hidden="true"></i> Mail schreiben
+    </a>
+    <a n:if="$archiveUrl" href="{$archiveUrl}">
+        <i class="ti ti-archive" aria-hidden="true"></i> Archiv
+    </a>
     <button n:if="!$isMember && $group->joinPolicy === \App\Model\Enum\JoinPolicy::Open"
         data-action="/groups/{$group->name}/join"
         onclick="groupAction(this.dataset.action, 'POST')">
