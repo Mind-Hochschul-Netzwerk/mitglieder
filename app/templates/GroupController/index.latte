@@ -129,7 +129,7 @@ Hier findest du die Teams und anderen Gruppen im MHN. Um Ansprechpartner*innen z
                 <button n:if="$isMember && $group->leavePolicy === \App\Model\Enum\LeavePolicy::Allowed"
                     class="ghost leave"
                     data-action="/groups/{$group->name}/leave"
-                    onclick="groupAction(this.dataset.action, 'POST')">
+                    onclick="if (confirm('Möchtest du die Gruppe wirklich verlassen?')) groupAction(this.dataset.action, 'POST')">
                     <i class="ti ti-user-minus" aria-hidden="true"></i> Verlassen
                 </button>
             </div>

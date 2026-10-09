@@ -171,7 +171,7 @@
     <button n:if="$isMember && $group->leavePolicy === \App\Model\Enum\LeavePolicy::Allowed"
         class="leave"
         data-action="/groups/{$group->name}/leave"
-        onclick="groupAction(this.dataset.action, 'POST')">
+        onclick="if (confirm('Möchtest du die Gruppe wirklich verlassen?')) groupAction(this.dataset.action, 'POST')">
         <i class="ti ti-user-minus" aria-hidden="true"></i> Gruppe verlassen
     </button>
     <button n:if=$mayManage class="primary"
