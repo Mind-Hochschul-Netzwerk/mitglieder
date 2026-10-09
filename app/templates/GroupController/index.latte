@@ -57,7 +57,7 @@ Hier findest du die Teams und anderen Gruppen im MHN. Um Ansprechpartner*innen z
 }
 .badge.owner { background: #fef9c3; color: #713f12; }
 .group-card[hidden], .group-filter-empty[hidden] { display: none; }
-.group-filter { display: flex; flex-direction: column; gap: .6rem; margin-bottom: 1.5rem; }
+.group-filter { display: flex; flex-direction: column; gap: .6rem; margin-bottom: 1.5rem; align-items: center; }
 .group-filter-chips { display: flex; flex-wrap: wrap; gap: .4rem; }
 .group-filter-chips button {
     display: inline-flex;
@@ -74,7 +74,9 @@ Hier findest du die Teams und anderen Gruppen im MHN. Um Ansprechpartner*innen z
 .group-filter-chips button:hover, .group-filter-chips button:focus-visible { background: var(--panel-soft); }
 .group-filter-chips button[aria-pressed=true] { background: var(--accent); border-color: var(--accent); color: #fff; }
 .group-filter-chips .count { font-weight: 400; opacity: .8; }
-.group-filter input[type=search] { width: 100%; max-width: 24rem; }
+.group-search { position: relative; width: 100%; }
+.group-search .ti { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); color: var(--placeholder); pointer-events: none; }
+.group-search input[type=search] { width: 100%; padding-left: 2.4rem; }
 .group-filter-empty { color: var(--muted); }
 .group-card-actions { flex-shrink: 0; }
 .group-card-actions button {
@@ -90,16 +92,18 @@ Hier findest du die Teams und anderen Gruppen im MHN. Um Ansprechpartner*innen z
 {block content}
 
 {* Gruppen nach Kategorie gruppieren *}
-
-{var $order = ['Teams', 'Rechte', 'System', 'Entwicklung']}
+{var $order = ['Verein', 'Themen', 'Regionen', 'Mind-Akademie', 'Veranstaltungen', 'Teams', 'Rechte', 'System', 'Entwicklung']}
 {var $byCategory = array_fill_keys($order, [])}
 {foreach $groups as $group}
-    {var $byCategory[$group->category ?: ''][] = $group}
+    {var $byCategory[$group->category ?: 'Sonstiges'][] = $group}
 {/foreach}
+{var $categories = array_filter(array_diff_key($byCategory, ['Sonstiges' => 0]) + ['Sonstiges' => $byCategory['Sonstiges'] ?? []])}
 
-{var $categories = array_filter($byCategory)}
 <div class="group-filter" role="search">
-    <input type="search" id="group-search" placeholder="Gruppen durchsuchen…" aria-label="Gruppen durchsuchen" autocomplete="off">
+    <div class="group-search">
+        <i class="ti ti-search" aria-hidden="true"></i>
+        <input type="search" id="group-search" placeholder="Gruppen durchsuchen…" aria-label="Gruppen durchsuchen" autocomplete="off">
+    </div>
     <div class="group-filter-chips" role="group" aria-label="Filter">
         <button type="button" id="filter-all" aria-pressed="true">Alle</button>
         <button type="button" n:foreach="$categories as $category => $categoryGroups" class="filter-category" data-category="{$category ?: 'Sonstiges'}" aria-pressed="false">
