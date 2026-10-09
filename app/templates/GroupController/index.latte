@@ -19,14 +19,15 @@ Hier findest du die Teams und anderen Gruppen im MHN. Um Ansprechpartner*innen z
 .group-list { display: flex; flex-direction: column; gap: .5rem; }
 .group-card {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 1rem;
+    gap: .5rem 1rem;
     padding: .75rem .95rem;
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: var(--radius-card);
 }
-.group-card-info { display: flex; flex-direction: column; gap: .2rem; flex: 1; min-width: 0; }
+.group-card-info { display: flex; flex-direction: column; gap: .2rem; flex: 1 1 14rem; min-width: 0; }
 .group-card-name { font-weight: 600; }
 .group-card-description {
     font-size: .9rem;
