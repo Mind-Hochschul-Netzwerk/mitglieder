@@ -193,7 +193,7 @@
     <p n:if="!$showMembers" class="text-muted">Die vollständige Mitgliederliste ist nicht öffentlich sichtbar, hier werden nur die Gruppenverwalter*innen angezeigt.</p>
 
     <div class="person-list" n:if="$displayInfos" n:inner-foreach="$displayInfos as $info">
-        <div class="person-row">
+        <div class="person-row" data-username="{$info->userName}" data-realname="{$info->realName}">
             <a href="/user/{$info->userName}" class="person-name">
                 <span class="profile-image">
                     {if $info->hasProfilePicture}
@@ -235,14 +235,14 @@
             </span>
         </div>
     </div>
-    <p n:if="!$displayInfos" class="text-muted">Noch keine Mitglieder.</p>
+    <p n:if="!$displayInfos" class="text-muted" id="no-members">Noch keine Mitglieder.</p>
 
     {* Mitglied hinzufügen *}
     {if $mayManage && $showMembers}
     <form class="person-add-form" onsubmit="addMember(event, this)">
         <datalist id="non-members-list">
             {foreach $nonMembers as $info}
-                <option value="{$info->userName}">{$info->realName} ({$info->userName})</option>
+                <option value="{$info->userName}" data-realname="{$info->realName}" data-initials="{$info->initials}" n:attr="data-pic: $info->hasProfilePicture ? 1">{$info->realName} ({$info->userName})</option>
             {/foreach}
         </datalist>
         <div class="input-group">
@@ -453,10 +453,98 @@ async function submitForm(event, form, url, method) {
     } catch (err) { showError(err); }
 }
 
+const collator = new Intl.Collator('de');
+
+function makeCrownButton(username) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'crown-btn';
+    btn.dataset.action = `/groups/${groupname}/owners/${username}`;
+    btn.dataset.username = username;
+    btn.onclick = () => toggleOwner(btn);
+    const label = 'Zum/zur Gruppenverwalter*in befördern';
+    btn.setAttribute('aria-label', label);
+    btn.title = label;
+    const icon = document.createElement('i');
+    icon.className = 'ti ti-crown';
+    icon.setAttribute('aria-hidden', 'true');
+    btn.appendChild(icon);
+    return btn;
+}
+
+function makePersonRow(username, realName, initials, hasPicture) {
+    const row = document.createElement('div');
+    row.className = 'person-row';
+    row.dataset.username = username;
+    row.dataset.realname = realName;
+
+    const link = document.createElement('a');
+    link.href = `/user/${encodeURIComponent(username)}`;
+    link.className = 'person-name';
+    const avatar = document.createElement('span');
+    avatar.className = 'profile-image';
+    if (hasPicture) {
+        const img = document.createElement('img');
+        img.src = `/user/${encodeURIComponent(username)}/profile-picture?size=thumbnail`;
+        img.alt = `Profilbild von ${realName}`;
+        avatar.appendChild(img);
+    } else {
+        avatar.textContent = initials;
+    }
+    const nameText = document.createElement('span');
+    nameText.className = 'person-name-text';
+    nameText.textContent = realName;
+    link.append(avatar, nameText);
+
+    const actions = document.createElement('span');
+    actions.append(
+        makeCrownButton(username),
+        makeMemberButton('remove', `/groups/${groupname}/members/${username}`, username),
+    );
+    row.append(link, actions);
+    return row;
+}
+
+// fügt die Zeile alphabetisch (nach realName) ein, ohne die übrige Liste anzufassen
+function insertPersonRow(row) {
+    let list = document.querySelector('.person-list');
+    if (!list) {
+        list = document.createElement('div');
+        list.className = 'person-list';
+        const form = document.querySelector('.person-add-form');
+        form.parentNode.insertBefore(list, form);
+        document.getElementById('no-members')?.remove();
+    }
+    const next = [...list.querySelectorAll('.person-row')]
+        .find(r => collator.compare(r.dataset.realname, row.dataset.realname) > 0);
+    list.insertBefore(row, next ?? null);
+}
+
 async function addMember(event, form) {
     event.preventDefault();
-    const username = form.querySelector('[name=username]').value;
-    await groupAction(`/groups/${groupname}/members/${username}`, 'POST');
+    const input = form.querySelector('[name=username]');
+    const username = input.value;
+    const option = [...form.querySelectorAll('datalist option')].find(o => o.value === username);
+    const action = `/groups/${groupname}/members/${username}`;
+    try {
+        await callApi('POST', action, new FormData());
+    } catch (err) { showError(err); return; }
+
+    const existingRow = [...document.querySelectorAll('.person-row')].find(r => r.dataset.username === username);
+    if (existingRow) {
+        // war als Gruppenverwalter*in schon in der Liste, aber noch kein Mitglied
+        const addBtn = existingRow.querySelector('.add-btn');
+        if (addBtn) addBtn.replaceWith(makeMemberButton('remove', action, username));
+    } else if (option) {
+        insertPersonRow(makePersonRow(username, option.dataset.realname, option.dataset.initials, !!option.dataset.pic));
+        updateMemberCount(1);
+    } else {
+        window.location.reload();
+        return;
+    }
+    option?.remove();
+    input.value = '';
+    input.focus();
 }
 
 async function addOwner(event, form) {
@@ -529,6 +617,20 @@ async function toggleOwner(button) {
     } catch (err) { showError(err); }
 }
 
+// Person wieder in der Vorschlagsliste des Hinzufügen-Feldes anbieten
+function addNonMemberOption(username, row) {
+    const list = document.getElementById('non-members-list');
+    if (!list) return;
+    const realName = row.dataset.realname;
+    const option = document.createElement('option');
+    option.value = username;
+    option.dataset.realname = realName;
+    option.dataset.initials = row.querySelector('.profile-image').textContent.trim();
+    if (row.querySelector('.profile-image img')) option.dataset.pic = '1';
+    option.textContent = `${realName} (${username})`;
+    list.appendChild(option);
+}
+
 async function removeMember(button) {
     const username = button.dataset.username;
     const action = button.dataset.action;
@@ -542,6 +644,7 @@ async function removeMember(button) {
         } else {
             row.remove();
             updateMemberCount(-1);
+            addNonMemberOption(username, row);
         }
     } catch (err) { showError(err); }
 }
