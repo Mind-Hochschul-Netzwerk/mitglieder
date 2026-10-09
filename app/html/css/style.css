@@ -773,6 +773,11 @@ dialog, .page-header {
     transition: background 0.2s ease;
     white-space: nowrap;
 
+    &.btn-primary {
+        background: var(--accent);
+        color: #fff;
+    }
+
     &:hover,
     &:focus-visible {
         background: #c7d9ff;
