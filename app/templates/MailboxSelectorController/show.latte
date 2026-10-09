@@ -42,9 +42,24 @@
 
     <ul class="mailbox-list">
         <li n:foreach="$mailboxes as $mailbox">
-            <a href="/mail-login?mailbox={urlencode($mailbox)}"><i class="ti ti-mail" aria-hidden="true"></i> {$mailbox}</a>
+            <a href="/mail-login?mailbox={urlencode($mailbox)}" onclick="openMailbox(event, this)"><i class="ti ti-mail" aria-hidden="true"></i> {$mailbox}</a>
         </li>
-        <li><a href="/mail-login?mailbox=login"><i class="ti ti-lock" aria-hidden="true"></i> Mit E-Mail-Adresse und Passwort anmelden</a></li>
+        <li><a href="/mail-login?mailbox=login" onclick="openMailbox(event, this)"><i class="ti ti-lock" aria-hidden="true"></i> Mit E-Mail-Adresse und Passwort anmelden</a></li>
     </ul>
 </section>
+
+<script>
+{syntax off}
+// Beendet zuerst eine evtl. noch bestehende Mailu-Session, damit Mailu die neu gewählte
+// Mailbox übernimmt (sonst bleibt man im zuvor geöffneten Postfach eingeloggt).
+async function openMailbox(event, link) {
+    event.preventDefault();
+    try {
+        await fetch(logoutUrl, {mode: 'no-cors', credentials: 'include', redirect: 'manual'});
+    } catch (err) { /* Logout ist nur best effort */ }
+    window.location.href = link.href;
+}
+{/syntax}
+const logoutUrl = {$mailLogoutUrl};
+</script>
 {/block}

@@ -40,6 +40,7 @@ class MailboxSelectorController extends Controller {
     {
         return $this->render('MailboxSelectorController/show', [
             'mailboxes' => $this->mailboxes,
+            'mailLogoutUrl' => 'https://mail.' . getenv('DOMAINNAME') . '/sso/logout',
         ]);
     }
 
@@ -83,6 +84,11 @@ class MailboxSelectorController extends Controller {
                 $address = $name . '@' . $domain;
             }
 	    }
+        unset($address);
+
+        // Aliase o. Ä., die kein eigenes Postfach sind (MAILBOX_EXCLUDE, kommagetrennt)
+        $exclude = array_filter(array_map('trim', explode(',', strtolower((string)getenv('MAILBOX_EXCLUDE')))));
+        $mailboxes = array_filter($mailboxes, fn($address) => !in_array(strtolower($address), $exclude, true));
 
         return array_values(array_unique($mailboxes));
     }
