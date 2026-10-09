@@ -56,6 +56,26 @@ Hier findest du die Teams und anderen Gruppen im MHN. Um Ansprechpartner*innen z
     color: var(--accent);
 }
 .badge.owner { background: #fef9c3; color: #713f12; }
+.group-card[hidden], .group-filter-empty[hidden] { display: none; }
+.group-filter { display: flex; flex-direction: column; gap: .6rem; margin-bottom: 1.5rem; }
+.group-filter-chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+.group-filter-chips button {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .35rem .8rem;
+    font-size: .8rem;
+    font-weight: 600;
+    border-radius: 99px;
+    background: transparent;
+    color: var(--muted);
+    border: 1.5px solid var(--border);
+}
+.group-filter-chips button:hover, .group-filter-chips button:focus-visible { background: var(--panel-soft); }
+.group-filter-chips button[aria-pressed=true] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.group-filter-chips .count { font-weight: 400; opacity: .8; }
+.group-filter input[type=search] { width: 100%; max-width: 24rem; }
+.group-filter-empty { color: var(--muted); }
 .group-card-actions { flex-shrink: 0; }
 .group-card-actions button {
     padding: .45rem .85rem;
@@ -77,11 +97,24 @@ Hier findest du die Teams und anderen Gruppen im MHN. Um Ansprechpartner*innen z
     {var $byCategory[$group->category ?: ''][] = $group}
 {/foreach}
 
-{foreach array_filter($byCategory) as $category => $categoryGroups}
-<section class="panel" aria-labelledby="category-heading-{$category}">
+{var $categories = array_filter($byCategory)}
+<div class="group-filter" role="search">
+    <input type="search" id="group-search" placeholder="Gruppen durchsuchen…" aria-label="Gruppen durchsuchen" autocomplete="off">
+    <div class="group-filter-chips" role="group" aria-label="Filter">
+        <button type="button" id="filter-all" aria-pressed="true">Alle</button>
+        <button type="button" n:foreach="$categories as $category => $categoryGroups" class="filter-category" data-category="{$category ?: 'Sonstiges'}" aria-pressed="false">
+            {$category ?: 'Sonstiges'} <span class="count">{count($categoryGroups)}</span>
+        </button>
+        <button type="button" id="filter-mine" aria-pressed="false"><i class="ti ti-user-check" aria-hidden="true"></i> Nur meine Gruppen</button>
+    </div>
+</div>
+<p id="group-filter-empty" class="group-filter-empty" hidden>Keine Gruppen gefunden.</p>
+
+{foreach $categories as $category => $categoryGroups}
+<section class="panel" data-category="{$category ?: 'Sonstiges'}" aria-labelledby="category-heading-{$category}">
     <div class="panel-heading">
         <h2 id="category-heading-{$category}">{$category ?: 'Sonstiges'}</h2>
-        <span class="meta-note">{count($categoryGroups)} Gruppe{count($categoryGroups) !== 1 ? 'n' : ''}</span>
+        <span class="meta-note category-count">{count($categoryGroups)} Gruppe{count($categoryGroups) !== 1 ? 'n' : ''}</span>
     </div>
 
     <div class="group-list">
@@ -93,7 +126,8 @@ Hier findest du die Teams und anderen Gruppen im MHN. Um Ansprechpartner*innen z
             || ($group->memberVisibility->value === 'members' && $isMember)
             || ($group->memberVisibility->value === 'owners'  && ($isOwner || $isGroupAdmin))}
 
-        <div class="group-card">
+        <div class="group-card" data-member="{$isMember ? 1 : 0}"
+            data-search="{mb_strtolower(($group->displayName ?: '') . ' ' . $group->name . ' ' . ($group->description ?? '') . ' ' . ($group->mailAddress ?? ''))}">
             <div class="group-card-info">
                 <span class="group-card-name">
                     <a href="/groups/{$group->name}">{$group->displayName ?: $group->name}</a>
@@ -171,6 +205,98 @@ Hier findest du die Teams und anderen Gruppen im MHN. Um Ansprechpartner*innen z
 
 <script>
 {syntax off}
+(function () {
+    const search = document.getElementById('group-search');
+    const allBtn = document.getElementById('filter-all');
+    const mineBtn = document.getElementById('filter-mine');
+    const catBtns = [...document.querySelectorAll('.filter-category')];
+    const panels = [...document.querySelectorAll('section.panel[data-category]')];
+    const emptyMsg = document.getElementById('group-filter-empty');
+
+    const state = {categories: new Set(), q: '', mine: false};
+
+    function readUrl() {
+        const params = new URLSearchParams(location.search);
+        const known = catBtns.map(b => b.dataset.category);
+        state.categories = new Set(params.getAll('kategorie').filter(c => known.includes(c)));
+        state.q = params.get('q') ?? '';
+        state.mine = params.get('meine') === '1';
+    }
+
+    function buildUrl() {
+        const params = new URLSearchParams();
+        state.categories.forEach(c => params.append('kategorie', c));
+        if (state.q.trim() !== '') params.set('q', state.q.trim());
+        if (state.mine) params.set('meine', '1');
+        const qs = params.toString();
+        return location.pathname + (qs ? '?' + qs : '');
+    }
+
+    // zuletzt als eigener History-Eintrag gespeicherte URL; beim Tippen wird die URL nur per
+    // replaceState nachgeführt und erst beim Verlassen des Suchfelds zu einem neuen Eintrag
+    let committedUrl = location.pathname + location.search;
+
+    function pushUrl() {
+        const url = buildUrl();
+        if (url === committedUrl) return;
+        history.replaceState(null, '', committedUrl);
+        history.pushState(null, '', url);
+        committedUrl = url;
+    }
+
+    function render() {
+        search.value = state.q;
+        allBtn.setAttribute('aria-pressed', state.categories.size === 0);
+        mineBtn.setAttribute('aria-pressed', state.mine);
+        catBtns.forEach(b => b.setAttribute('aria-pressed', state.categories.has(b.dataset.category)));
+        applyFilter();
+    }
+
+    function applyFilter() {
+        const words = state.q.toLowerCase().split(/\s+/).filter(Boolean);
+        let total = 0;
+        panels.forEach(panel => {
+            const catOk = state.categories.size === 0 || state.categories.has(panel.dataset.category);
+            let visible = 0;
+            panel.querySelectorAll('.group-card').forEach(card => {
+                const ok = catOk
+                    && (!state.mine || card.dataset.member === '1')
+                    && words.every(w => card.dataset.search.includes(w));
+                card.hidden = !ok;
+                if (ok) visible++;
+            });
+            panel.hidden = visible === 0;
+            panel.querySelector('.category-count').textContent = `${visible} Gruppe${visible !== 1 ? 'n' : ''}`;
+            total += visible;
+        });
+        emptyMsg.hidden = total > 0;
+    }
+
+    allBtn.addEventListener('click', () => { state.categories.clear(); render(); pushUrl(); });
+    mineBtn.addEventListener('click', () => { state.mine = !state.mine; render(); pushUrl(); });
+    catBtns.forEach(b => b.addEventListener('click', () => {
+        const c = b.dataset.category;
+        state.categories.has(c) ? state.categories.delete(c) : state.categories.add(c);
+        render();
+        pushUrl();
+    }));
+    // beim Tippen sofort filtern und URL nachführen; History-Eintrag beim Verlassen des Feldes / mit Enter
+    search.addEventListener('input', () => {
+        state.q = search.value;
+        applyFilter();
+        history.replaceState(null, '', buildUrl());
+    });
+    search.addEventListener('change', () => { state.q = search.value; pushUrl(); });
+    window.addEventListener('popstate', () => {
+        committedUrl = location.pathname + location.search;
+        readUrl();
+        render();
+    });
+
+    readUrl();
+    render();
+})();
+
 async function groupAction(url, method, successMessage) {
     try {
         const data = await callApi(method, url, new FormData());
