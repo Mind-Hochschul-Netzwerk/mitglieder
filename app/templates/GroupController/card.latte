@@ -17,7 +17,7 @@
             <span n:if=$showMembers>{count($group->memberUsernames)} Mitglied{count($group->memberUsernames) !== 1 ? 'er'}</span>
             <span n:if=$isMember class="badge"><i class="ti ti-check" aria-hidden="true"></i> Mitglied</span>
             <span n:if=$isOwner class="badge owner"><i class="ti ti-crown" aria-hidden="true"></i> Gruppenverwalter*in</span>
-            <span n:if="$group->mailAddress"><i class="ti ti-mail" aria-hidden="true"></i> {$group->mailAddress}</span>
+            <span n:if="$group->mailAddress"><i class="ti ti-mail" aria-hidden="true"></i> <a n:tag-if="$group->canWriteMail($username)" href="mailto:{$group->mailAddress}">{$group->mailAddress}</a></span>
             <span n:if="$group->visibility === \App\Model\Enum\GroupVisibility::Hidden"><i class="ti ti-eye-off" aria-hidden="true"></i> Versteckt</span>
         </span>
     </div>

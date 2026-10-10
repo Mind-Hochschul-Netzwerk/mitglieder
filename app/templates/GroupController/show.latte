@@ -149,7 +149,7 @@
 {block page-header}
 <div class="summary">{$group->description|breakLines}</div>
 <div class="meta">
-    <span n:if="$group->mailAddress && $showMailAddress"><i class="ti ti-mail" aria-hidden="true"></i> <a n:tag-if="$canWriteMail" href="mailto:{$group->mailAddress}">{$group->mailAddress}</a></span>
+    <span n:if="$group->mailAddress"><i class="ti ti-mail" aria-hidden="true"></i> <a n:tag-if="$canWriteMail" href="mailto:{$group->mailAddress}">{$group->mailAddress}</a></span>
 </div>
 <div class="action-links" n:ifcontent>
     <a n:if="$canWriteMail && $group->mailAddress" href="mailto:{$group->mailAddress}">

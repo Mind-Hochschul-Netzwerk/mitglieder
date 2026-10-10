@@ -58,6 +58,20 @@ class Group
         return $this->listPasswordCiphertext !== '';
     }
 
+    /**
+     * Anschreiben darf, wer die Gruppenadresse tatsächlich nutzen kann: bei normalen Adressen jede*r,
+     * bei Mailinglisten Owner, Mitglieder (sofern Mitglieder-Posting erlaubt) bzw. alle (sofern externes Posting erlaubt)
+     */
+    public function canWriteMail(string $username): bool
+    {
+        return $this->mailAddress !== null && $this->mailAddress !== '' && (
+            !$this->hasListPassword()
+            || ($this->isMember($username) && $this->postAccessMembers !== PostAccessLevel::Deny)
+            || $this->postAccessPublic !== PostAccessLevel::Deny
+            || $this->isOwner($username)
+        );
+    }
+
     public function isMember(string $username): bool
     {
         return in_array($username, $this->memberUsernames, true);

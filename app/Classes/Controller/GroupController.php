@@ -121,19 +121,7 @@ class GroupController extends Controller
             MemberVisibility::Owners  => $isOwner || $isGroupAdmin,
         };
 
-        // post-access-public gilt nur für tatsächliche Mailinglisten; eine bloß hinterlegte
-        // Kontaktadresse ohne Mailinglisten-Funktion wird immer angezeigt
-        $showMailAddress = !$group->hasListPassword()
-            || $isMember || $isOwner || $isGroupAdmin || $group->postAccessPublic !== PostAccessLevel::Deny;
-
-        // anschreiben darf, wer die Gruppenadresse tatsächlich nutzen kann: bei normalen Adressen jede*r,
-        // bei Mailinglisten Owner, Mitglieder (sofern Mitglieder-Posting erlaubt) bzw. alle (sofern externes Posting erlaubt)
-        $canWriteMail = $group->mailAddress !== null && $group->mailAddress !== '' && (
-            !$group->hasListPassword()
-            || ($isMember && $group->postAccessMembers !== PostAccessLevel::Deny)
-            || $group->postAccessPublic !== PostAccessLevel::Deny
-            || $isOwner
-        );
+        $canWriteMail = $group->canWriteMail($username);
 
         $canViewArchive =$group->hasListPassword() && match ($group->archive) {
             ArchiveMode::Public, ArchiveMode::Authenticated => true,
@@ -189,7 +177,6 @@ class GroupController extends Controller
             'isOwner' => $isOwner,
             'mayManage' => $mayManage,
             'showMembers' => $showMembers,
-            'showMailAddress' => $showMailAddress,
             'canWriteMail' => $canWriteMail,
             'archiveUrl' => $archiveUrl,
             'displayInfos' => $displayInfos,
