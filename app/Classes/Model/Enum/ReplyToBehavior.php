@@ -8,4 +8,6 @@ enum ReplyToBehavior: string
     case Sender = 'sender';
     case Both = 'both';
     case Nobody = 'nobody';
+    case MaskedSender = 'masked-sender';
+    case MaskedBoth = 'masked-both';
 }

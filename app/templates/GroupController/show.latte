@@ -389,10 +389,12 @@
                         {foreach $replyToCases as $case}
                             <option value="{$case->value}" n:attr="selected: $case === $group->replyTo">
                                 {=match ($case->value) {
-                                    'list'   => 'Die Liste',
-                                    'sender' => 'Die ursprüngliche Absenderin/den ursprünglichen Absender',
-                                    'both'   => 'Liste und ursprüngliche Absenderin/ursprünglichen Absender',
-                                    'nobody' => 'Niemanden',
+                                    'list'          => 'Die Liste',
+                                    'sender'        => 'Absendender*in',
+                                    'both'          => 'Liste und Absender*in',
+                                    'masked-sender' => 'Absender*in ohne Preisgabe der Mailadresse',
+                                    'masked-both'   => 'Liste und Absender*in ohne Preisgabe der Mailadresse',
+                                    'nobody'        => 'Niemanden',
                                     default  => $case->value
                                 }}
                             </option>
