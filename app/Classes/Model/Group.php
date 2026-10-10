@@ -13,6 +13,9 @@ use Symfony\Component\Ldap\Entry;
 
 class Group
 {
+    /** Standard der Absender-Umschreibung; wird nicht im LDAP gespeichert */
+    public const string DEFAULT_SENDER_REWRITE = '{sender-name} (via MHN)';
+
     public ?Entry $ldapEntry = null;
 
     public string $displayName {
@@ -35,7 +38,7 @@ class Group
         public string $listLabel = '',
         public PostAccessLevel $postAccessMembers = PostAccessLevel::Allow,
         public PostAccessLevel $postAccessPublic = PostAccessLevel::Deny,
-        public string $listSenderRewrite = '{sender-name} (via MHN)',
+        public string $listSenderRewrite = self::DEFAULT_SENDER_REWRITE,
         public ReplyToBehavior $replyTo = ReplyToBehavior::List,
         public ArchiveMode $archive = ArchiveMode::Members,
         public string $listPasswordCiphertext = '',

@@ -379,8 +379,8 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="edit-listSenderRewrite">Absender-Umschreibung</label>
-                    <input id="edit-listSenderRewrite" name="listSenderRewrite" type="text" value="{$group->listSenderRewrite}" placeholder="{l}sender-name{r} (via MHN)">
+                    <label for="edit-listSenderRewrite">Absender-Umschreibung <small>(leer = {l}sender-name{r} (via MHN))</small></label>
+                    <input id="edit-listSenderRewrite" name="listSenderRewrite" type="text" value="{$group->listSenderRewrite !== \App\Model\Group::DEFAULT_SENDER_REWRITE ? $group->listSenderRewrite}" placeholder="{l}sender-name{r} (via MHN)">
                     <small>Platzhalter: <code>{l}sender-name{r}</code> = ursprünglicher Absender</small>
                 </div>
                 <div class="form-group">
