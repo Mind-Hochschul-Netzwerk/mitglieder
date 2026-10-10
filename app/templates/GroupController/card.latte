@@ -1,0 +1,52 @@
+{layout none}
+{var $isMember = $group->isMember($username)}
+{var $isOwner  = $group->isOwner($username)}
+{var $mayManage = $isGroupAdmin || $isOwner}
+{var $showMembers = $group->memberVisibility->value === 'all'
+    || ($group->memberVisibility->value === 'members' && $isMember)
+    || ($group->memberVisibility->value === 'owners'  && ($isOwner || $isGroupAdmin))}
+
+<div class="group-card" data-group="{$group->name}" data-member="{$isMember ? 1 : 0}"
+    data-search="{mb_strtolower(($group->displayName ?: '') . ' ' . $group->name . ' ' . ($group->description ?? '') . ' ' . ($group->mailAddress ?? ''))}">
+    <div class="group-card-info">
+        <span class="group-card-name">
+            <a href="/groups/{$group->name}">{$group->displayName ?: $group->name}</a>
+        </span>
+        <span n:if="$group->description" class="group-card-description">{$group->description}</span>
+        <span class="group-card-meta">
+            <span n:if=$showMembers>{count($group->memberUsernames)} Mitglied{count($group->memberUsernames) !== 1 ? 'er'}</span>
+            <span n:if=$isMember class="badge"><i class="ti ti-check" aria-hidden="true"></i> Mitglied</span>
+            <span n:if=$isOwner class="badge owner"><i class="ti ti-crown" aria-hidden="true"></i> Gruppenverwalter*in</span>
+            <span n:if="$group->mailAddress"><i class="ti ti-mail" aria-hidden="true"></i> {$group->mailAddress}</span>
+            <span n:if="$group->visibility === \App\Model\Enum\GroupVisibility::Hidden"><i class="ti ti-eye-off" aria-hidden="true"></i> Versteckt</span>
+        </span>
+    </div>
+    <div class="group-card-actions">
+        {* Beitreten *}
+        <button n:if="!$isMember && $group->joinPolicy->value === 'open'"
+            class="ghost"
+            data-action="/groups/{$group->name}/join"
+            onclick="membershipAction(this)">
+            <i class="ti ti-user-plus" aria-hidden="true"></i> Beitreten
+        </button>
+        {* Anfrage stellen *}
+        <button n:if="!$isMember && $group->joinPolicy->value === 'request'"
+            class="ghost"
+            data-action="/groups/{$group->name}/join-requests"
+            onclick="requestJoin(this)">
+            <i class="ti ti-send" aria-hidden="true"></i> Beitritt anfragen
+        </button>
+        {* Nur auf Einladung — Info *}
+        <span n:if="!$isMember && $group->joinPolicy->value === 'invite'" class="group-card-meta">
+            <i class="ti ti-lock" aria-hidden="true"></i> Nur auf Einladung
+        </span>
+        {* Verlassen *}
+        <button n:if="$isMember && $group->leavePolicy === \App\Model\Enum\LeavePolicy::Allowed"
+            class="ghost leave"
+            data-action="/groups/{$group->name}/leave"
+            n:attr="data-confirm: !($group->joinPolicy === \App\Model\Enum\JoinPolicy::Open && $group->visibility === \App\Model\Enum\GroupVisibility::Public) ? 'Möchtest du die Gruppe wirklich verlassen?'"
+onclick="if (!this.dataset.confirm || confirm(this.dataset.confirm)) membershipAction(this)">
+            <i class="ti ti-user-minus" aria-hidden="true"></i> Verlassen
+        </button>
+    </div>
+</div>

@@ -72,6 +72,31 @@ class GroupController extends Controller
         ]);
     }
 
+    /**
+     * Einzelne Gruppenkarte der Übersicht als HTML-Fragment (zum Aktualisieren nach Beitritt/Austritt per JS)
+     */
+    #[Route('GET /groups/{name=>group}/card'), RequireLogin]
+    public function card(Group $group): Response
+    {
+        $isGroupAdmin = $this->currentUser->hasRole('groupadmin');
+        $username = $this->currentUser->get('username');
+
+        $canView = match ($group->visibility) {
+            GroupVisibility::Public  => true,
+            GroupVisibility::Members => $isGroupAdmin || $group->isMember($username) || $group->isOwner($username),
+            GroupVisibility::Hidden  => $isGroupAdmin || $group->isOwner($username),
+        };
+        if (!$canView) {
+            throw new AccessDeniedException();
+        }
+
+        return $this->render('GroupController/card', [
+            'group' => $group,
+            'username' => $username,
+            'isGroupAdmin' => $isGroupAdmin,
+        ]);
+    }
+
     #[Route('GET /groups/{name=>group}'), RequireLogin]
     public function show(Group $group, UserRepository $userRepository): Response
     {
