@@ -4,9 +4,10 @@ namespace App\Model\Enum;
 
 enum ArchiveMode: string
 {
+    case Public = 'public';
+    case Authenticated = 'authenticated';
     case Members = 'members';
     case Owners = 'owners';
-    case Public = 'public';
     case Hidden = 'hidden';
     case Off = 'off';
 }

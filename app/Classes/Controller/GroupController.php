@@ -111,7 +111,7 @@ class GroupController extends Controller
         );
 
         $canViewArchive =$group->hasListPassword() && match ($group->archive) {
-            ArchiveMode::Public          => true,
+            ArchiveMode::Public, ArchiveMode::Authenticated => true,
             ArchiveMode::Members         => $isMember || $isOwner,
             ArchiveMode::Owners          => $isOwner,
             ArchiveMode::Hidden, ArchiveMode::Off => false,

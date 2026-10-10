@@ -406,6 +406,7 @@
                             <option value="{$case->value}" n:attr="selected: $case === $group->archive">
                                 {=match ($case->value) {
                                     'public'  => 'Öffentlich einsehbar',
+                                    'authenticated' => 'Für alle MHN-Mitglieder einsehbar',
                                     'members' => 'Nur für Gruppenmitglieder',
                                     'owners'  => 'Nur für Gruppenverwalter*innen',
                                     'hidden'  => 'Wird geführt, ist aber nicht einsehbar',
