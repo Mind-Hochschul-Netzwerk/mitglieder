@@ -400,6 +400,23 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label for="edit-archive">Archiv</label>
+                    <select id="edit-archive" name="archive">
+                        {foreach $archiveCases as $case}
+                            <option value="{$case->value}" n:attr="selected: $case === $group->archive">
+                                {=match ($case->value) {
+                                    'public'  => 'Öffentlich einsehbar',
+                                    'members' => 'Nur für Gruppenmitglieder',
+                                    'owners'  => 'Nur für Gruppenverwalter*innen',
+                                    'hidden'  => 'Wird geführt, ist aber nicht einsehbar',
+                                    'off'     => 'Kein Archiv',
+                                    default   => $case->value
+                                }}
+                            </option>
+                        {/foreach}
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>Mailserver-Passwort</label>
                     <p class="text-muted" id="list-password-status">
                         {if $group->hasListPassword()}

@@ -176,6 +176,7 @@ class GroupController extends Controller
             'visibilityCases' => GroupVisibility::cases(),
             'postAccessLevelCases' => PostAccessLevel::cases(),
             'replyToCases' => ReplyToBehavior::cases(),
+            'archiveCases' => ArchiveMode::cases(),
         ]);
     }
 
@@ -229,6 +230,7 @@ class GroupController extends Controller
             'postAccessPublic' => 'string',
             'listSenderRewrite'=> 'string',
             'replyTo'          => 'string',
+            'archive'          => 'string',
         ]);
 
         $group->displayName = $input['displayName'];
@@ -277,6 +279,7 @@ class GroupController extends Controller
             'postAccessPublic' => 'string',
             'listSenderRewrite'=> 'string',
             'replyTo'          => 'string',
+            'archive'          => 'string',
         ]);
 
         // die Listeneinstellungen kommen aus demselben Dialog wie update() und werden hier mit
@@ -342,6 +345,9 @@ class GroupController extends Controller
         $group->listSenderRewrite = $input['listSenderRewrite'];
         if ($replyTo = ReplyToBehavior::tryFrom($input['replyTo'])) {
             $group->replyTo = $replyTo;
+        }
+        if ($archive = ArchiveMode::tryFrom($input['archive'])) {
+            $group->archive = $archive;
         }
     }
 
