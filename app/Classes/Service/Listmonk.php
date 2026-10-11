@@ -87,7 +87,7 @@ class Listmonk
 
         $existing = $this->findByNumber((int) $member['id']) ?? $this->findByEmail($entry['email']);
         if ($existing === null) {
-            $this->createSubscriber($entry, $this->newsletterListId);
+            $this->createSubscriber($entry, [$this->newsletterListId]);
             return;
         }
         if ($this->needsUpdate($existing, $entry)) {
@@ -105,6 +105,60 @@ class Listmonk
         $existing = $this->findByNumber((int) $member['id']);
         if ($existing !== null) {
             $this->removeFromList($this->newsletterListId, [(int) $existing['id']]);
+        }
+    }
+
+    /**
+     * Gleicht ein einzelnes Mitglied sofort ab (z.B. nach einer Adressänderung): Der Abonnent wird über die
+     * Mitgliedsnummer gefunden, sonst über die Adresse (ein Eintrag ohne Mitgliedsnummer wird übernommen),
+     * sonst neu angelegt. Es werden nur fehlende Listen ergänzt und Adresse/Name/Attribute aktualisiert;
+     * Abmeldungen und das Entfernen anderer Mitglieder bleiben dem regelmäßigen Abgleich überlassen.
+     * Hat das Mitglied keine gültige Adresse, wird es wie beim Abgleich aus unseren Listen genommen.
+     *
+     * @param array $member siehe Klassenkommentar
+     * @param bool $inMemberList Mitglied gehört in die Mitglieder-Liste (Gruppe „alleMitglieder“)
+     * @param bool $inNewsletter Mitglied gehört in den Newsletter (Gruppe „newsletter“)
+     * @throws \RuntimeException bei Fehlern oder einem Adresskonflikt in ListMonk
+     */
+    public function syncMember(array $member, bool $inMemberList, bool $inNewsletter): void
+    {
+        $this->assertConfigured();
+        $entry = $this->buildEntry($member);
+        $existing = $this->findByNumber((int) ($member['id'] ?? 0));
+
+        if ($entry === null) {
+            if ($existing !== null) {
+                $present = $this->listIdsOf($existing);
+                foreach ([$this->memberListId, $this->newsletterListId] as $listId) {
+                    if ($listId > 0 && in_array($listId, $present, true)) {
+                        $this->removeFromList($listId, [(int) $existing['id']]);
+                    }
+                }
+            }
+            return;
+        }
+
+        $wanted = [];
+        if ($inMemberList) {
+            $wanted[] = $this->memberListId;
+        }
+        if ($inNewsletter && $this->isNewsletterConfigured()) {
+            $wanted[] = $this->newsletterListId;
+        }
+        if (!$wanted) {
+            return;
+        }
+
+        $existing ??= $this->findByEmail($entry['email']);
+        if ($existing === null) {
+            $this->createSubscriber($entry, $wanted);
+            return;
+        }
+
+        $listIds = $this->listIdsOf($existing);
+        $added = array_diff($wanted, $listIds);
+        if ($added || $this->needsUpdate($existing, $entry)) {
+            $this->updateSubscriber($existing, $entry, array_values(array_unique([...$listIds, ...$added])));
         }
     }
 
@@ -284,7 +338,7 @@ class Listmonk
     {
         $existing = $this->findByNumber($number) ?? $this->findByEmail($entry['email']);
         if ($existing === null) {
-            $this->createSubscriber($entry, $listId);
+            $this->createSubscriber($entry, [$listId]);
             return;
         }
 
@@ -295,13 +349,16 @@ class Listmonk
         $this->updateSubscriber($existing, $entry, $listIds);
     }
 
-    private function createSubscriber(array $entry, int $listId): void
+    /**
+     * @param int[] $listIds
+     */
+    private function createSubscriber(array $entry, array $listIds): void
     {
         [$status, $body] = $this->request('POST', '/api/subscribers', [
             'email' => $entry['email'],
             'name' => $entry['name'],
             'status' => 'enabled',
-            'lists' => [$listId],
+            'lists' => array_values($listIds),
             'preconfirm_subscriptions' => true,
             'attribs' => $entry['attribs'],
         ]);

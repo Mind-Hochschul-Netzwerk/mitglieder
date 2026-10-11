@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Model\MailAddress;
 use App\Model\User;
 use App\Repository\UserAgreementRepository;
 use App\Repository\UserRepository;
@@ -685,7 +686,10 @@ class UserController extends Controller {
             'email' => $email,
             'return' => $return = new \stdclass(),
         ]);
-        $this->emailService->send($oldMail, $return->subject, $text);
+        // an eine als ungültig markierte Adresse (z.B. nach einem Bounce) kann nichts zugestellt werden
+        if (!MailAddress::isInvalid($oldMail)) {
+            $this->emailService->send($oldMail, $return->subject, $text);
+        }
 
         $this->setTemplateVariable('email_changed', true);
     }

@@ -165,9 +165,18 @@ class Bootstrap extends ServiceContainer {
 
     public function getUserRepository(): UserRepository
     {
-        return $this->createService(UserRepository::class, fn() => new UserRepository(
-            $this->getLdap(),
-            $this->getService(\Hengeb\Db\Db::class)
-        ));
+        return $this->createService(UserRepository::class, function () {
+            $repository = new UserRepository(
+                $this->getLdap(),
+                $this->getService(\Hengeb\Db\Db::class)
+            );
+            // geänderte Adressen sofort nach ListMonk übertragen
+            $repository->addMailListener(new \App\Service\ListmonkUserListener(
+                $this->getListmonk(),
+                $this->getLdap(),
+                $this->getGroupRepository(),
+            ));
+            return $repository;
+        });
     }
 }

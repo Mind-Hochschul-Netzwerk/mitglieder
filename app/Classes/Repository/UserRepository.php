@@ -9,6 +9,7 @@ namespace App\Repository;
 use App\Model\User;
 use App\Model\UserInfo;
 use App\Service\Ldap;
+use App\Service\UserMailListener;
 use Hengeb\Db\Db;
 use RuntimeException;
 
@@ -17,10 +18,18 @@ use RuntimeException;
  */
 class UserRepository
 {
+    /** @var UserMailListener[] */
+    private array $mailListeners = [];
+
     public function __construct(
         private Ldap $ldap,
         private Db $db,
     ) {}
+
+    public function addMailListener(UserMailListener $listener): void
+    {
+        $this->mailListeners[] = $listener;
+    }
 
     /**
      * @return UserInfo[]
@@ -212,6 +221,23 @@ class UserRepository
             $values['id'] = (int)$user->get('id');
             $this->db->query("UPDATE mitglieder SET $setQuery WHERE id=:id", $values);
             $this->ldap->modifyUser($user->get('username'), $ldapData);
+
+            if ($this->mailListeners && $this->mailChanged($user)) {
+                foreach ($this->mailListeners as $listener) {
+                    $listener->mailChanged($user->get('username'));
+                }
+            }
         }
+    }
+    /**
+     * Hat sich die Adresse oder MHN-Adresse gegenüber dem zuletzt geladenen LDAP-Eintrag geändert?
+     */
+    private function mailChanged(User $user): bool
+    {
+        if ($user->ldapEntry === null) {
+            return true;
+        }
+        $old = Ldap::splitMail($user->ldapEntry->getAttribute('mail') ?? []);
+        return $old['email'] !== $user->get('email') || ($old['org'] ?? '') !== (string) $user->get('orgEmail');
     }
 }
