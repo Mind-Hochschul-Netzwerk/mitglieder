@@ -65,17 +65,11 @@ class Group
     ];
 
     /**
-     * Unsere Standards für neue Gruppen: werden beim Anlegen explizit gespeichert und überschreiben damit
-     * bewusst die Listig-Standards (siehe applyNewGroupDefaults())
+     * Unsere Standards für neue Gruppen, soweit sie bewusst vom Listig-Standard abweichen (Property => Wert):
+     * nur diese Keys werden beim Anlegen explizit gespeichert (siehe applyNewGroupDefaults()), alle anderen
+     * bleiben nicht gesetzt, es gilt dann der Listig-Standard. Aktuell weicht keiner ab.
      */
-    public const JoinPolicy NEW_GROUP_JOIN_POLICY = JoinPolicy::Invite;
-    public const LeavePolicy NEW_GROUP_LEAVE_POLICY = LeavePolicy::Direct;
-    public const MemberVisibility NEW_GROUP_MEMBER_VISIBILITY = MemberVisibility::Members;
-    public const GroupVisibility NEW_GROUP_VISIBILITY = GroupVisibility::Public;
-    public const PostAccessLevel NEW_GROUP_POST_ACCESS_MEMBERS = PostAccessLevel::Allow;
-    public const PostAccessLevel NEW_GROUP_POST_ACCESS_PUBLIC = PostAccessLevel::Deny;
-    public const ReplyToBehavior NEW_GROUP_REPLY_TO = ReplyToBehavior::List;
-    public const ArchiveMode NEW_GROUP_ARCHIVE = ArchiveMode::Members;
+    public const array NEW_GROUP_OVERRIDES = [];
 
     public ?Entry $ldapEntry = null;
 
@@ -126,17 +120,12 @@ class Group
         public private(set) array $unknownDescriptionLines = [],
     ) {}
 
-    /** Setzt die Einstellungen explizit auf unsere Standards für neue Gruppen (NEW_GROUP_*) */
+    /** Setzt die Einstellungen, bei denen wir für neue Gruppen vom Listig-Standard abweichen (NEW_GROUP_OVERRIDES) */
     public function applyNewGroupDefaults(): void
     {
-        $this->joinPolicy = self::NEW_GROUP_JOIN_POLICY;
-        $this->leavePolicy = self::NEW_GROUP_LEAVE_POLICY;
-        $this->memberVisibility = self::NEW_GROUP_MEMBER_VISIBILITY;
-        $this->visibility = self::NEW_GROUP_VISIBILITY;
-        $this->postAccessMembers = self::NEW_GROUP_POST_ACCESS_MEMBERS;
-        $this->postAccessPublic = self::NEW_GROUP_POST_ACCESS_PUBLIC;
-        $this->replyTo = self::NEW_GROUP_REPLY_TO;
-        $this->archive = self::NEW_GROUP_ARCHIVE;
+        foreach (self::NEW_GROUP_OVERRIDES as $property => $value) {
+            $this->$property = $value;
+        }
     }
 
     public function isMailingList(): bool
