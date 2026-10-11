@@ -1,0 +1,189 @@
+{var $navId = gruppen}
+
+{block css}
+<style>
+.setting-row {
+    display: grid;
+    grid-template-columns: minmax(11rem, 17rem) 1fr;
+    gap: .25rem 1rem;
+    align-items: start;
+    padding: .6rem 0;
+    border-top: 1px solid var(--border);
+}
+/* Standard-Text und Eingabefeld liegen übereinander in derselben Zelle; das nicht aktive ist nur unsichtbar,
+   so bleibt die Zeilenhöhe beim Umschalten gleich */
+.setting-row > label.setting-override { grid-column: 1; grid-row: 1; }
+.setting-row > .setting-default, .setting-row > .setting-control { grid-column: 2; grid-row: 1; }
+@media (max-width: 640px) {
+    .setting-row { grid-template-columns: 1fr; }
+    .setting-row > .setting-default, .setting-row > .setting-control { grid-column: 1; grid-row: 2; }
+}
+.setting-row label.setting-override:has(input[type="checkbox"]) { cursor: pointer; margin-bottom: 0; padding-top: calc(0.6rem + 1.5px); }
+/* Abstand wie Padding + Rahmen der Eingabefelder (style.css): Text bündig mit dem Text in den Feldern, die Zeile wackelt beim Umschalten nicht */
+.setting-default { color: var(--muted); overflow-wrap: anywhere; padding: calc(0.6rem + 1.5px) calc(0.85rem + 1.5px); }
+.setting-control, .setting-control select, .setting-control input[type=text], .setting-control textarea { width: 100%; }
+.setting-control small { display: block; margin-top: .25rem; color: var(--muted); }
+.setting-control label input { width: auto; }
+/* ohne Haken: Standard anzeigen; mit Haken: Eingabefeld */
+.setting-row:not(.tall):not(:has(.setting-override input:checked)) .setting-control { visibility: hidden; }
+.setting-row:not(.tall):has(.setting-override input:checked) .setting-default { visibility: hidden; }
+/* mehrzeilige Felder: nicht aktives ausblenden statt Platz zu reservieren */
+.setting-row.tall:not(:has(.setting-override input:checked)) .setting-control { display: none; }
+.setting-row.tall:has(.setting-override input:checked) .setting-default { display: none; }
+.settings-panel .form-group { margin: .6rem 0; }
+.settings-actions { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; margin: 1rem 0; }
+#save-status { color: var(--muted); }
+#settings-form:not([data-mailing-list]) .list-settings { display: none; }
+</style>
+{/block}
+
+{define setting-row, $row}
+<div n:class="setting-row, in_array($row['type'], ['textarea', 'personalize'], true) ? tall">
+    <label class="setting-override">
+        <input type="checkbox" name="set_{$row['name']}" n:attr="checked: $row['isSet']">
+        <span>{$row['label']}</span>
+    </label>
+    <div class="setting-default">Standard: {$row['defaultText']}</div>
+    <div class="setting-control">
+        {if $row['type'] === 'enum'}
+            <select name="{$row['name']}" aria-label="{$row['label']}">
+                <option n:foreach="$row['cases'] as $case" value="{$case->value}" n:attr="selected: $case === $row['selected']">{$case->label()}</option>
+            </select>
+        {elseif $row['type'] === 'text'}
+            <input type="text" name="{$row['name']}" value="{$row['text']}" aria-label="{$row['label']}">
+        {elseif $row['type'] === 'textarea'}
+            <textarea name="{$row['name']}" rows="6" aria-label="{$row['label']}">{$row['text']}</textarea>
+        {elseif $row['type'] === 'archiveMaxAge'}
+            <select name="{$row['name']}" aria-label="{$row['label']}">
+                <option n:foreach="$row['options'] as $value => $label" value="{$value}" n:attr="selected: $value === $row['selected']">{$label}</option>
+            </select>
+        {elseif $row['type'] === 'personalize'}
+            <label n:foreach="$row['options'] as $key => $label">
+                <input type="checkbox" name="personalize_{$key}" n:attr="checked: in_array($key, $row['selected'], true)"> {$label} <code>{l}{$key}{r}</code>
+            </label>
+        {/if}
+        <small n:if="$row['help']">{$row['help']}</small>
+    </div>
+</div>
+{/define}
+
+{block title}Einstellungen: {$group->displayName ?: $group->name}{/block}
+{block page-label}<i class="ti ti-users-group" aria-hidden="true"></i> <a href="/groups">Gruppen</a> / <a href="/groups/{$group->name}">{$group->displayName ?: $group->name}</a>{/block}
+
+{block page-header}
+<div class="summary">Einstellungen der Gruppe. Bei Einstellungen ohne Haken gilt der angezeigte Standard; mit Haken überschreibst du ihn für diese Gruppe.</div>
+{/block}
+
+{block content}
+<form id="settings-form" onsubmit="saveSettings(event, this)" n:attr="data-mailing-list: $group->hasListPassword() ? 1 : null">
+    <input type="hidden" name="form" value="admin">
+
+    <section class="panel settings-panel" aria-labelledby="general-heading">
+        <div class="panel-heading"><h2 id="general-heading"><i class="label-icon ti ti-settings" aria-hidden="true"></i>Allgemein</h2></div>
+        <div class="form-group">
+            <label for="displayName">Anzeigename</label>
+            <input id="displayName" name="displayName" type="text" value="{$group->displayName}" placeholder="{$group->name}">
+        </div>
+        <div class="form-group">
+            <label for="description">Beschreibung</label>
+            <textarea id="description" name="description" rows="3">{$group->description}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="category">Kategorie</label>
+            <input id="category" name="category" type="text" value="{$group->category}">
+        </div>
+        <div n:if=$isRechteAdmin class="form-group">
+            <label class="checkbox-label">
+                <input type="checkbox" name="privileged" n:attr="checked: $group->privileged">
+                Privilegierte Gruppe <small>(nur von Inhabern der Rolle <code>rechte</code> verwaltbar, nicht von der Gruppenadministration)</small>
+            </label>
+        </div>
+    </section>
+
+    <section class="panel settings-panel" n:foreach="$sections['always'] as $title => $rows" aria-label="{$title}">
+        <div class="panel-heading"><h2><i class="label-icon ti ti-adjustments" aria-hidden="true"></i>{$title}</h2></div>
+        {foreach $rows as $row}
+            {include setting-row, row: $row}
+        {/foreach}
+    </section>
+
+    <section class="panel settings-panel" aria-labelledby="mail-heading">
+        <div class="panel-heading"><h2 id="mail-heading"><i class="label-icon ti ti-mail" aria-hidden="true"></i>E-Mail-Einstellungen</h2></div>
+        <div class="form-group">
+            <label for="mailAddress">E-Mail-Adresse</label>
+            <input id="mailAddress" name="mailAddress" type="email" value="{$group->mailAddress}" placeholder="gruppe@example.org">
+        </div>
+        <div class="form-group">
+            <label>Mailserver-Passwort</label>
+            <p class="text-muted" id="list-password-status">
+                {if $group->hasListPassword()}
+                    <i class="ti ti-lock" aria-hidden="true"></i> Passwort ist gesetzt. Die Gruppe ist eine Mailingliste.
+                {else}
+                    <i class="ti ti-lock-open" aria-hidden="true"></i> Kein Passwort gesetzt. Die Gruppe ist keine Mailingliste.
+                {/if}
+            </p>
+            <button type="button" onclick="setListPassword(this)">Passwort eingeben</button>
+        </div>
+    </section>
+
+    {* Einstellungen der Mailingliste: nur sichtbar, solange ein Passwort gesetzt ist (data-mailing-list am Formular) *}
+    <section class="panel settings-panel list-settings" n:foreach="$sections['list'] as $title => $rows" aria-label="{$title}">
+        <div class="panel-heading"><h2><i class="label-icon ti ti-adjustments" aria-hidden="true"></i>{$title}</h2></div>
+        {foreach $rows as $row}
+            {include setting-row, row: $row}
+        {/foreach}
+    </section>
+
+    <div class="settings-actions">
+        <button type="submit"><i class="ti ti-device-floppy" aria-hidden="true"></i> Speichern</button>
+        <button type="button" class="danger"
+            onclick="if(confirm('Gruppe wirklich löschen?')) deleteGroup()">
+            <i class="ti ti-trash" aria-hidden="true"></i> Gruppe löschen
+        </button>
+        <a href="/groups/{$group->name}">Zurück zur Gruppe</a>
+        <span id="save-status" role="status"></span>
+    </div>
+</form>
+{/block}
+
+{block footer}
+<script>
+groupname = {$group->name};
+{syntax off}
+async function saveSettings(event, form) {
+    event.preventDefault();
+    const status = document.getElementById('save-status');
+    status.textContent = '';
+    try {
+        await callApi('POST', `/groups/${groupname}/settings`, new FormData(form));
+        status.textContent = 'Gespeichert.';
+    } catch (err) { showError(err); }
+}
+
+async function deleteGroup() {
+    try {
+        const data = await callApi('DELETE', `/groups/${groupname}`, new FormData());
+        window.location.href = data?.redirect ?? '/groups';
+    } catch (err) { showError(err); }
+}
+
+async function setListPassword(button) {
+    const password = prompt('Neues Passwort für den Mailserver-Zugang der Liste eingeben (leer lassen, um das Passwort zu löschen):');
+    if (password === null) return;
+    // schickt das ganze Formular mit, damit bei einer noch nicht gespeicherten Liste die restliche
+    // Konfiguration (v.a. die Mailadresse) zusammen mit dem Passwort gespeichert wird
+    const fd = new FormData(button.closest('form'));
+    fd.set('password', password);
+    try {
+        await callApi('POST', `/groups/${groupname}/settings/list-password`, fd);
+        const hasPassword = password !== '';
+        document.getElementById('settings-form').toggleAttribute('data-mailing-list', hasPassword);
+        document.getElementById('list-password-status').innerHTML = hasPassword
+            ? '<i class="ti ti-lock" aria-hidden="true"></i> Passwort ist gesetzt. Die Gruppe ist eine Mailingliste.'
+            : '<i class="ti ti-lock-open" aria-hidden="true"></i> Kein Passwort gesetzt. Die Gruppe ist keine Mailingliste.';
+        alert(hasPassword ? 'Passwort wurde gesetzt.' : 'Passwort wurde gelöscht.');
+    } catch (err) { showError(err); }
+}
+{/syntax}
+</script>
+{/block}

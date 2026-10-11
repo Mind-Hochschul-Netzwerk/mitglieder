@@ -10,14 +10,15 @@ use App\Model\Enum\MemberVisibility;
 use App\Model\Enum\PostAccessLevel;
 use App\Model\Enum\ReplyToBehavior;
 use App\Model\Group;
+use App\Model\GroupSettings;
 use App\Model\User;
 use App\Repository\GroupRepository;
 use App\Repository\UserRepository;
 use App\Service\EmailService;
-use App\Service\ListigApi;
-use App\Service\ListigPasswordRejectedException;
+use App\Service\GroupPermissions;
 use App\Service\RateLimiter;
 use Hengeb\Router\Attribute\AllowIf;
+use Hengeb\Router\Attribute\Inject;
 use Hengeb\Router\Attribute\PublicAccess;
 use Hengeb\Router\Attribute\RequireLogin;
 use Hengeb\Router\Attribute\Route;
@@ -30,23 +31,8 @@ class GroupController extends Controller
 {
     private const JOIN_REQUEST_TTL = 7 * 24 * 3600;
 
-    private function mayManage(Group $group): bool
-    {
-        if ($group->isOwner($this->currentUser->get('username'))) {
-            return true;
-        }
-        if ($group->privileged) {
-            return $this->currentUser->hasRole('rechte');
-        }
-        return $this->currentUser->hasRole('groupadmin');
-    }
-
-    private function requireManage(Group $group): void
-    {
-        if (!$this->mayManage($group)) {
-            throw new AccessDeniedException();
-        }
-    }
+    #[Inject]
+    public GroupPermissions $groupPermissions;
 
     #[Route('GET /groups'), RequireLogin]
     public function index(GroupRepository $groupRepository): Response
@@ -104,7 +90,7 @@ class GroupController extends Controller
         $isGroupAdmin = $this->currentUser->hasRole('groupadmin');
         $isMember = $group->isMember($username);
         $isOwner = $group->isOwner($username);
-        $mayManage = $this->mayManage($group);
+        $mayManage = $this->groupPermissions->mayManage($group);
 
         $canView = match ($group->effectiveVisibility) {
             GroupVisibility::Public  => true,
@@ -172,7 +158,6 @@ class GroupController extends Controller
         return $this->render('GroupController/show', [
             'group' => $group,
             'isGroupAdmin' => $isGroupAdmin,
-            'isRechteAdmin' => $this->currentUser->hasRole('rechte'),
             'isMember' => $isMember,
             'isOwner' => $isOwner,
             'mayManage' => $mayManage,
@@ -182,13 +167,7 @@ class GroupController extends Controller
             'displayInfos' => $displayInfos,
             'nonMembers' => $nonMembers,
             'username' => $username,
-            'joinPolicyCases' => JoinPolicy::cases(),
-            'leavePolicyCases' => LeavePolicy::cases(),
-            'memberVisibilityCases' => MemberVisibility::cases(),
-            'visibilityCases' => GroupVisibility::cases(),
-            'postAccessLevelCases' => PostAccessLevel::cases(),
-            'replyToCases' => ReplyToBehavior::cases(),
-            'archiveCases' => ArchiveMode::cases(),
+            'ownerRows' => GroupSettings::ownerRows($group),
         ]);
     }
 
@@ -220,148 +199,6 @@ class GroupController extends Controller
             return $this->json(['success' => true, 'redirect' => '/groups']);
         }
         return $this->redirect('/groups');
-    }
-
-    #[Route('POST /groups/{name=>group}'), RequireLogin]
-    public function update(Group $group, GroupRepository $groupRepository): Response
-    {
-        $this->requireManage($group);
-        $isGroupAdmin = $this->currentUser->hasRole('groupadmin');
-
-        $input = $this->validatePayload([
-            'displayName'      => 'string',
-            'description'      => 'string',
-            'category'         => 'string',
-            'joinPolicy'       => 'string',
-            'leavePolicy'      => 'string',
-            'memberVisibility' => 'string',
-            'visibility'       => 'string',
-            'privileged'       => 'bool',
-            'mailAddress'      => 'string',
-            'listLabel'        => 'string',
-            'postAccessMembers'=> 'string',
-            'postAccessPublic' => 'string',
-            'listSenderRewrite'=> 'string',
-            'replyTo'          => 'string',
-            'archive'          => 'string',
-        ]);
-
-        $group->displayName = $input['displayName'] !== '' ? $input['displayName'] : null;
-        $group->description = $input['description'] !== '' ? $input['description'] : null;
-        $group->category    = $input['category'];
-
-        if ($joinPolicy = JoinPolicy::tryFrom($input['joinPolicy'])) {
-            $group->joinPolicy = $joinPolicy;
-        }
-        if ($leavePolicy = LeavePolicy::tryFrom($input['leavePolicy'])) {
-            $group->leavePolicy = $leavePolicy;
-        }
-        if ($memberVisibility = MemberVisibility::tryFrom($input['memberVisibility'])) {
-            $group->memberVisibility = $memberVisibility;
-        }
-
-        if ($this->currentUser->hasRole('rechte')) {
-            $group->privileged = $input['privileged'];
-        }
-
-        if ($isGroupAdmin) {
-            if ($visibility = GroupVisibility::tryFrom($input['visibility'])) {
-                $group->visibility = $visibility;
-            }
-            $this->applyListSettings($group, $input);
-        }
-
-        $groupRepository->save($group);
-
-        if ($this->isJsonResponse) {
-            return $this->json(['success' => true]);
-        }
-        return $this->redirect('/groups');
-    }
-
-    #[Route('POST /groups/{name=>group}/list-password'), RequireLogin]
-    public function setListPassword(Group $group, GroupRepository $groupRepository, ListigApi $listigApi): Response
-    {
-        $this->requireManage($group);
-
-        $input = $this->validatePayload([
-            'password'         => 'string required untrimmed',
-            'mailAddress'      => 'string',
-            'listLabel'        => 'string',
-            'postAccessMembers'=> 'string',
-            'postAccessPublic' => 'string',
-            'listSenderRewrite'=> 'string',
-            'replyTo'          => 'string',
-            'archive'          => 'string',
-        ]);
-
-        // die Listeneinstellungen kommen aus demselben Dialog wie update() und werden hier mit
-        // gespeichert - sonst würde bei einer noch nicht gespeicherten (z.B. neu angelegten) Liste
-        // das Passwort gesetzt, obwohl der Rest der Konfiguration (insb. mailAddress, das Listig
-        // als IMAP-Benutzername verwendet) noch fehlt, wodurch die Verifikation fehlschlägt.
-        if ($this->currentUser->hasRole('groupadmin')) {
-            $this->applyListSettings($group, $input);
-        }
-
-        if ($input['password'] === '') {
-            $group->listPasswordCiphertext = '';
-            $groupRepository->save($group);
-
-            if ($this->isJsonResponse) {
-                return $this->json(['success' => true]);
-            }
-            return $this->redirect('/groups');
-        }
-
-        // api-token nur temporär setzen, damit Listig sich per Bearer-Token authentifizieren kann;
-        // Listig verschlüsselt das Passwort und schreibt mail-password selbst direkt in denselben
-        // LDAP-Eintrag (encrypt-password gibt das Chiffrat nicht zurück) - daher unten neu einlesen,
-        // bevor der Token wieder entfernt wird, sonst würde ein veralteter Save es überschreiben.
-        $group->apiToken = bin2hex(random_bytes(32));
-        $groupRepository->save($group);
-
-        try {
-            $listigApi->encryptPassword($group->name, $group->apiToken, $input['password']);
-        } catch (ListigPasswordRejectedException $e) {
-            $this->clearListApiToken($group, $groupRepository);
-            throw new InvalidUserDataException('Das Passwort wurde vom Mailserver abgelehnt: ' . $e->getMessage());
-        } catch (\Throwable $e) {
-            $this->clearListApiToken($group, $groupRepository);
-            throw new InvalidUserDataException('Passwort konnte nicht gesetzt werden: ' . $e->getMessage());
-        }
-
-        $this->clearListApiToken($group, $groupRepository);
-
-        if ($this->isJsonResponse) {
-            return $this->json(['success' => true]);
-        }
-        return $this->redirect('/groups');
-    }
-
-    private function clearListApiToken(Group $group, GroupRepository $groupRepository): void
-    {
-        $group = $groupRepository->findOneByName($group->name) ?? $group;
-        $group->apiToken = '';
-        $groupRepository->save($group);
-    }
-
-    private function applyListSettings(Group $group, array $input): void
-    {
-        $group->mailAddress = $input['mailAddress'] !== '' ? $input['mailAddress'] : null;
-        $group->listLabel = $input['listLabel'] !== '' ? $input['listLabel'] : null;
-        if ($postAccessMembers = PostAccessLevel::tryFrom($input['postAccessMembers'])) {
-            $group->postAccessMembers = $postAccessMembers;
-        }
-        if ($postAccessPublic = PostAccessLevel::tryFrom($input['postAccessPublic'])) {
-            $group->postAccessPublic = $postAccessPublic;
-        }
-        $group->listSenderRewrite = $input['listSenderRewrite'] !== '' ? $input['listSenderRewrite'] : null;
-        if ($replyTo = ReplyToBehavior::tryFrom($input['replyTo'])) {
-            $group->replyTo = $replyTo;
-        }
-        if ($archive = ArchiveMode::tryFrom($input['archive'])) {
-            $group->archive = $archive;
-        }
     }
 
     #[Route('DELETE /groups/{name=>group}'), AllowIf(role: 'groupadmin')]
@@ -536,7 +373,7 @@ class GroupController extends Controller
     #[Route('POST /groups/{name=>group}/members/{username=>user}'), RequireLogin]
     public function addMember(Group $group, User $user, GroupRepository $groupRepository): Response
     {
-        $this->requireManage($group);
+        $this->groupPermissions->requireManage($group);
 
         if ($group->isMember($user->get('username'))) {
             throw new InvalidUserDataException('Die Person ist bereits Mitglied dieser Gruppe.');
@@ -553,7 +390,7 @@ class GroupController extends Controller
     #[Route('DELETE /groups/{name=>group}/members/{username=>user}'), RequireLogin]
     public function removeMember(Group $group, User $user, GroupRepository $groupRepository): Response
     {
-        $this->requireManage($group);
+        $this->groupPermissions->requireManage($group);
 
         $group->removeMember($user->get('username'));
         $groupRepository->save($group);
@@ -567,7 +404,7 @@ class GroupController extends Controller
     #[Route('POST /groups/{name=>group}/owners/{username=>user}'), RequireLogin]
     public function addOwner(Group $group, User $user, GroupRepository $groupRepository): Response
     {
-        $this->requireManage($group);
+        $this->groupPermissions->requireManage($group);
 
         if ($group->isOwner($user->get('username'))) {
             throw new InvalidUserDataException('Die Person ist bereits Owner dieser Gruppe.');
@@ -584,7 +421,7 @@ class GroupController extends Controller
     #[Route('DELETE /groups/{name=>group}/owners/{username=>user}'), RequireLogin]
     public function removeOwner(Group $group, User $user, GroupRepository $groupRepository): Response
     {
-        $this->requireManage($group);
+        $this->groupPermissions->requireManage($group);
 
         $targetUsername = $user->get('username');
         if ($targetUsername === $this->currentUser->get('username') && !$this->currentUser->hasRole('groupadmin')) {

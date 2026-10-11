@@ -135,6 +135,13 @@ class Bootstrap extends ServiceContainer {
         ));
     }
 
+    public function getGroupPermissions(): \App\Service\GroupPermissions
+    {
+        return $this->createService(\App\Service\GroupPermissions::class, fn() => new \App\Service\GroupPermissions(
+            $this->getCurrentUser()
+        ));
+    }
+
     public function getRateLimiter(): RateLimiter
     {
         return $this->createService(RateLimiter::class, fn() => new RateLimiter(

@@ -43,6 +43,7 @@ class GroupRepository
         'max-size'        => 'maxSize',
         'max-per-sender'  => 'maxPerSender',
         'archive-max-age' => 'archiveMaxAge',
+        'personalize'     => 'personalize',
     ];
 
     public function __construct(
@@ -97,6 +98,7 @@ class GroupRepository
             self::line('footer', $group->footer),
             self::line('max-size', $group->maxSize),
             self::line('max-per-sender', $group->maxPerSender),
+            self::line('personalize', $group->personalize),
             // Passwort-Chiffrat und Token werden unverändert zurückgeschrieben (das description-Attribut wird
             // komplett ersetzt); überschrieben werden sie nur, wenn das Model einen neuen Wert enthält
             $group->listPasswordCiphertext !== '' ? 'mail-password:' . $group->listPasswordCiphertext : null,
@@ -192,6 +194,7 @@ class GroupRepository
             maxSize:           $config['maxSize'] ?? null,
             maxPerSender:      $config['maxPerSender'] ?? null,
             archiveMaxAge:     $config['archiveMaxAge'] ?? null,
+            personalize:       $config['personalize'] ?? null,
             unknownDescriptionLines: $unknownDescriptionLines,
         );
         $group->ldapEntry = $entry;

@@ -54,11 +54,12 @@ class Group
         'sender-address-header'       => 'never',
         'archive'                     => self::LISTIG_DEFAULT_ARCHIVE->value,
         'archive-max-age'             => null, // unbegrenzt
-        'footer'                      => '-- <p>Diese Mail wurde über die MHN-Liste {display-name} verschickt.</p>'
+        'footer'                      => "-- \n<p>Diese Mail wurde über die MHN-Liste {display-name} verschickt.</p>"
             . '<p>Falls du keine Mails über diese Liste mehr bekommen möchtest, kannst du sie hier abbestellen: '
             . '<a href="{list-url}">Zur Liste</a></p>{archive-block}',
         'max-size'                    => '5M',
         'max-per-sender'              => '5', // pro 10 Minuten
+        'personalize'                 => null, // nur {list-url}
     ];
 
     /**
@@ -119,6 +120,7 @@ class Group
         public ?string $maxSize = null,
         public ?string $maxPerSender = null,
         public ?string $archiveMaxAge = null,
+        public ?string $personalize = null,
         public private(set) array $unknownDescriptionLines = [],
     ) {}
 

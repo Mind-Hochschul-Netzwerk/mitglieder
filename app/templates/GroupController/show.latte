@@ -1,10 +1,27 @@
 {var $navId = gruppen}
 
+{define owner-row, $row}
+<div class="form-group">
+    <label for="edit-{$row['name']}">{$row['label']}</label>
+    {if $row['type'] === 'enum'}
+        <select id="edit-{$row['name']}" name="{$row['name']}">
+            <option value="" n:attr="selected: !$row['isSet']">Standard ({$row['defaultText']})</option>
+            <option n:foreach="$row['cases'] as $case" value="{$case->value}" n:attr="selected: $row['isSet'] && $case === $row['selected']">{$case->label()}</option>
+        </select>
+    {elseif $row['type'] === 'archiveMaxAge'}
+        <select id="edit-{$row['name']}" name="{$row['name']}">
+            <option value="" n:attr="selected: !$row['isSet']">Standard (unbegrenzt)</option>
+            <option n:foreach="$row['options'] as $value => $label" value="{$value}" n:attr="selected: $value === $row['selected']">{$label}</option>
+        </select>
+    {else}
+        <input id="edit-{$row['name']}" name="{$row['name']}" type="text" value="{$row['isSet'] ? $row['text']}" placeholder="{$row['defaultText']}">
+        <small>Leer = Standard</small>
+    {/if}
+</div>
+{/define}
+
 {block css}
 <style>
-.mail-settings fieldset { display: none; }
-.mail-settings:has(#is-mail-group:checked) fieldset { display: revert; }
-
 .action-links .primary { background: var(--accent); color: #fff; }
 .action-links .primary:hover, .action-links .primary:focus-visible { background: var(--accent-dark); }
 .action-links .leave { background: transparent; color: var(--muted); border: 1.5px solid var(--border); }
@@ -175,7 +192,10 @@
         onclick="if (!this.dataset.confirm || confirm(this.dataset.confirm)) groupAction(this.dataset.action, 'POST')">
         <i class="ti ti-user-minus" aria-hidden="true"></i> Gruppe verlassen
     </button>
-    <button n:if=$mayManage class="primary"
+    <a n:if="$mayManage && $isGroupAdmin" class="primary" href="/groups/{$group->name}/settings">
+        <i class="ti ti-settings" aria-hidden="true"></i> Einstellungen
+    </a>
+    <button n:if="$mayManage && !$isGroupAdmin" class="primary"
         onclick="document.getElementById('group-edit-dialog').showModal()">
         <i class="ti ti-settings" aria-hidden="true"></i> Einstellungen
     </button>
@@ -257,13 +277,14 @@
 
 {block footer}
 
-{* === Dialog: Einstellungen === *}
+{* === Dialog: Einstellungen (Gruppenverwalter*innen; groupadmin nutzen die Einstellungsseite) === *}
+{if $mayManage && !$isGroupAdmin}
 {embed dialog, id: 'group-edit-dialog', labelIcon: 'settings', label: 'Gruppe', title: 'Einstellungen'}
 {block dialog-content}
-<form data-action="/groups/{$group->name}" onsubmit="submitForm(event, this, this.dataset.action, 'POST')">
+<form data-action="/groups/{$group->name}/settings" onsubmit="submitForm(event, this, this.dataset.action, 'POST')">
     <div class="form-group">
         <label for="edit-displayName">Anzeigename</label>
-        <input id="edit-displayName" name="displayName" type="text" value="{$group->displayName}">
+        <input id="edit-displayName" name="displayName" type="text" value="{$group->displayName}" placeholder="{$group->name}">
     </div>
     <div class="form-group">
         <label for="edit-description">Beschreibung</label>
@@ -273,184 +294,23 @@
         <label for="edit-category">Kategorie</label>
         <input id="edit-category" name="category" type="text" value="{$group->category}">
     </div>
-    <div class="form-group">
-        <label for="edit-joinPolicy">Beitrittspolitik</label>
-        <select id="edit-joinPolicy" name="joinPolicy">
-            {foreach $joinPolicyCases as $case}
-                <option value="{$case->value}" n:attr="selected: $case === $group->effectiveJoinPolicy">
-                    {=match ($case->value) {
-                        'open'    => 'Offen — jeder kann beitreten',
-                        'invite'  => 'Nur auf Einladung',
-                        'request' => 'Beitrittsanfrage erforderlich',
-                        default   => $case->value
-                    }}
-                </option>
-            {/foreach}
-        </select>
-    </div>
-    <div class="form-group">
-        <label for="edit-leavePolicy">Verlassen</label>
-        <select id="edit-leavePolicy" name="leavePolicy">
-            {foreach $leavePolicyCases as $case}
-                <option value="{$case->value}" n:attr="selected: $case === $group->effectiveLeavePolicy">
-                    {=match ($case->value) {
-                        'direct'    => 'Direkt möglich',
-                        'moderated' => 'Nur durch Gruppenverwalter*in',
-                        default     => $case->value
-                    }}
-                </option>
-            {/foreach}
-        </select>
-    </div>
-    <div class="form-group">
-        <label for="edit-memberVisibility">Mitgliederliste sichtbar für</label>
-        <select id="edit-memberVisibility" name="memberVisibility">
-            {foreach $memberVisibilityCases as $case}
-                <option value="{$case->value}" n:attr="selected: $case === $group->effectiveMemberVisibility">
-                    {=match ($case->value) {
-                        'all'     => 'Alle Mitglieder',
-                        'members' => 'Nur Gruppenmitglieder',
-                        'owners'  => 'Nur Gruppenverwalter*innen',
-                        default   => $case->value
-                    }}
-                </option>
-            {/foreach}
-        </select>
-    </div>
-    <div n:if=$isGroupAdmin>
-        <div class="form-group">
-            <label for="edit-visibility">Sichtbarkeit</label>
-            <select id="edit-visibility" name="visibility">
-                {foreach $visibilityCases as $case}
-                    <option value="{$case->value}" n:attr="selected: $case === $group->effectiveVisibility">
-                        {=match ($case->value) {
-                            'public'  => 'Öffentlich — für alle sichtbar',
-                            'members' => 'Nur für Mitglieder sichtbar',
-                            'hidden'  => 'Versteckt — nur für Gruppenverwalter*innen und Admins',
-                            default   => $case->value
-                        }}
-                    </option>
-                {/foreach}
-            </select>
-        </div>
-        <div class="mail-settings">
-            <div class="form-group">
-                <label for="edit-mailAddress">E-Mail-Adresse</label>
-                <input id="edit-mailAddress" name="mailAddress" type="email" value="{$group->mailAddress}" placeholder="gruppe@example.org">
-            </div>
-            <label class="checkbox-label">
-                <input type="checkbox" id="is-mail-group" n:attr="checked: $group->hasListPassword()">
-                Diese Gruppe ist eine Mailingliste
-            </label>
-            <fieldset>
-                <legend>Mailingliste</legend>
-                <div class="form-group">
-                    <label for="edit-listLabel">Betreff-Präfix <small>(leer = [{$group->displayName ?: $group->name}])</small></label>
-                    <input id="edit-listLabel" name="listLabel" type="text" value="{$group->listLabel}" placeholder="[{$group->displayName ?: $group->name}]">
-                </div>
-                <div class="form-group">
-                    <label for="edit-postAccessMembers">Posten durch Gruppenmitglieder</label>
-                    <select id="edit-postAccessMembers" name="postAccessMembers">
-                        {foreach $postAccessLevelCases as $case}
-                            <option value="{$case->value}" n:attr="selected: $case === $group->effectivePostAccessMembers">
-                                {=match ($case->value) {
-                                    'allow'    => 'Erlaubt',
-                                    'moderate' => 'Nur nach Freigabe',
-                                    'deny'     => 'Nicht erlaubt',
-                                    default    => $case->value
-                                }}
-                            </option>
-                        {/foreach}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="edit-postAccessPublic">Posten durch Nicht-Mitglieder</label>
-                    <select id="edit-postAccessPublic" name="postAccessPublic">
-                        {foreach $postAccessLevelCases as $case}
-                            <option value="{$case->value}" n:attr="selected: $case === $group->effectivePostAccessPublic">
-                                {=match ($case->value) {
-                                    'allow'    => 'Erlaubt',
-                                    'moderate' => 'Nur nach Freigabe',
-                                    'deny'     => 'Nicht erlaubt',
-                                    default    => $case->value
-                                }}
-                            </option>
-                        {/foreach}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="edit-listSenderRewrite">Absender-Umschreibung <small>(leer = {l}sender-name{r} (via MHN))</small></label>
-                    <input id="edit-listSenderRewrite" name="listSenderRewrite" type="text" value="{$group->listSenderRewrite !== \App\Model\Group::DEFAULT_SENDER_REWRITE ? $group->listSenderRewrite}" placeholder="{l}sender-name{r} (via MHN)">
-                    <small>Platzhalter: <code>{l}sender-name{r}</code> = ursprünglicher Absender</small>
-                </div>
-                <div class="form-group">
-                    <label for="edit-replyTo">Antwort geht an</label>
-                    <select id="edit-replyTo" name="replyTo">
-                        {foreach $replyToCases as $case}
-                            <option value="{$case->value}" n:attr="selected: $case === $group->effectiveReplyTo">
-                                {=match ($case->value) {
-                                    'list'          => 'Die Liste',
-                                    'sender'        => 'Absendender*in',
-                                    'both'          => 'Liste und Absender*in',
-                                    'masked-sender' => 'Absender*in ohne Preisgabe der Mailadresse',
-                                    'masked-both'   => 'Liste und Absender*in ohne Preisgabe der Mailadresse',
-                                    'nobody'        => 'Niemanden',
-                                    default  => $case->value
-                                }}
-                            </option>
-                        {/foreach}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="edit-archive">Archiv</label>
-                    <select id="edit-archive" name="archive">
-                        {foreach $archiveCases as $case}
-                            <option value="{$case->value}" n:attr="selected: $case === $group->effectiveArchive">
-                                {=match ($case->value) {
-                                    'public'  => 'Öffentlich einsehbar',
-                                    'authenticated' => 'Für alle MHN-Mitglieder einsehbar',
-                                    'members' => 'Nur für Gruppenmitglieder',
-                                    'owners'  => 'Nur für Gruppenverwalter*innen',
-                                    'hidden'  => 'Wird geführt, ist aber nicht einsehbar',
-                                    'off'     => 'Kein Archiv',
-                                    default   => $case->value
-                                }}
-                            </option>
-                        {/foreach}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Mailserver-Passwort</label>
-                    <p class="text-muted" id="list-password-status">
-                        {if $group->hasListPassword()}
-                            <i class="ti ti-lock" aria-hidden="true"></i> Passwort ist gesetzt.
-                        {else}
-                            <i class="ti ti-lock-open" aria-hidden="true"></i> Kein Passwort gesetzt.
-                        {/if}
-                    </p>
-                    <button type="button" onclick="setListPassword(this)">Passwort eingeben</button>
-                </div>
-            </fieldset>
-        </div>
-        <div n:if=$isRechteAdmin class="form-group">
-            <label class="checkbox-label">
-                <input type="checkbox" name="privileged" n:attr="checked: $group->privileged">
-                Privilegierte Gruppe <small>(nur von Inhabern der Rolle <code>rechte</code> verwaltbar, nicht von der Gruppenadministration)</small>
-            </label>
-        </div>
-    </div>
+    {foreach $ownerRows['always'] as $row}
+        {include owner-row, row: $row}
+    {/foreach}
+    <fieldset n:if="$group->hasListPassword()">
+        <legend>Mailingliste</legend>
+        {foreach $ownerRows['list'] as $row}
+            {include owner-row, row: $row}
+        {/foreach}
+    </fieldset>
     <div class="form-actions">
         <button type="submit"><i class="ti ti-device-floppy" aria-hidden="true"></i> Speichern</button>
-        <button n:if=$isGroupAdmin type="button" class="danger"
-            data-action="/groups/{$group->name}"
-            onclick="if(confirm('Gruppe wirklich löschen?')) submitForm(null, null, this.dataset.action, 'DELETE')">
-            <i class="ti ti-trash" aria-hidden="true"></i> Gruppe löschen
-        </button>
         <button type="button" class="secondary" onclick="this.closest('dialog').close()">Abbrechen</button>
     </div>
 </form>
 {/block}
 {/embed}
+{/if}
 
 <script>
 groupname = {$group->name};
@@ -675,25 +535,6 @@ async function addBackMember(button) {
     try {
         await callApi('POST', action, new FormData());
         button.replaceWith(makeMemberButton('remove', action, username));
-    } catch (err) { showError(err); }
-}
-
-async function setListPassword(button) {
-    const password = prompt('Neues Passwort für den Mailserver-Zugang der Liste eingeben (leer lassen, um das Passwort zu löschen):');
-    if (password === null) return;
-    // schickt das ganze Formular mit (nicht nur das Passwort), damit z.B. bei einer noch nicht
-    // gespeicherten neuen Liste die restliche Konfiguration (v.a. mailAddress) zusammen mit dem
-    // Passwort gespeichert wird - siehe GroupController::setListPassword()
-    const fd = new FormData(button.closest('form'));
-    fd.set('password', password);
-    try {
-        await callApi('POST', `/groups/${groupname}/list-password`, fd);
-        const hasPassword = password !== '';
-        document.getElementById('list-password-status').innerHTML = hasPassword
-            ? '<i class="ti ti-lock" aria-hidden="true"></i> Passwort ist gesetzt.'
-            : '<i class="ti ti-lock-open" aria-hidden="true"></i> Kein Passwort gesetzt.';
-        document.getElementById('is-mail-group').checked = hasPassword;
-        alert(hasPassword ? 'Passwort wurde gesetzt.' : 'Passwort wurde gelöscht.');
     } catch (err) { showError(err); }
 }
 {/syntax}
