@@ -32,7 +32,7 @@ class GroupSettingsController extends Controller
     private const TEXT_FIELDS = ['listLabel', 'listSenderRewrite', 'footer'];
 
     /** was Gruppenverwalter*innen immer ändern dürfen */
-    private const OWNER_ENUM_FIELDS = ['joinPolicy', 'leavePolicy', 'memberVisibility', 'visibility'];
+    private const OWNER_ENUM_FIELDS = ['joinPolicy', 'memberVisibility', 'visibility'];
 
     /** was Gruppenverwalter*innen nur bei einer Mailingliste ändern dürfen */
     private const OWNER_LIST_ENUM_FIELDS = ['postAccessMembers', 'replyTo', 'archive'];

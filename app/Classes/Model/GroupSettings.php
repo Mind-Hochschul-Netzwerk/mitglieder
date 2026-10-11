@@ -149,7 +149,6 @@ class GroupSettings
         return [
             'always' => [
                 self::enumRow($group, 'joinPolicy', 'join-policy', 'Beitrittspolitik'),
-                self::enumRow($group, 'leavePolicy', 'allow-leave', 'Verlassen'),
                 self::enumRow($group, 'visibility', 'visibility', 'Sichtbarkeit der Gruppe'),
                 self::enumRow($group, 'memberVisibility', 'member-visibility', 'Mitgliederliste sichtbar für'),
             ],

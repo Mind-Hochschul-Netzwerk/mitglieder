@@ -207,10 +207,12 @@
 <section class="panel" aria-labelledby="members-heading">
     <div class="panel-heading">
         <h2 id="members-heading"><i class="label-icon ti ti-users" aria-hidden="true"></i>Mitglieder</h2>
-        <span n:if=$displayInfos class="meta-note" id="member-count" data-count="{count($displayInfos)}">{count($displayInfos)} Mitglied{count($displayInfos) !== 1 ? 'er'}</span>
+        {* auch bei nicht sichtbarer Mitgliederliste wird die Anzahl der Mitglieder angezeigt *}
+        {var $memberCount = $showMembers ? count($displayInfos) : count($group->memberUsernames)}
+        <span n:if=$memberCount class="meta-note" id="member-count" data-count="{$memberCount}">{$memberCount} Mitglied{$memberCount !== 1 ? 'er'}</span>
     </div>
 
-    <p n:if="!$showMembers" class="text-muted">Die vollständige Mitgliederliste ist nicht öffentlich sichtbar, hier werden nur die Gruppenverwalter*innen angezeigt.</p>
+    <p n:if="!$showMembers" class="text-muted">{if $displayInfos}Die vollständige Mitgliederliste ist nicht öffentlich sichtbar, hier werden nur die Gruppenverwalter*innen angezeigt.{else}Die Mitgliederliste ist nicht öffentlich sichtbar.{/if}</p>
 
     <div class="person-list" n:if="$displayInfos" n:inner-foreach="$displayInfos as $info">
         <div class="person-row" data-username="{$info->userName}" data-realname="{$info->realName}">
@@ -255,7 +257,7 @@
             </span>
         </div>
     </div>
-    <p n:if="!$displayInfos" class="text-muted" id="no-members">Noch keine Mitglieder.</p>
+    <p n:if="$showMembers && !$displayInfos" class="text-muted" id="no-members">Noch keine Mitglieder.</p>
 
     {* Mitglied hinzufügen *}
     {if $mayManage && $showMembers}
