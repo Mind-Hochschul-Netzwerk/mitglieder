@@ -25,7 +25,9 @@ class Group
     public const JoinPolicy LISTIG_DEFAULT_JOIN_POLICY = JoinPolicy::Invite;
     public const LeavePolicy LISTIG_DEFAULT_LEAVE_POLICY = LeavePolicy::Direct;
     public const MemberVisibility LISTIG_DEFAULT_MEMBER_VISIBILITY = MemberVisibility::Members;
-    public const GroupVisibility LISTIG_DEFAULT_VISIBILITY = GroupVisibility::Members;
+    // bewusste Abweichung: listig nimmt ohne Eintrag `members`, bei uns ist eine Gruppe ohne Eintrag öffentlich
+    // (sie erscheint dann bei uns, aber nicht in listig)
+    public const GroupVisibility LISTIG_DEFAULT_VISIBILITY = GroupVisibility::Public;
     public const PostAccessLevel LISTIG_DEFAULT_POST_ACCESS_MEMBERS = PostAccessLevel::Allow;
     public const PostAccessLevel LISTIG_DEFAULT_POST_ACCESS_PUBLIC = PostAccessLevel::Deny;
     public const ReplyToBehavior LISTIG_DEFAULT_REPLY_TO = ReplyToBehavior::List;
@@ -47,7 +49,7 @@ class Group
         'list-label'                  => '[{display-name}]',
         'post-access-members'         => self::LISTIG_DEFAULT_POST_ACCESS_MEMBERS->value,
         'post-access-public'          => self::LISTIG_DEFAULT_POST_ACCESS_PUBLIC->value,
-        'post-access-unauthenticated' => 'allow',
+        'post-access-unauthenticated' => PostAccessLevel::Moderate->value, // config.yml; listig-Code-Default: allow
         'smtp-from-name'              => self::DEFAULT_SENDER_REWRITE,
         'reply-to'                    => self::LISTIG_DEFAULT_REPLY_TO->value,
         'from-address'                => 'masked', // listig-Code-Default: list
