@@ -7,6 +7,7 @@ namespace App\Service;
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
+use App\Model\MailAddress;
 use Symfony\Component\Ldap\Ldap as SymfonyLdap;
 use Symfony\Component\Ldap\Adapter\ExtLdap\Adapter as SymfonyLdapAdapter;
 use Symfony\Component\Ldap\Adapter\ExtLdap\Connection as SymfonyLdapConnection;
@@ -62,18 +63,33 @@ class Ldap
         }
         $list = [];
         foreach ($result as $user) {
-            $mail = self::splitMail($user->getAttribute('mail'));
-            $list[] = [
-                'id' => $user->getAttribute('employeeNumber')[0],
-                'username' => $user->getAttribute('cn')[0],
-                'givenName' => $user->getAttribute('givenName')[0],
-                'familyName' => $user->getAttribute('sn')[0],
-                'fullName' => $user->getAttribute('displayName')[0],
-                'email' => $mail['email'],
-                'orgEmail' => $mail['org'],
-            ];
+            $list[] = self::entryToMember($user);
         }
         return $list;
+    }
+
+    /**
+     * @return array{id: mixed, username: string, givenName: string, familyName: string, fullName: string, email: string, orgEmail: ?string}
+     */
+    private static function entryToMember(Entry $user): array
+    {
+        $mail = self::splitMail($user->getAttribute('mail'));
+        return [
+            'id' => $user->getAttribute('employeeNumber')[0],
+            'username' => $user->getAttribute('cn')[0],
+            'givenName' => $user->getAttribute('givenName')[0],
+            'familyName' => $user->getAttribute('sn')[0],
+            'fullName' => $user->getAttribute('displayName')[0],
+            'email' => $mail['email'],
+            'orgEmail' => $mail['org'],
+        ];
+    }
+
+    /** Mitgliedsdaten wie in getAll() zu einem Benutzernamen */
+    public function getMemberByUsername(string $username): ?array
+    {
+        $entry = $this->getEntryByUsername($username);
+        return $entry ? self::entryToMember($entry) : null;
     }
 
     /**
@@ -137,17 +153,27 @@ class Ldap
      * Finds a user by their personal email address. Matches only against the
      * personal address, never against the org email, so that a shared org
      * mailbox cannot be used to log in as or reset the password of the member
-     * it belongs to.
+     * it belongs to. Mit $includeMarkedInvalid wird auch die Adresse gefunden, die mit Grund/Datum als
+     * ungültig markiert wurde (für den Passwort-Reset).
      */
-    public function getEntryByEmail(string $email): ?Entry
+    public function getEntryByEmail(string $email, bool $includeMarkedInvalid = false): ?Entry
     {
+        $escaped = ldap_escape($email);
+        // mit $includeMarkedInvalid auch als ungültig markierte Adressen (name@example.com.GRUND.JJJJ-MM-TT.invalid)
+        $filter = $includeMarkedInvalid
+            ? '(|(mail=' . $escaped . ')(mail=' . $escaped . '.*.invalid))'
+            : '(mail=' . $escaped . ')';
         try {
-            $result = $this->ldap->query($this->peopleDn, '(&(objectclass=inetOrgPerson)(mail=' . ldap_escape($email) . '))')->execute();
+            $result = $this->ldap->query($this->peopleDn, '(&(objectclass=inetOrgPerson)' . $filter . ')')->execute();
         } catch (\Exception) {
             return null;
         }
         foreach ($result as $entry) {
-            if (strcasecmp(self::splitMail($entry->getAttribute('mail'))['email'], $email) === 0) {
+            $stored = self::splitMail($entry->getAttribute('mail'))['email'];
+            if ($includeMarkedInvalid && MailAddress::isMarked($stored)) {
+                $stored = MailAddress::restore($stored);
+            }
+            if (strcasecmp($stored, $email) === 0) {
                 return $entry;
             }
         }

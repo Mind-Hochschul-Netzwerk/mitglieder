@@ -7,6 +7,7 @@
 declare(strict_types=1);
 namespace App\Controller;
 
+use App\Model\MailAddress;
 use App\Service\Ldap;
 use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\Route;
@@ -28,12 +29,12 @@ class NewsletterexportController extends Controller {
         foreach ($list as $user) {
             fputcsv($out, [
                 // let ListMonk handle bounces on its own: remove '.invalid' markers from mail addresses
-                preg_replace('/(\.[A-Z_\-]+)?\.invalid$/', '', $user['email']),
-                $user['firstname'] . ' ' . $user['lastname'],
+                MailAddress::restore($user['email']),
+                trim($user['givenName'] . ' ' . $user['familyName']),
                 json_encode([
                     'mitgliedsnummer' => (int) $user['id'],
-                    'vorname' => $user['firstname'],
-                    'nachname' => $user['lastname'],
+                    'vorname' => $user['givenName'],
+                    'nachname' => $user['familyName'],
                 ])
             ]);
         }

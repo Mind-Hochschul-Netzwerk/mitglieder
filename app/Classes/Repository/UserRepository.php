@@ -70,9 +70,9 @@ class UserRepository
     /**
      * Lädt ein User zu einer gegebenen E-Mail-Adresse
      */
-    public function findOneByEmail(string $email): ?User
+    public function findOneByEmail(string $email, bool $includeMarkedInvalid = false): ?User
     {
-        $entry = $this->ldap->getEntryByEmail($email);
+        $entry = $this->ldap->getEntryByEmail($email, $includeMarkedInvalid);
         if (!$entry) {
             return null;
         }

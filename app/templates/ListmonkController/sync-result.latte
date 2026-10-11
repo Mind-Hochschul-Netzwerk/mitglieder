@@ -1,29 +1,47 @@
 {var $navId = admin}
 
+{define sync-summary, $title, $r, $removedLabel = 'aus der Liste entfernt'}
+<h3>{$title}</h3>
+<ul>
+    <li><strong>{$r['total']}</strong> Mitglieder mit gültiger E-Mail-Adresse</li>
+    <li><strong>{$r['created']}</strong> neu zur Liste hinzugefügt</li>
+    <li><strong>{$r['updated']}</strong> aktualisiert (Name/Adresse)</li>
+    <li><strong>{$r['removed']}</strong> {$removedLabel}</li>
+    <li><strong>{$r['skipped']}</strong> übersprungen (ungültige <code>.invalid</code>-Adresse)</li>
+    <li n:if="$r['unmatched']"><strong>{$r['unmatched']}</strong> Abonnent*innen ohne Mitgliedsnummer (unverändert gelassen)</li>
+    <li n:if="isset($r['removedFromGroup'])"><strong>{$r['removedFromGroup']}</strong> wegen Abmeldung in ListMonk aus der Gruppe „newsletter“ entfernt</li>
+</ul>
+{/define}
+
 {block page-label}<i class="ti ti-mail-forward" aria-hidden="true"></i> ListMonk-Synchronisation{/block}
 
 {block title}ListMonk-Synchronisation{/block}
 
 {block content}
+{var $errors = [...$result['bounces']['errors'], ...$result['members']['errors'], ...($result['newsletter']['errors'] ?? [])]}
 <section class="panel">
     <h2>Abgleich abgeschlossen</h2>
 
-    {if $result['errors']}
+    {if $errors}
         {include info-box, type: 'warning', text: 'Der Abgleich wurde durchgeführt, dabei sind Fehler aufgetreten (siehe unten).'}
     {else}
         {include info-box, type: 'success', text: 'Die Mitglieder wurden erfolgreich mit ListMonk abgeglichen.'}
     {/if}
 
+    <h3>Bounces</h3>
     <ul>
-        <li><strong>{$result['total']}</strong> Mitglieder mit gültiger E-Mail-Adresse</li>
-        <li><strong>{$result['created']}</strong> neu zur Liste hinzugefügt</li>
-        <li><strong>{$result['updated']}</strong> aktualisiert (Name/Attribute)</li>
-        <li><strong>{$result['removed']}</strong> aus der Liste entfernt</li>
-        <li><strong>{$result['skipped']}</strong> übersprungen (ungültige <code>.invalid</code>-Adresse)</li>
+        <li><strong>{$result['bounces']['marked']}</strong> Mitglieder mit unzustellbarer Adresse als ungültig markiert</li>
     </ul>
 
-    <p n:if="$result['errors']">Fehler:</p>
-    <ol n:ifcontent n:inner-foreach="$result['errors'] as $error">
+    {include sync-summary, title: 'Alle Mitglieder', r: $result['members']}
+    {if $result['newsletter']}
+        {include sync-summary, title: 'Newsletter', r: $result['newsletter']}
+    {else}
+        <p class="text-muted">Die Newsletter-Liste ist nicht konfiguriert.</p>
+    {/if}
+
+    <p n:if="$errors">Fehler:</p>
+    <ol n:ifcontent n:inner-foreach="$errors as $error">
         <li>{$error}</li>
     </ol>
 

@@ -2,15 +2,24 @@
 declare(strict_types=1);
 namespace App\Service;
 
+use App\Model\MailAddress;
+
 /**
  * @license https://creativecommons.org/publicdomain/zero/1.0/ CC0 1.0
  */
 
 /**
- * Synchronisiert Namen und E-Mail-Adressen der Mitglieder mit einer ListMonk-Instanz.
+ * Anbindung an eine ListMonk-Instanz mit zwei Listen:
  *
- * Quelle der Wahrheit sind die Mitgliederdaten (per Ldap::getAll() ermittelt und vom Controller
- * hereingereicht); ListMonk wird abgeglichen. Dieser Service kennt das LDAP selbst nicht.
+ * - Mitglieder-Liste: Alle Mitglieder. LDAP hat immer recht; aus Listmonk wird nie etwas ins LDAP zurückgeschrieben.
+ * - Newsletter: LDAP-Gruppe „newsletter“. Zusätzlich werden Abmeldungen in ListMonk gemeldet, damit der
+ *   Aufrufer sie aus der Gruppe entfernen kann (syncNewsletter()).
+ *
+ * Abonnent*innen werden über das Attribut `mitgliedsnummer` zugeordnet, nicht über die E-Mail-Adresse,
+ * damit eine geänderte Adresse den bestehenden Abonnenten (samt Abmelde-Status) aktualisiert.
+ *
+ * Dieser Service kennt das LDAP nicht. Mitglieder werden als Arrays übergeben:
+ * ['id' => Mitgliedsnummer, 'firstname', 'lastname', 'email' => die zu verwendende Adresse].
  */
 class Listmonk
 {
@@ -18,7 +27,8 @@ class Listmonk
         private string $baseUrl,
         private string $apiUser,
         private string $apiToken,
-        private int $listId,
+        private int $memberListId,
+        private int $newsletterListId = 0,
     ) {
         $this->baseUrl = rtrim($this->baseUrl, '/');
     }
@@ -28,57 +38,158 @@ class Listmonk
      */
     public function isConfigured(): bool
     {
-        return $this->baseUrl !== '' && $this->apiUser !== '' && $this->apiToken !== '' && $this->listId > 0;
+        return $this->baseUrl !== '' && $this->apiUser !== '' && $this->apiToken !== '' && $this->memberListId > 0;
+    }
+
+    public function isNewsletterConfigured(): bool
+    {
+        return $this->isConfigured() && $this->newsletterListId > 0;
     }
 
     /**
-     * Gleicht die übergebenen Mitglieder mit der Ziel-Liste in ListMonk ab.
+     * Gleicht die Mitglieder-Liste ab. Entfernt Abonnent*innen, die nicht (mehr) in $members stehen;
+     * eine Abmeldung in ListMonk bleibt dort bestehen und hat keine Auswirkung auf das LDAP.
      *
-     * @param array $members Liste von ['id', 'username', 'firstname', 'lastname', 'email'] (Ldap::getAll())
-     * @return array{total:int,created:int,updated:int,removed:int,skipped:int,errors:string[]}
-     * @throws \RuntimeException wenn ListMonk nicht konfiguriert ist
+     * @param array[] $members
+     * @return array{total:int,created:int,updated:int,removed:int,skipped:int,unmatched:int,errors:string[]}
      */
-    public function sync(array $members): array
+    public function syncMembers(array $members): array
+    {
+        $this->assertConfigured();
+        $result = $this->syncList($this->memberListId, $members, false);
+        unset($result['unsubscribed']);
+        return $result;
+    }
+
+    /**
+     * Gleicht die Newsletter-Liste ab. Wer in ListMonk von der Liste abgemeldet ist, wird nicht neu
+     * angemeldet, sondern in 'unsubscribed' (Mitgliedsnummern) gemeldet; der Aufrufer entfernt sie aus der Gruppe.
+     *
+     * @param array[] $members die Mitglieder der Gruppe „newsletter“
+     * @return array{total:int,created:int,updated:int,removed:int,skipped:int,unmatched:int,errors:string[],unsubscribed:int[]}
+     */
+    public function syncNewsletter(array $members): array
+    {
+        $this->assertNewsletterConfigured();
+        return $this->syncList($this->newsletterListId, $members, true);
+    }
+
+    /**
+     * Meldet ein Mitglied für den Newsletter an. Setzt eine frühere Abmeldung zurück (Aufnahme in die Gruppe).
+     */
+    public function subscribeNewsletter(array $member): void
+    {
+        $this->assertNewsletterConfigured();
+        $entry = $this->buildEntry($member);
+        if ($entry === null) {
+            return;
+        }
+
+        $existing = $this->findByNumber((int) $member['id']) ?? $this->findByEmail($entry['email']);
+        if ($existing === null) {
+            $this->createSubscriber($entry, $this->newsletterListId);
+            return;
+        }
+        if ($this->needsUpdate($existing, $entry)) {
+            $this->updateSubscriber($existing, $entry, $this->listIdsOf($existing));
+        }
+        $this->setListStatus([(int) $existing['id']], $this->newsletterListId, 'add', 'confirmed');
+    }
+
+    /**
+     * Entfernt ein Mitglied aus der Newsletter-Liste (Entfernen aus der Gruppe). Nicht vorhandene sind kein Fehler.
+     */
+    public function unsubscribeNewsletter(array $member): void
+    {
+        $this->assertNewsletterConfigured();
+        $existing = $this->findByNumber((int) $member['id']);
+        if ($existing !== null) {
+            $this->removeFromList($this->newsletterListId, [(int) $existing['id']]);
+        }
+    }
+
+    /**
+     * Adressen mit einem Hard Bounce (dauerhaft unzustellbar). Soft Bounces und Beschwerden werden ignoriert.
+     *
+     * @return string[] Adressen in Kleinschreibung
+     */
+    public function getHardBounces(): array
+    {
+        $this->assertConfigured();
+        [$status, $body] = $this->request('GET', '/api/bounces?' . http_build_query(['per_page' => 'all']));
+        if ($status < 200 || $status >= 300) {
+            throw new \RuntimeException('Konnte Bounces nicht laden (HTTP ' . $status . ').', 1750000007);
+        }
+        $emails = [];
+        foreach ($body['data']['results'] ?? [] as $bounce) {
+            $email = trim((string) ($bounce['email'] ?? ''));
+            if (($bounce['type'] ?? '') === 'hard' && $email !== '') {
+                $emails[mb_strtolower($email)] = true;
+            }
+        }
+        return array_keys($emails);
+    }
+
+    private function assertConfigured(): void
     {
         if (!$this->isConfigured()) {
             throw new \RuntimeException('ListMonk ist nicht konfiguriert (LISTMONK_URL, LISTMONK_USER, LISTMONK_TOKEN, LISTMONK_LIST_ID).', 1750000001);
         }
+    }
 
+    private function assertNewsletterConfigured(): void
+    {
+        if (!$this->isNewsletterConfigured()) {
+            throw new \RuntimeException('Die Newsletter-Liste ist nicht konfiguriert (LISTMONK_NEWSLETTER_LIST_ID).', 1750000008);
+        }
+    }
+
+    /**
+     * @param array[] $members
+     */
+    private function syncList(int $listId, array $members, bool $detectUnsubscribed): array
+    {
         $created = $updated = $removed = $skipped = 0;
         $errors = [];
+        $unsubscribed = [];
 
-        // 1. Soll-Zustand aus den Mitgliedern bilden (.invalid-Adressen überspringen)
+        // 1. Soll-Zustand: Mitgliedsnummer => Eintrag (ungültige Adressen überspringen)
         $desired = [];
         foreach ($members as $member) {
-            $email = trim((string) ($member['email'] ?? ''));
-            if ($email === '' || preg_match('/\.invalid$/i', $email)) {
+            $entry = $this->buildEntry($member);
+            if ($entry === null) {
                 $skipped++;
                 continue;
             }
-            $desired[mb_strtolower($email)] = [
-                'email' => $email,
-                'name' => trim(($member['firstname'] ?? '') . ' ' . ($member['lastname'] ?? '')),
-                'attribs' => [
-                    'mitgliedsnummer' => (int) ($member['id'] ?? 0),
-                    'vorname' => (string) ($member['firstname'] ?? ''),
-                    'nachname' => (string) ($member['lastname'] ?? ''),
-                ],
-            ];
+            $desired[(int) $member['id']] = $entry;
         }
 
-        // 2. Ist-Zustand: aktuelle Abonnenten der Ziel-Liste
-        $current = $this->getListSubscribers();
+        // 2. Ist-Zustand: Abonnent*innen der Liste nach Mitgliedsnummer (ohne Nummer: nicht zuordenbar, bleiben unberührt)
+        $current = [];
+        $unmatched = 0;
+        foreach ($this->getListSubscribers($listId) as $subscriber) {
+            $number = (int) ($subscriber['attribs']['mitgliedsnummer'] ?? 0);
+            if ($number > 0) {
+                $current[$number] = $subscriber;
+            } else {
+                $unmatched++;
+            }
+        }
 
-        // 3. Anlegen / aktualisieren
-        foreach ($desired as $key => $entry) {
+        // 3. Anlegen / aktualisieren / Abmeldungen erkennen
+        foreach ($desired as $number => $entry) {
             try {
-                if (isset($current[$key])) {
-                    if ($this->needsUpdate($current[$key], $entry)) {
-                        $this->updateSubscriber($current[$key], $entry, $this->listIdsOf($current[$key]));
+                if (isset($current[$number])) {
+                    if ($detectUnsubscribed && $this->subscriptionStatusOf($current[$number], $listId) === 'unsubscribed') {
+                        $unsubscribed[] = $number;
+                        continue;
+                    }
+                    if ($this->needsUpdate($current[$number], $entry)) {
+                        $this->updateSubscriber($current[$number], $entry, $this->listIdsOf($current[$number]));
                         $updated++;
                     }
                 } else {
-                    $this->createOrAdd($entry);
+                    $this->createOrAdd($entry, $number, $listId);
                     $created++;
                 }
             } catch (\Throwable $e) {
@@ -86,16 +197,16 @@ class Listmonk
             }
         }
 
-        // 4. Voller Abgleich: Abonnenten der Liste entfernen, die kein aktuelles Mitglied (mehr) sind
+        // 4. Voller Abgleich: Abonnent*innen entfernen, die nicht (mehr) zum Soll-Zustand gehören
         $removeIds = [];
-        foreach ($current as $key => $subscriber) {
-            if (!isset($desired[$key])) {
+        foreach ($current as $number => $subscriber) {
+            if (!isset($desired[$number])) {
                 $removeIds[] = (int) $subscriber['id'];
             }
         }
         if ($removeIds) {
             try {
-                $this->removeFromList($removeIds);
+                $this->removeFromList($listId, $removeIds);
                 $removed = count($removeIds);
             } catch (\Throwable $e) {
                 $errors[] = 'Entfernen aus der Liste fehlgeschlagen: ' . $e->getMessage();
@@ -108,23 +219,45 @@ class Listmonk
             'updated' => $updated,
             'removed' => $removed,
             'skipped' => $skipped,
+            'unmatched' => $unmatched,
             'errors' => $errors,
+            'unsubscribed' => $unsubscribed,
         ];
     }
 
     /**
-     * Alle Abonnenten der Ziel-Liste, paginiert geladen.
-     *
-     * @return array<string,array> strtolower(email) => Abonnenten-Objekt von ListMonk
+     * Soll-Eintrag zu einem Mitglied, oder null bei leerer bzw. als ungültig markierter Adresse.
      */
-    private function getListSubscribers(): array
+    private function buildEntry(array $member): ?array
+    {
+        $email = trim((string) ($member['email'] ?? ''));
+        if ($email === '' || MailAddress::isInvalid($email)) {
+            return null;
+        }
+        return [
+            'email' => $email,
+            'name' => trim(($member['firstname'] ?? '') . ' ' . ($member['lastname'] ?? '')),
+            'attribs' => [
+                'mitgliedsnummer' => (int) ($member['id'] ?? 0),
+                'vorname' => (string) ($member['firstname'] ?? ''),
+                'nachname' => (string) ($member['lastname'] ?? ''),
+            ],
+        ];
+    }
+
+    /**
+     * Alle Abonnenten einer Liste (mit jeweiligem Abo-Status), paginiert geladen.
+     *
+     * @return array[] Abonnenten-Objekte von ListMonk
+     */
+    private function getListSubscribers(int $listId): array
     {
         $subscribers = [];
         $page = 1;
         $perPage = 1000;
         do {
             $query = http_build_query([
-                'list_id' => $this->listId,
+                'list_id' => $listId,
                 'page' => $page,
                 'per_page' => $perPage,
             ]);
@@ -134,53 +267,52 @@ class Listmonk
             }
             $results = $body['data']['results'] ?? [];
             foreach ($results as $subscriber) {
-                $email = trim((string) ($subscriber['email'] ?? ''));
-                if ($email !== '') {
-                    $subscribers[mb_strtolower($email)] = $subscriber;
-                }
+                $subscribers[(int) $subscriber['id']] = $subscriber;
             }
             $total = (int) ($body['data']['total'] ?? 0);
             $page++;
         } while ($results && count($subscribers) < $total);
 
-        return $subscribers;
+        return array_values($subscribers);
     }
 
     /**
-     * Legt einen Abonnenten an. Existiert die E-Mail bereits global (nur nicht in dieser Liste),
-     * wird der Abonnent gesucht und der Ziel-Liste hinzugefügt (Status bleibt erhalten).
+     * Legt einen Abonnenten an. Existiert er bereits global (nur nicht in dieser Liste), wird er gesucht
+     * (zuerst über die Mitgliedsnummer, dann über die Adresse) und der Liste hinzugefügt.
      */
-    private function createOrAdd(array $entry): void
+    private function createOrAdd(array $entry, int $number, int $listId): void
+    {
+        $existing = $this->findByNumber($number) ?? $this->findByEmail($entry['email']);
+        if ($existing === null) {
+            $this->createSubscriber($entry, $listId);
+            return;
+        }
+
+        $listIds = $this->listIdsOf($existing);
+        if (!in_array($listId, $listIds, true)) {
+            $listIds[] = $listId;
+        }
+        $this->updateSubscriber($existing, $entry, $listIds);
+    }
+
+    private function createSubscriber(array $entry, int $listId): void
     {
         [$status, $body] = $this->request('POST', '/api/subscribers', [
             'email' => $entry['email'],
             'name' => $entry['name'],
             'status' => 'enabled',
-            'lists' => [$this->listId],
+            'lists' => [$listId],
             'preconfirm_subscriptions' => true,
             'attribs' => $entry['attribs'],
         ]);
-
-        if ($status >= 200 && $status < 300) {
-            return;
-        }
-
-        // E-Mail existiert bereits: Abonnent suchen und der Liste hinzufügen
-        $existing = $this->findByEmail($entry['email']);
-        if ($existing === null) {
+        if ($status < 200 || $status >= 300) {
             $message = $body['message'] ?? ('HTTP ' . $status);
             throw new \RuntimeException('Anlegen fehlgeschlagen: ' . $message, 1750000003);
         }
-
-        $listIds = $this->listIdsOf($existing);
-        if (!in_array($this->listId, $listIds, true)) {
-            $listIds[] = $this->listId;
-        }
-        $this->updateSubscriber($existing, $entry, $listIds);
     }
 
     /**
-     * Aktualisiert Name/Attribute eines Abonnenten. Listenmitgliedschaften und Status werden bewusst
+     * Aktualisiert Name/Adresse/Attribute eines Abonnenten. Listenmitgliedschaften und Status werden bewusst
      * mitgegeben, da PUT in ListMonk alle Felder überschreibt.
      *
      * @param int[] $listIds beizubehaltende/zu setzende Listen-IDs
@@ -206,20 +338,36 @@ class Listmonk
     }
 
     /**
-     * Entfernt Abonnenten aus der Ziel-Liste (löscht sie nicht global, andere Listen bleiben erhalten).
+     * Entfernt Abonnenten aus einer Liste (löscht sie nicht global, andere Listen bleiben erhalten).
      *
      * @param int[] $ids
      */
-    private function removeFromList(array $ids): void
+    private function removeFromList(int $listId, array $ids): void
+    {
+        $this->setListStatus($ids, $listId, 'remove');
+    }
+
+    /**
+     * Ändert Listenmitgliedschaften (ListMonk: PUT /api/subscribers/lists).
+     *
+     * @param int[] $ids
+     * @param 'add'|'remove'|'unsubscribe' $action
+     * @param string|null $subscriptionStatus bei 'add': 'confirmed' setzt auch eine bestehende Abmeldung zurück
+     */
+    private function setListStatus(array $ids, int $listId, string $action, ?string $subscriptionStatus = null): void
     {
         foreach (array_chunk($ids, 1000) as $chunk) {
-            [$status, $body] = $this->request('PUT', '/api/subscribers/lists', [
+            $body = [
                 'ids' => array_values($chunk),
-                'action' => 'remove',
-                'target_list_ids' => [$this->listId],
-            ]);
+                'action' => $action,
+                'target_list_ids' => [$listId],
+            ];
+            if ($subscriptionStatus !== null) {
+                $body['status'] = $subscriptionStatus;
+            }
+            [$status, $response] = $this->request('PUT', '/api/subscribers/lists', $body);
             if ($status < 200 || $status >= 300) {
-                $message = $body['message'] ?? ('HTTP ' . $status);
+                $message = $response['message'] ?? ('HTTP ' . $status);
                 throw new \RuntimeException($message, 1750000005);
             }
         }
@@ -230,8 +378,21 @@ class Listmonk
      */
     private function findByEmail(string $email): ?array
     {
+        return $this->findByQuery("subscribers.email = '" . str_replace("'", "''", $email) . "'");
+    }
+
+    /**
+     * Sucht einen Abonnenten anhand der Mitgliedsnummer.
+     */
+    private function findByNumber(int $number): ?array
+    {
+        return $this->findByQuery("subscribers.attribs->>'mitgliedsnummer' = '" . $number . "'");
+    }
+
+    private function findByQuery(string $sqlCondition): ?array
+    {
         $query = http_build_query([
-            'query' => "subscribers.email = '" . str_replace("'", "''", $email) . "'",
+            'query' => $sqlCondition,
             'per_page' => 1,
         ]);
         [$status, $body] = $this->request('GET', '/api/subscribers?' . $query);
@@ -242,10 +403,13 @@ class Listmonk
     }
 
     /**
-     * Muss der Abonnent aktualisiert werden (Name oder relevante Attribute weichen ab)?
+     * Muss der Abonnent aktualisiert werden (Adresse, Name oder relevante Attribute weichen ab)?
      */
     private function needsUpdate(array $subscriber, array $entry): bool
     {
+        if (strcasecmp((string) ($subscriber['email'] ?? ''), $entry['email']) !== 0) {
+            return true;
+        }
         if (($subscriber['name'] ?? '') !== $entry['name']) {
             return true;
         }
@@ -270,6 +434,19 @@ class Listmonk
             return [];
         }
         return array_values(array_map(fn($list) => (int) ($list['id'] ?? 0), $lists));
+    }
+
+    /**
+     * Abo-Status ('unconfirmed', 'confirmed', 'unsubscribed') des Abonnenten in einer Liste, oder null.
+     */
+    private function subscriptionStatusOf(array $subscriber, int $listId): ?string
+    {
+        foreach ($subscriber['lists'] ?? [] as $list) {
+            if ((int) ($list['id'] ?? 0) === $listId) {
+                return $list['subscription_status'] ?? null;
+            }
+        }
+        return null;
     }
 
     /**

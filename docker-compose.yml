@@ -47,6 +47,7 @@ services:
       - LISTMONK_USER
       - LISTMONK_TOKEN
       - LISTMONK_LIST_ID
+      - LISTMONK_NEWSLETTER_LIST_ID
       - LISTMONK_SYNC_TOKEN
     labels:
       - traefik.enable=true

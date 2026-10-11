@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Model\MailAddress;
 use App\Model\User;
 use App\Repository\UserRepository;
 use App\Service\EmailService;
@@ -31,7 +32,8 @@ class LostPasswordController extends Controller {
     public function submitLostPasswordRequest(#[RequestValue] string $login, EmailService $emailService, RateLimiter $rateLimiter): Response {
         try {
              $user = match(true) {
-                str_contains($login, '@') => $this->userRepository->findOneByEmail($login),
+                // auch eine als ungültig markierte Adresse (z.B. nach einem Bounce) wird gefunden: die Mail geht an die ursprüngliche Adresse
+                str_contains($login, '@') => $this->userRepository->findOneByEmail($login, true),
                 ctype_digit($login) => $this->userRepository->findOneById((int) $login),
                 default => $this->userRepository->findOneByUsername($login),
             };
@@ -55,7 +57,8 @@ class LostPasswordController extends Controller {
             ]);
 
             try {
-                $emailService->sendToUser($user, $return->subject, $text);
+                // ist die Adresse als ungültig markiert, geht die Mail an die ursprüngliche Adresse
+                $emailService->send(MailAddress::restore($user->get('email')), $return->subject, $text);
             } catch (\RuntimeException $e) {
                 return new Response("Fehler beim Versenden der E-Mail.");
             }
@@ -116,6 +119,14 @@ class LostPasswordController extends Controller {
         }
 
         $user->setPassword($input['password']);
+        // der Link wurde über die (ursprüngliche) Adresse zugestellt: die Markierung als ungültig wird entfernt
+        if (MailAddress::isMarked($user->get('email'))) {
+            try {
+                $user->setEmail(MailAddress::restore($user->get('email')));
+            } catch (\RuntimeException) {
+                // Adresse inzwischen anderweitig vergeben: Markierung bleibt bestehen
+            }
+        }
         $this->userRepository->save($user);
         $this->currentUser->logIn($user);
 

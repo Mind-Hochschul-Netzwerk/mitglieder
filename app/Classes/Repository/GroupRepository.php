@@ -12,6 +12,7 @@ use App\Model\Enum\PostAccessLevel;
 use App\Model\Enum\ReplyToBehavior;
 use App\Model\Enum\SenderAddressHeader;
 use App\Model\Group;
+use App\Service\GroupMembershipListener;
 use App\Service\Ldap;
 use Symfony\Component\Ldap\Entry;
 
@@ -46,9 +47,17 @@ class GroupRepository
         'personalize'     => 'personalize',
     ];
 
+    /** @var GroupMembershipListener[] */
+    private array $listeners = [];
+
     public function __construct(
         private Ldap $ldap
     ) {}
+
+    public function addListener(GroupMembershipListener $listener): void
+    {
+        $this->listeners[] = $listener;
+    }
 
     public function findOneByName(string $name): ?Group
     {
@@ -65,8 +74,15 @@ class GroupRepository
         return array_map($this->entryToGroup(...), $this->ldap->getAllGroupEntries());
     }
 
-    public function save(Group $group): void
+    /**
+     * @param bool $notifyListeners false, wenn die Änderung selbst von einem Listener bzw. Abgleich ausgeht
+     */
+    public function save(Group $group, bool $notifyListeners = true): void
     {
+        if ($notifyListeners && $this->listeners) {
+            $this->notifyMembershipChange($group);
+        }
+
         $memberDns = array_map($this->ldap->getDnByUsername(...), $group->memberUsernames);
         $ownerDns = array_map($this->ldap->getDnByUsername(...), $group->ownerUsernames);
         $objectClasses = array_values(array_filter([
@@ -128,6 +144,23 @@ class GroupRepository
             $entry->setAttribute('ou',            $group->category !== '' ? [$group->category] : []);
             $entry->setAttribute('mail',          $group->mailAddress !== null ? [$group->mailAddress] : []);
             $this->ldap->updateGroupEntry($entry);
+        }
+    }
+
+    /** meldet den Listenern die Änderung der Mitglieder gegenüber dem zuletzt geladenen Stand; Exceptions brechen das Speichern ab */
+    private function notifyMembershipChange(Group $group): void
+    {
+        $previous = $group->ldapEntry === null ? [] : array_values(array_filter(array_map(
+            $this->ldap->getUsernameFromDn(...),
+            $group->ldapEntry->getAttribute('member') ?? []
+        )));
+        $added = array_values(array_diff($group->memberUsernames, $previous));
+        $removed = array_values(array_diff($previous, $group->memberUsernames));
+        if (!$added && !$removed) {
+            return;
+        }
+        foreach ($this->listeners as $listener) {
+            $listener->membershipChanging($group, $added, $removed);
         }
     }
 

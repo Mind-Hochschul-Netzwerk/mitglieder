@@ -108,7 +108,8 @@ class Bootstrap extends ServiceContainer {
             baseUrl: getenv('LISTMONK_URL') ?: '',
             apiUser: getenv('LISTMONK_USER') ?: '',
             apiToken: getenv('LISTMONK_TOKEN') ?: '',
-            listId: (int) (getenv('LISTMONK_LIST_ID') ?: 0),
+            memberListId: (int) (getenv('LISTMONK_LIST_ID') ?: 0),
+            newsletterListId: (int) (getenv('LISTMONK_NEWSLETTER_LIST_ID') ?: 0),
         ));
     }
 
@@ -130,8 +131,21 @@ class Bootstrap extends ServiceContainer {
 
     public function getGroupRepository(): GroupRepository
     {
-        return $this->createService(GroupRepository::class, fn() => new GroupRepository(
-            $this->getLdap()
+        return $this->createService(GroupRepository::class, function () {
+            $repository = new GroupRepository($this->getLdap());
+            // Änderungen der Newsletter-Gruppe sofort nach ListMonk übertragen
+            $repository->addListener(new \App\Service\NewsletterGroupListener($this->getListmonk(), $this->getLdap()));
+            return $repository;
+        });
+    }
+
+    public function getListmonkSync(): \App\Service\ListmonkSync
+    {
+        return $this->createService(\App\Service\ListmonkSync::class, fn() => new \App\Service\ListmonkSync(
+            $this->getListmonk(),
+            $this->getLdap(),
+            $this->getGroupRepository(),
+            $this->getUserRepository(),
         ));
     }
 
