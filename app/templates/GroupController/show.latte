@@ -147,7 +147,7 @@
 {block page-label}<i class="ti ti-users-group" aria-hidden="true"></i> <a href="/groups">Gruppen</a> / {$group->category ?: Sonstiges}{/block}
 
 {block page-header}
-<div class="summary">{$group->description|breakLines}</div>
+<div class="summary">{($group->description ?? '')|breakLines}</div>
 <div class="meta">
     <span n:if="$group->mailAddress"><i class="ti ti-mail" aria-hidden="true"></i> <a n:tag-if="$canWriteMail" href="mailto:{$group->mailAddress}">{$group->mailAddress}</a></span>
 </div>
@@ -158,20 +158,20 @@
     <a n:if="$archiveUrl" href="{$archiveUrl}">
         <i class="ti ti-archive" aria-hidden="true"></i> Archiv
     </a>
-    <button n:if="!$isMember && $group->joinPolicy === \App\Model\Enum\JoinPolicy::Open"
+    <button n:if="!$isMember && $group->effectiveJoinPolicy === \App\Model\Enum\JoinPolicy::Open"
         data-action="/groups/{$group->name}/join"
         onclick="groupAction(this.dataset.action, 'POST')">
         <i class="ti ti-user-plus" aria-hidden="true"></i> Beitreten
     </button>
-    <button n:if="!$isMember && $group->joinPolicy === \App\Model\Enum\JoinPolicy::Request"
+    <button n:if="!$isMember && $group->effectiveJoinPolicy === \App\Model\Enum\JoinPolicy::Request"
         data-action="/groups/{$group->name}/join-requests"
         onclick="groupAction(this.dataset.action, 'POST', 'Deine Anfrage wurde gesendet.')">
         <i class="ti ti-send" aria-hidden="true"></i> Beitritt anfragen
     </button>
-    <button n:if="$isMember && $group->leavePolicy === \App\Model\Enum\LeavePolicy::Allowed"
+    <button n:if="$isMember && $group->effectiveLeavePolicy === \App\Model\Enum\LeavePolicy::Direct"
         class="leave"
         data-action="/groups/{$group->name}/leave"
-        n:attr="data-confirm: !($group->joinPolicy === \App\Model\Enum\JoinPolicy::Open && $group->visibility === \App\Model\Enum\GroupVisibility::Public) ? 'Möchtest du die Gruppe wirklich verlassen?'"
+        n:attr="data-confirm: !($group->effectiveJoinPolicy === \App\Model\Enum\JoinPolicy::Open && $group->effectiveVisibility === \App\Model\Enum\GroupVisibility::Public) ? 'Möchtest du die Gruppe wirklich verlassen?'"
         onclick="if (!this.dataset.confirm || confirm(this.dataset.confirm)) groupAction(this.dataset.action, 'POST')">
         <i class="ti ti-user-minus" aria-hidden="true"></i> Gruppe verlassen
     </button>
@@ -277,7 +277,7 @@
         <label for="edit-joinPolicy">Beitrittspolitik</label>
         <select id="edit-joinPolicy" name="joinPolicy">
             {foreach $joinPolicyCases as $case}
-                <option value="{$case->value}" n:attr="selected: $case === $group->joinPolicy">
+                <option value="{$case->value}" n:attr="selected: $case === $group->effectiveJoinPolicy">
                     {=match ($case->value) {
                         'open'    => 'Offen — jeder kann beitreten',
                         'invite'  => 'Nur auf Einladung',
@@ -292,7 +292,7 @@
         <label for="edit-leavePolicy">Verlassen</label>
         <select id="edit-leavePolicy" name="leavePolicy">
             {foreach $leavePolicyCases as $case}
-                <option value="{$case->value}" n:attr="selected: $case === $group->leavePolicy">
+                <option value="{$case->value}" n:attr="selected: $case === $group->effectiveLeavePolicy">
                     {=match ($case->value) {
                         'direct'    => 'Direkt möglich',
                         'moderated' => 'Nur durch Gruppenverwalter*in',
@@ -306,7 +306,7 @@
         <label for="edit-memberVisibility">Mitgliederliste sichtbar für</label>
         <select id="edit-memberVisibility" name="memberVisibility">
             {foreach $memberVisibilityCases as $case}
-                <option value="{$case->value}" n:attr="selected: $case === $group->memberVisibility">
+                <option value="{$case->value}" n:attr="selected: $case === $group->effectiveMemberVisibility">
                     {=match ($case->value) {
                         'all'     => 'Alle Mitglieder',
                         'members' => 'Nur Gruppenmitglieder',
@@ -322,7 +322,7 @@
             <label for="edit-visibility">Sichtbarkeit</label>
             <select id="edit-visibility" name="visibility">
                 {foreach $visibilityCases as $case}
-                    <option value="{$case->value}" n:attr="selected: $case === $group->visibility">
+                    <option value="{$case->value}" n:attr="selected: $case === $group->effectiveVisibility">
                         {=match ($case->value) {
                             'public'  => 'Öffentlich — für alle sichtbar',
                             'members' => 'Nur für Mitglieder sichtbar',
@@ -352,7 +352,7 @@
                     <label for="edit-postAccessMembers">Posten durch Gruppenmitglieder</label>
                     <select id="edit-postAccessMembers" name="postAccessMembers">
                         {foreach $postAccessLevelCases as $case}
-                            <option value="{$case->value}" n:attr="selected: $case === $group->postAccessMembers">
+                            <option value="{$case->value}" n:attr="selected: $case === $group->effectivePostAccessMembers">
                                 {=match ($case->value) {
                                     'allow'    => 'Erlaubt',
                                     'moderate' => 'Nur nach Freigabe',
@@ -367,7 +367,7 @@
                     <label for="edit-postAccessPublic">Posten durch Nicht-Mitglieder</label>
                     <select id="edit-postAccessPublic" name="postAccessPublic">
                         {foreach $postAccessLevelCases as $case}
-                            <option value="{$case->value}" n:attr="selected: $case === $group->postAccessPublic">
+                            <option value="{$case->value}" n:attr="selected: $case === $group->effectivePostAccessPublic">
                                 {=match ($case->value) {
                                     'allow'    => 'Erlaubt',
                                     'moderate' => 'Nur nach Freigabe',
@@ -387,7 +387,7 @@
                     <label for="edit-replyTo">Antwort geht an</label>
                     <select id="edit-replyTo" name="replyTo">
                         {foreach $replyToCases as $case}
-                            <option value="{$case->value}" n:attr="selected: $case === $group->replyTo">
+                            <option value="{$case->value}" n:attr="selected: $case === $group->effectiveReplyTo">
                                 {=match ($case->value) {
                                     'list'          => 'Die Liste',
                                     'sender'        => 'Absendender*in',
@@ -405,7 +405,7 @@
                     <label for="edit-archive">Archiv</label>
                     <select id="edit-archive" name="archive">
                         {foreach $archiveCases as $case}
-                            <option value="{$case->value}" n:attr="selected: $case === $group->archive">
+                            <option value="{$case->value}" n:attr="selected: $case === $group->effectiveArchive">
                                 {=match ($case->value) {
                                     'public'  => 'Öffentlich einsehbar',
                                     'authenticated' => 'Für alle MHN-Mitglieder einsehbar',

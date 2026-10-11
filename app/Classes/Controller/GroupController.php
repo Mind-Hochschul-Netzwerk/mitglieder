@@ -56,7 +56,7 @@ class GroupController extends Controller
         $username = $this->currentUser->get('username');
 
         $groups = array_values(array_filter($allGroups, function (Group $g) use ($isGroupAdmin, $username) {
-            return match ($g->visibility) {
+            return match ($g->effectiveVisibility) {
                 GroupVisibility::Public  => true,
                 GroupVisibility::Members => $isGroupAdmin || $g->isMember($username) || $g->isOwner($username),
                 GroupVisibility::Hidden  => $isGroupAdmin || $g->isOwner($username),
@@ -81,7 +81,7 @@ class GroupController extends Controller
         $isGroupAdmin = $this->currentUser->hasRole('groupadmin');
         $username = $this->currentUser->get('username');
 
-        $canView = match ($group->visibility) {
+        $canView = match ($group->effectiveVisibility) {
             GroupVisibility::Public  => true,
             GroupVisibility::Members => $isGroupAdmin || $group->isMember($username) || $group->isOwner($username),
             GroupVisibility::Hidden  => $isGroupAdmin || $group->isOwner($username),
@@ -106,7 +106,7 @@ class GroupController extends Controller
         $isOwner = $group->isOwner($username);
         $mayManage = $this->mayManage($group);
 
-        $canView = match ($group->visibility) {
+        $canView = match ($group->effectiveVisibility) {
             GroupVisibility::Public  => true,
             GroupVisibility::Members => $isMember || $isOwner || $isGroupAdmin,
             GroupVisibility::Hidden  => $isOwner || $isGroupAdmin,
@@ -115,7 +115,7 @@ class GroupController extends Controller
             throw new AccessDeniedException();
         }
 
-        $showMembers = match ($group->memberVisibility) {
+        $showMembers = match ($group->effectiveMemberVisibility) {
             MemberVisibility::All     => true,
             MemberVisibility::Members => $isMember || $isOwner || $isGroupAdmin,
             MemberVisibility::Owners  => $isOwner || $isGroupAdmin,
@@ -123,7 +123,7 @@ class GroupController extends Controller
 
         $canWriteMail = $group->canWriteMail($username);
 
-        $canViewArchive =$group->hasListPassword() && match ($group->archive) {
+        $canViewArchive =$group->hasListPassword() && match ($group->effectiveArchive) {
             ArchiveMode::Public, ArchiveMode::Authenticated => true,
             ArchiveMode::Members         => $isMember || $isOwner,
             ArchiveMode::Owners          => $isOwner,
@@ -210,9 +210,10 @@ class GroupController extends Controller
 
         $group = new Group(
             name: $input['name'],
-            displayName: $input['displayName'],
+            displayName: $input['displayName'] !== '' ? $input['displayName'] : null,
             category: $input['category'],
         );
+        $group->applyNewGroupDefaults();
         $groupRepository->save($group);
 
         if ($this->isJsonResponse) {
@@ -245,8 +246,8 @@ class GroupController extends Controller
             'archive'          => 'string',
         ]);
 
-        $group->displayName = $input['displayName'];
-        $group->description = $input['description'];
+        $group->displayName = $input['displayName'] !== '' ? $input['displayName'] : null;
+        $group->description = $input['description'] !== '' ? $input['description'] : null;
         $group->category    = $input['category'];
 
         if ($joinPolicy = JoinPolicy::tryFrom($input['joinPolicy'])) {
@@ -347,14 +348,14 @@ class GroupController extends Controller
     private function applyListSettings(Group $group, array $input): void
     {
         $group->mailAddress = $input['mailAddress'] !== '' ? $input['mailAddress'] : null;
-        $group->listLabel = $input['listLabel'];
+        $group->listLabel = $input['listLabel'] !== '' ? $input['listLabel'] : null;
         if ($postAccessMembers = PostAccessLevel::tryFrom($input['postAccessMembers'])) {
             $group->postAccessMembers = $postAccessMembers;
         }
         if ($postAccessPublic = PostAccessLevel::tryFrom($input['postAccessPublic'])) {
             $group->postAccessPublic = $postAccessPublic;
         }
-        $group->listSenderRewrite = $input['listSenderRewrite'];
+        $group->listSenderRewrite = $input['listSenderRewrite'] !== '' ? $input['listSenderRewrite'] : null;
         if ($replyTo = ReplyToBehavior::tryFrom($input['replyTo'])) {
             $group->replyTo = $replyTo;
         }
@@ -383,7 +384,7 @@ class GroupController extends Controller
         if ($group->privileged) {
             throw new AccessDeniedException();
         }
-        if ($group->joinPolicy !== JoinPolicy::Open) {
+        if ($group->effectiveJoinPolicy !== JoinPolicy::Open) {
             throw new InvalidUserDataException('Diese Gruppe erlaubt kein freies Beitreten.');
         }
         $username = $this->currentUser->get('username');
@@ -402,7 +403,7 @@ class GroupController extends Controller
     #[Route('POST /groups/{name=>group}/leave'), RequireLogin]
     public function leave(Group $group, GroupRepository $groupRepository): Response
     {
-        if ($group->leavePolicy !== LeavePolicy::Allowed) {
+        if ($group->effectiveLeavePolicy !== LeavePolicy::Direct) {
             throw new InvalidUserDataException('Diese Gruppe kann nicht verlassen werden.');
         }
         $username = $this->currentUser->get('username');
@@ -428,7 +429,7 @@ class GroupController extends Controller
         if ($group->privileged) {
             throw new AccessDeniedException();
         }
-        if ($group->joinPolicy !== JoinPolicy::Request) {
+        if ($group->effectiveJoinPolicy !== JoinPolicy::Request) {
             throw new InvalidUserDataException('Diese Gruppe verwendet keine Beitrittsanfragen.');
         }
         $username = $this->currentUser->get('username');

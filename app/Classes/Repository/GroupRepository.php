@@ -3,12 +3,14 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Model\Enum\ArchiveMode;
+use App\Model\Enum\FromAddress;
 use App\Model\Enum\GroupVisibility;
 use App\Model\Enum\JoinPolicy;
 use App\Model\Enum\LeavePolicy;
 use App\Model\Enum\MemberVisibility;
 use App\Model\Enum\PostAccessLevel;
 use App\Model\Enum\ReplyToBehavior;
+use App\Model\Enum\SenderAddressHeader;
 use App\Model\Group;
 use App\Service\Ldap;
 use Symfony\Component\Ldap\Entry;
@@ -34,6 +36,13 @@ class GroupRepository
         'archive'         => 'archive',
         'mail-password'   => 'listPasswordCiphertext',
         'api-token'       => 'apiToken',
+        'post-access-unauthenticated' => 'postAccessUnauthenticated',
+        'from-address'    => 'fromAddress',
+        'sender-address-header' => 'senderAddressHeader',
+        'footer'          => 'footer',
+        'max-size'        => 'maxSize',
+        'max-per-sender'  => 'maxPerSender',
+        'archive-max-age' => 'archiveMaxAge',
     ];
 
     public function __construct(
@@ -66,23 +75,33 @@ class GroupRepository
         // groupOfNames requires at least one member; bind DN as invisible placeholder for empty groups
         $effectiveMemberDns = $memberDns ?: [$this->ldap->getBindDn()];
 
+        // null = nicht gesetzt (kein Eintrag), '' = bewusst leer (Eintrag "key:")
         $descriptionValues = array_values(array_filter([
-            $group->displayName !== ''  ? 'display-name:'     . $group->displayName               : null,
-            $group->description !== ''  ? 'description:'      . $group->description               : null,
-            'join-policy:'         . $group->joinPolicy->value,
-            'allow-leave:'         . $group->leavePolicy->value,
-            'member-visibility:'   . $group->memberVisibility->value,
-            'visibility:'          . $group->visibility->value,
+            self::line('display-name', $group->displayName),
+            self::line('description', $group->description),
+            self::line('join-policy', $group->joinPolicy?->value),
+            self::line('allow-leave', $group->leavePolicy?->value),
+            self::line('member-visibility', $group->memberVisibility?->value),
+            self::line('visibility', $group->visibility?->value),
             $group->privileged    ? 'privileged:true'                                              : null,
-            $group->listLabel !== ''    ? 'list-label:'       . $group->listLabel                 : null,
-            'post-access-members:' . $group->postAccessMembers->value,
-            'post-access-public:'  . $group->postAccessPublic->value,
-            !in_array($group->listSenderRewrite, ['', Group::DEFAULT_SENDER_REWRITE], true) ? 'smtp-from-name:' . $group->listSenderRewrite : null,
-            'reply-to:'         . $group->replyTo->value,
-            'archive:'          . $group->archive->value,
+            self::line('list-label', $group->listLabel),
+            self::line('post-access-members', $group->postAccessMembers?->value),
+            self::line('post-access-public', $group->postAccessPublic?->value),
+            self::line('post-access-unauthenticated', $group->postAccessUnauthenticated?->value),
+            self::line('smtp-from-name', $group->listSenderRewrite),
+            self::line('reply-to', $group->replyTo?->value),
+            self::line('from-address', $group->fromAddress?->value),
+            self::line('sender-address-header', $group->senderAddressHeader?->value),
+            self::line('archive', $group->archive?->value),
+            self::line('archive-max-age', $group->archiveMaxAge),
+            self::line('footer', $group->footer),
+            self::line('max-size', $group->maxSize),
+            self::line('max-per-sender', $group->maxPerSender),
+            // Passwort-Chiffrat und Token werden unverändert zurückgeschrieben (das description-Attribut wird
+            // komplett ersetzt); überschrieben werden sie nur, wenn das Model einen neuen Wert enthält
             $group->listPasswordCiphertext !== '' ? 'mail-password:' . $group->listPasswordCiphertext : null,
             $group->apiToken !== ''               ? 'api-token:'     . $group->apiToken               : null,
-        ]));
+        ], fn(?string $line) => $line !== null));
         $descriptionValues = array_merge($descriptionValues, $group->unknownDescriptionLines);
 
         if ($group->ldapEntry === null) {
@@ -115,6 +134,12 @@ class GroupRepository
         $this->ldap->deleteGroup($group->name);
     }
 
+    /** description-Zeile "key:value"; null (nicht gesetzt) ergibt keine Zeile, '' eine Zeile mit leerem Wert */
+    private static function line(string $key, ?string $value): ?string
+    {
+        return $value === null ? null : $key . ':' . $value;
+    }
+
     private function entryToGroup(Entry $entry): Group
     {
         $config = [];
@@ -141,25 +166,32 @@ class GroupRepository
 
         $group = new Group(
             name:              $entry->getAttribute('cn')[0] ?? '',
-            displayName:       $config['name'] ?? '',
-            description:       $config['text'] ?? '',
+            displayName:       $config['name'] ?? null,
+            description:       $config['text'] ?? null,
             category:          ($entry->getAttribute('ou') ?? [])[0] ?? '',
             memberUsernames:   $memberUsernames,
             ownerUsernames:    $ownerUsernames,
             mailAddress:       ($entry->getAttribute('mail') ?? [])[0] ?? null,
-            joinPolicy:        JoinPolicy::tryFrom($config['joinPolicy'] ?? '')       ?? JoinPolicy::Invite,
-            leavePolicy:       LeavePolicy::tryFrom($config['leavePolicy'] ?? '')     ?? LeavePolicy::Allowed,
-            memberVisibility:  MemberVisibility::tryFrom($config['memberVisibility'] ?? '') ?? MemberVisibility::Members,
-            visibility:        GroupVisibility::tryFrom($config['visibility'] ?? '')  ?? GroupVisibility::Public,
+            joinPolicy:        JoinPolicy::tryFrom($config['joinPolicy'] ?? ''),
+            leavePolicy:       LeavePolicy::tryFrom($config['leavePolicy'] ?? ''),
+            memberVisibility:  MemberVisibility::tryFrom($config['memberVisibility'] ?? ''),
+            visibility:        GroupVisibility::tryFrom($config['visibility'] ?? ''),
             privileged:        ($config['privileged'] ?? '') === 'true',
-            listLabel:         $config['listLabel'] ?? '',
-            postAccessMembers: PostAccessLevel::tryFrom($config['postAccessMembers'] ?? '') ?? PostAccessLevel::Allow,
-            postAccessPublic:  PostAccessLevel::tryFrom($config['postAccessPublic'] ?? '') ?? PostAccessLevel::Deny,
-            listSenderRewrite: $config['listSenderRewrite'] ?? Group::DEFAULT_SENDER_REWRITE,
-            replyTo:           ReplyToBehavior::tryFrom($config['replyTo'] ?? '') ?? ReplyToBehavior::List,
-            archive:           ArchiveMode::tryFrom($config['archive'] ?? '') ?? ArchiveMode::Members,
+            listLabel:         $config['listLabel'] ?? null,
+            postAccessMembers: PostAccessLevel::tryFrom($config['postAccessMembers'] ?? ''),
+            postAccessPublic:  PostAccessLevel::tryFrom($config['postAccessPublic'] ?? ''),
+            listSenderRewrite: $config['listSenderRewrite'] ?? null,
+            replyTo:           ReplyToBehavior::tryFrom($config['replyTo'] ?? ''),
+            archive:           ArchiveMode::tryFrom($config['archive'] ?? ''),
             listPasswordCiphertext: $config['listPasswordCiphertext'] ?? '',
             apiToken:          $config['apiToken'] ?? '',
+            postAccessUnauthenticated: PostAccessLevel::tryFrom($config['postAccessUnauthenticated'] ?? ''),
+            fromAddress:       FromAddress::tryFrom($config['fromAddress'] ?? ''),
+            senderAddressHeader: SenderAddressHeader::tryFrom($config['senderAddressHeader'] ?? ''),
+            footer:            $config['footer'] ?? null,
+            maxSize:           $config['maxSize'] ?? null,
+            maxPerSender:      $config['maxPerSender'] ?? null,
+            archiveMaxAge:     $config['archiveMaxAge'] ?? null,
             unknownDescriptionLines: $unknownDescriptionLines,
         );
         $group->ldapEntry = $entry;

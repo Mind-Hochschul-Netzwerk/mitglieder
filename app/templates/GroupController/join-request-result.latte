@@ -6,9 +6,9 @@
 {block content}
 <section class="panel">
     {if $action === 'approve'}
-        {$requester?->fullName ?? $username} wurde erfolgreich zur Gruppe „{$group->displayName}” hinzugefügt.
+        {$requester?->fullName ?? $username} wurde erfolgreich zur Gruppe „{$group->displayName ?: $group->name}” hinzugefügt.
     {elseif $action === 'reject'}
-        Die Beitrittsanfrage von {$requester?->fullName ?? $username} für die Gruppe „{$group->displayName}” wurde abgelehnt.
+        Die Beitrittsanfrage von {$requester?->fullName ?? $username} für die Gruppe „{$group->displayName ?: $group->name}” wurde abgelehnt.
     {/if}
     <div class="action-links">
         <a class="button" href="/groups">Zurück zur Gruppenübersicht</a>
