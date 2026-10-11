@@ -319,6 +319,16 @@ class Listmonk
      */
     private function updateSubscriber(array $subscriber, array $entry, array $listIds): void
     {
+        // ändert sich die Adresse auf eine, die ListMonk schon einem anderen Abonnenten zugeordnet hat
+        // (E-Mail-Adressen sind dort eindeutig), werden beide zusammengeführt
+        if (strcasecmp((string) ($subscriber['email'] ?? ''), $entry['email']) !== 0) {
+            $other = $this->findByEmail($entry['email']);
+            if ($other !== null && (int) $other['id'] !== (int) $subscriber['id']) {
+                $this->mergeInto($other, $subscriber, $entry, $listIds);
+                return;
+            }
+        }
+
         $id = (int) $subscriber['id'];
         $attribs = array_merge(is_array($subscriber['attribs'] ?? null) ? $subscriber['attribs'] : [], $entry['attribs']);
 
@@ -334,6 +344,53 @@ class Listmonk
         if ($status < 200 || $status >= 300) {
             $message = $body['message'] ?? ('HTTP ' . $status);
             throw new \RuntimeException('Aktualisieren fehlgeschlagen: ' . $message, 1750000004);
+        }
+    }
+
+    /**
+     * Führt zwei ListMonk-Abonnenten desselben Mitglieds zusammen, wenn die neue Adresse schon vergeben ist:
+     * Der Abonnent mit der Zieladresse ($target) übernimmt Name, Mitgliedsnummer und alle Listen des alten
+     * Abonnenten ($source); eine Abmeldung bleibt dabei erhalten. Der alte Abonnent behält seine Adresse,
+     * verliert aber die Mitgliedsnummer und die von uns verwalteten Listen, damit er nicht mehr zugeordnet wird
+     * (gelöscht wird nichts).
+     *
+     * @param int[] $listIds Listen, die der Abonnent danach haben soll
+     * @throws \RuntimeException wenn die Zieladresse in ListMonk einem anderen Mitglied gehört
+     */
+    private function mergeInto(array $target, array $source, array $entry, array $listIds): void
+    {
+        $number = (int) $entry['attribs']['mitgliedsnummer'];
+        $targetNumber = (int) ($target['attribs']['mitgliedsnummer'] ?? 0);
+        if ($targetNumber > 0 && $targetNumber !== $number) {
+            throw new \RuntimeException('Die Adresse gehört in ListMonk bereits zum Mitglied ' . $targetNumber . '.', 1750000010);
+        }
+
+        // 1. Ziel: Name/Nummer setzen, Listen vereinigen
+        $targetEntry = ['email' => $target['email']] + $entry;
+        $this->updateSubscriber($target, $targetEntry, array_values(array_unique([...$this->listIdsOf($target), ...$listIds])));
+
+        // 2. Abmeldungen des alten Abonnenten auf das Ziel übertragen
+        foreach ($source['lists'] ?? [] as $list) {
+            if (($list['subscription_status'] ?? '') === 'unsubscribed') {
+                $this->setListStatus([(int) $target['id']], (int) $list['id'], 'add', 'unsubscribed');
+            }
+        }
+
+        // 3. Alter Abonnent: ohne Nummer und ohne unsere Listen
+        $kept = array_values(array_diff($this->listIdsOf($source), [$this->memberListId, $this->newsletterListId]));
+        $attribs = is_array($source['attribs'] ?? null) ? $source['attribs'] : [];
+        unset($attribs['mitgliedsnummer']);
+        [$status, $body] = $this->request('PUT', '/api/subscribers/' . (int) $source['id'], [
+            'email' => $source['email'],
+            'name' => $source['name'] ?? '',
+            'status' => $source['status'] ?? 'enabled',
+            'lists' => $kept,
+            'preconfirm_subscriptions' => true,
+            'attribs' => $attribs,
+        ]);
+        if ($status < 200 || $status >= 300) {
+            $message = $body['message'] ?? ('HTTP ' . $status);
+            throw new \RuntimeException('Alter Abonnent konnte nicht bereinigt werden: ' . $message, 1750000011);
         }
     }
 
