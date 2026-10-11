@@ -343,7 +343,7 @@ class Listmonk
 
         if ($status < 200 || $status >= 300) {
             $message = $body['message'] ?? ('HTTP ' . $status);
-            throw new \RuntimeException('Aktualisieren fehlgeschlagen: ' . $message, 1750000004);
+            throw new \RuntimeException('Aktualisieren des Abonnenten ' . $id . ' fehlgeschlagen: ' . $message, 1750000004);
         }
     }
 
@@ -435,7 +435,8 @@ class Listmonk
      */
     private function findByEmail(string $email): ?array
     {
-        return $this->findByQuery("subscribers.email = '" . str_replace("'", "''", $email) . "'");
+        // Groß-/Kleinschreibung egal: ListMonk behandelt Adressen über LOWER(email) als eindeutig
+        return $this->findByQuery("LOWER(subscribers.email) = LOWER('" . str_replace("'", "''", $email) . "')");
     }
 
     /**
