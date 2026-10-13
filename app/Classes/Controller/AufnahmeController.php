@@ -19,7 +19,6 @@ use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\PublicAccess;
 use Hengeb\Router\Attribute\Route;
 use Hengeb\Router\Exception\InvalidUserDataException;
-use Hengeb\Router\ServiceContainer;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -285,8 +284,7 @@ class AufnahmeController extends Controller
         $this->saveUserAgreement($user, 'Kenntnisnahme', (int) $this->data['kenntnisnahme_datenverarbeitung_text'], new \DateTimeImmutable($this->data['kenntnisnahme_datenverarbeitung']));
         $this->saveUserAgreement($user, 'Einwilligung', (int) $this->data['einwilligung_datenverarbeitung_text'], new \DateTimeImmutable($this->data['einwilligung_datenverarbeitung']));
 
-        $this->ldap->addUserToGroup($this->username, 'alleMitglieder');
-        $this->ldap->addUserToGroup($this->username, 'listen');
+        $this->ldap->addUserToGroup($this->username, 'mitglieder');
 
         $curl = curl_init('http://aufnahme:8080/onboarding/?token=' . $this->token);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');

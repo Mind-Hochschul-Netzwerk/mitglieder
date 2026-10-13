@@ -14,12 +14,12 @@ use App\Repository\UserRepository;
  * Gleicht LDAP und ListMonk ab (Cronjob bzw. Admin-Bereich):
  *
  * 1. Hard Bounces aus ListMonk: die betroffene Adresse des Mitglieds wird im LDAP als ungültig markiert
- * 2. Mitglieder-Liste (Gruppe „alleMitglieder“): LDAP hat immer recht
+ * 2. Mitglieder-Liste (Gruppe „mitglieder“): LDAP hat immer recht
  * 3. Newsletter (Gruppe „newsletter“): zusätzlich werden in ListMonk abgemeldete Mitglieder aus der Gruppe entfernt
  */
 class ListmonkSync
 {
-    public const string GROUP_ALL = 'alleMitglieder';
+    public const string GROUP_ALL = 'mitglieder';
 
     public function __construct(
         private Listmonk $listmonk,

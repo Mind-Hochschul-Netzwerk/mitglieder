@@ -13,7 +13,7 @@
 
 <section n:if="currentUser()->hasRole('newsletter-export')" class="panel">
 <h2>ListMonk-Synchronisation</h2>
-<p>Gleicht Namen und E-Mail-Adressen der Mitglieder (Gruppe „alleMitglieder“) und die Newsletter-Gruppe mit den ListMonk-Listen ab. Wer in ListMonk vom Newsletter abgemeldet ist, wird aus der Gruppe „newsletter“ entfernt. Unzustellbare Adressen (Hard Bounce) werden als <code>.invalid</code> markiert; Adressen mit <code>.invalid</code> werden nicht übertragen.</p>
+<p>Gleicht Namen und E-Mail-Adressen der Mitglieder (Gruppe „mitglieder“) und die Newsletter-Gruppe mit den ListMonk-Listen ab. Wer in ListMonk vom Newsletter abgemeldet ist, wird aus der Gruppe „newsletter“ entfernt. Unzustellbare Adressen (Hard Bounce) werden als <code>.invalid</code> markiert; Adressen mit <code>.invalid</code> werden nicht übertragen.</p>
 <form action="/admin/listmonk-sync" method="post">
     {=csrfTokenTag()}
     <button type="submit"><i class="ti ti-refresh" aria-hidden="true"></i> Jetzt synchronisieren</button>

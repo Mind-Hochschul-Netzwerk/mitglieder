@@ -116,7 +116,7 @@ class Listmonk
      * Hat das Mitglied keine gültige Adresse, wird es wie beim Abgleich aus unseren Listen genommen.
      *
      * @param array $member siehe Klassenkommentar
-     * @param bool $inMemberList Mitglied gehört in die Mitglieder-Liste (Gruppe „alleMitglieder“)
+     * @param bool $inMemberList Mitglied gehört in die Mitglieder-Liste (Gruppe „mitglieder“)
      * @param bool $inNewsletter Mitglied gehört in den Newsletter (Gruppe „newsletter“)
      * @throws \RuntimeException bei Fehlern oder einem Adresskonflikt in ListMonk
      */

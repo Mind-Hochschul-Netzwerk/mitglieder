@@ -62,8 +62,7 @@ class DevController extends Controller {
 
         $repo->save($user);
 
-        $ldap->addUserToGroup($username, 'alleMitglieder');
-        $ldap->addUserToGroup($username, 'listen');
+        $ldap->addUserToGroup($username, 'mitglieder');
 
         return ['id' => $user->get('id')];
     }
@@ -95,8 +94,7 @@ class DevController extends Controller {
                 ])->getInsertId();
 
                 $ldap->modifyUser($username, ['id' => $id]);
-                $ldap->addUserToGroup($username, 'alleMitglieder');
-                $ldap->addUserToGroup($username, 'listen');
+                $ldap->addUserToGroup($username, 'mitglieder');
 
                 $importedUsers[] = [
                     ... $userinfo,
