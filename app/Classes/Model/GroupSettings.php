@@ -118,8 +118,8 @@ class GroupSettings
                 'Mailingliste: Absender und Antworten' => [
                     self::enumRow($group, 'replyTo', 'reply-to', 'Antwort geht an'),
                     self::enumRow($group, 'fromAddress', 'from-address', 'Absenderadresse der verteilten Mail'),
-                    self::textRow($group, 'listSenderRewrite', 'smtp-from-name', 'Absender-Umschreibung', 'text',
-                        'Platzhalter: {sender-name} = ursprüngliche*r Absender*in, {display-name} = Anzeigename der Liste.'),
+                    self::textRow($group, 'fromName', 'from-name', 'Absendername', 'text',
+                        'Platzhalter: {sender-name} = ursprüngliche*r Absender*in, {display-name} = Anzeigename der Liste. Haken gesetzt und Feld leer = nur die Adresse, ohne Namen.'),
                 ],
                 'Mailingliste: Archiv' => [
                     self::enumRow($group, 'archive', 'archive', 'Archiv'),

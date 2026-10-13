@@ -16,7 +16,7 @@ use Symfony\Component\Ldap\Entry;
 class Group
 {
     /** Standard der Absender-Umschreibung laut listig-Konfiguration (nur als Platzhalter im Formular) */
-    public const string DEFAULT_SENDER_REWRITE = '{sender-name} (via MHN)';
+    public const string DEFAULT_FROM_NAME = '{sender-name} (via MHN)';
 
     /**
      * Listig-Standards: wirksam, wenn eine Einstellung nicht gesetzt ist (kein description-Eintrag), also
@@ -50,7 +50,7 @@ class Group
         'post-access-members'         => self::LISTIG_DEFAULT_POST_ACCESS_MEMBERS->value,
         'post-access-public'          => self::LISTIG_DEFAULT_POST_ACCESS_PUBLIC->value,
         'post-access-unauthenticated' => PostAccessLevel::Moderate->value, // config.yml; listig-Code-Default: allow
-        'smtp-from-name'              => self::DEFAULT_SENDER_REWRITE,
+        'from-name'                   => self::DEFAULT_FROM_NAME,
         'reply-to'                    => self::LISTIG_DEFAULT_REPLY_TO->value,
         'from-address'                => 'masked', // listig-Code-Default: list
         'sender-address-header'       => 'never',
@@ -58,7 +58,7 @@ class Group
         'archive-max-age'             => null, // unbegrenzt
         'footer'                      => "-- \n<p>Diese Mail wurde über die MHN-Liste {display-name} verschickt.</p>"
             . '<p>Falls du keine Mails über diese Liste mehr bekommen möchtest, kannst du sie hier abbestellen: '
-            . '<a href="{list-url}">Zur Liste</a></p>{archive-block}',
+            . '<a href="{group-url}">Zur Liste</a></p>{archive-block}',
         'max-size'                    => '5M',
         'max-per-sender'              => '5', // pro 10 Minuten
         'personalize'                 => null, // nur {list-url}
@@ -104,7 +104,7 @@ class Group
         public ?string $listLabel = null,
         public ?PostAccessLevel $postAccessMembers = null,
         public ?PostAccessLevel $postAccessPublic = null,
-        public ?string $listSenderRewrite = null,
+        public ?string $fromName = null,
         public ?ReplyToBehavior $replyTo = null,
         public ?ArchiveMode $archive = null,
         public string $listPasswordCiphertext = '',

@@ -29,7 +29,7 @@ use Symfony\Component\HttpFoundation\Response;
 class GroupSettingsController extends Controller
 {
     /** Textfelder, bei denen „bewusst leer“ eine eigene Bedeutung hat (z. B. kein Footer) */
-    private const TEXT_FIELDS = ['listLabel', 'listSenderRewrite', 'footer'];
+    private const TEXT_FIELDS = ['listLabel', 'fromName', 'footer'];
 
     /** was Gruppenverwalter*innen immer ändern dürfen */
     private const OWNER_ENUM_FIELDS = ['joinPolicy', 'memberVisibility', 'visibility'];
