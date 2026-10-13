@@ -47,9 +47,6 @@ a {
 
 img { display: block; max-width: 100%; }
 
-small { white-space: nowrap; }
-
-
 /* ── Utilities ────────────────────────────────────────────── */
 .hidden { display: none !important; }
 
