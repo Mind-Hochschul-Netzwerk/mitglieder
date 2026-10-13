@@ -43,7 +43,7 @@ class Group
         'display-name'                => null, // Gruppenname (cn)
         'description'                 => null,
         'join-policy'                 => self::LISTIG_DEFAULT_JOIN_POLICY->value,
-        'allow-leave'                 => self::LISTIG_DEFAULT_LEAVE_POLICY->value,
+        'leave-policy'                => self::LISTIG_DEFAULT_LEAVE_POLICY->value,
         'member-visibility'           => self::LISTIG_DEFAULT_MEMBER_VISIBILITY->value, // nur diese Anwendung
         'visibility'                  => self::LISTIG_DEFAULT_VISIBILITY->value,
         'list-label'                  => '[{display-name}]',
