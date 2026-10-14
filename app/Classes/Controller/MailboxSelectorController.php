@@ -80,7 +80,7 @@ class MailboxSelectorController extends Controller {
         foreach ($mailboxes as &$address) {
             [$localpart, $domain] = explode('@', $address);
             if (str_contains($localpart, '+')) {
-                $name = substr($localpart, strpos($localpart, '+'));
+                $name = substr($localpart, 0, strpos($localpart, '+'));
                 $address = $name . '@' . $domain;
             }
 	    }
