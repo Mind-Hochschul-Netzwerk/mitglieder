@@ -155,7 +155,21 @@ async function submitAgreement(event) {
     event.preventDefault();
     const action = event.submitter.value;
     if (action === "revoke") {
-        if (!confirm("Wenn du deine Zustimmung widerrufst, können dir Berechtigungen entzogen werden, für die die Einwilligung nötig ist. Möchtest du die Zustimmung widerrufen?")) {
+        let message = "Wenn du deine Zustimmung widerrufst, können dir Berechtigungen entzogen werden, für die die Einwilligung nötig ist. Möchtest du die Zustimmung widerrufen?";
+        // Gruppen, die die Verpflichtung zum Datenschutz verlangen, werden mit dem Widerruf verlassen
+        if (event.target.elements.name.value === "Datenschutzverpflichtung") {
+            try {
+                const info = await callApi("GET", "/user/" + {$user->get('username')} + "/agreements/" + event.target.elements.id.value + "/revoke-groups", {}, loader);
+                if (info.groups.length > 0) {
+                    message = "Folgende Gruppen verlangen die Verpflichtung zum Datenschutz. Die Mitgliedschaft in diesen Gruppen endet mit dem Widerruf: "
+                        + info.groups.join(", ") + ".\n\n" + message;
+                }
+            } catch (err) {
+                showError(err);
+                return;
+            }
+        }
+        if (!confirm(message)) {
             return;
         }
     }

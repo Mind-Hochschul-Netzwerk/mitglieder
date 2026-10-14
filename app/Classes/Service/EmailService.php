@@ -150,7 +150,7 @@ $body
         try {
             $this->send($user->get('email'), $subject, $body, $headers);
         } catch (\RuntimeException $e) {
-            throw new \RuntimeException('Beim Versand der E-Mail an ' . $user->get('email') . ' (ID ' . $user->get('id') . ') ist ein Fehler aufgetreten.', 1522422201);
+            throw new \RuntimeException('Beim Versand der E-Mail an ' . $user->get('email') . ' (ID ' . $user->get('id') . ') ist ein Fehler aufgetreten.', 1522422201, $e);
         }
     }
 

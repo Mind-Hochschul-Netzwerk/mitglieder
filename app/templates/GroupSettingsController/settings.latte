@@ -92,6 +92,7 @@
             <label for="category">Kategorie</label>
             <input id="category" name="category" type="text" value="{$group->category}">
         </div>
+        {include required-agreement, id: 'requiredAgreement', group: $group, versions: $agreementVersions}
         <div n:if=$isRechteAdmin class="form-group">
             <label class="checkbox-label">
                 <input type="checkbox" name="privileged" n:attr="checked: $group->privileged">

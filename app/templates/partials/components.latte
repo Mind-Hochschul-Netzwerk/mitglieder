@@ -107,3 +107,18 @@
     {block dialog-content}{/block}
 </dialog>
 {/define}
+
+{* Auswahl der für die Mitgliedschaft in einer Gruppe verlangten Version der Verpflichtung zum Datenschutz (Gruppeneinstellungen);
+   checkAgreementRemovals() in MHN.js zeigt vorab, wer beim Speichern entfernt würde *}
+{define required-agreement, $id, $group, $versions}
+<div class="form-group">
+    <label for="{$id}">Verpflichtung zum Datenschutz erforderlich</label>
+    <select id="{$id}" name="requiredAgreement" data-check-url="/groups/{$group->name}/settings/agreement-check" onchange="checkAgreementRemovals(this)">
+        <option value="">Wird nicht benötigt</option>
+        <option n:foreach="$versions as $version" value="{$version->version}" n:attr="selected: $group->requiredAgreementVersion === $version->version">Version {$version->version} vom {$version->timestamp|format:'j.n.Y@local'}</option>
+    </select>
+    <small>Wer die gewählte Version nicht abgegeben hat, kann nicht Mitglied sein und wird beim Speichern aus der Gruppe entfernt.</small>
+    {* wird von checkAgreementRemovals() (MHN.js) gefüllt und eingeblendet *}
+    {include info-box, type: danger, text: '', hide: true, showCloseButton: false, class: agreement-warning}
+</div>
+{/define}

@@ -16,6 +16,7 @@ use App\Repository\GroupRepository;
 use App\Repository\UserRepository;
 use App\Service\EmailService;
 use App\Service\GroupPermissions;
+use App\Service\PrivacyAgreementCheck;
 use App\Service\RateLimiter;
 use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\Inject;
@@ -33,6 +34,9 @@ class GroupController extends Controller
 
     #[Inject]
     public GroupPermissions $groupPermissions;
+
+    #[Inject]
+    public PrivacyAgreementCheck $privacyAgreementCheck;
 
     #[Route('GET /groups'), RequireLogin]
     public function index(GroupRepository $groupRepository): Response
@@ -168,6 +172,8 @@ class GroupController extends Controller
             'nonMembers' => $nonMembers,
             'username' => $username,
             'ownerRows' => GroupSettings::ownerRows($group),
+            'agreementVersions' => $this->privacyAgreementCheck->versions(),
+            'requiredAgreement' => $this->privacyAgreementCheck->requiredAgreement($group),
         ]);
     }
 
@@ -228,6 +234,7 @@ class GroupController extends Controller
         if ($group->isMember($username)) {
             throw new InvalidUserDataException('Du bist bereits Mitglied dieser Gruppe.');
         }
+        $this->requireAgreementToJoin($group, $username);
         $group->addMember($username);
         $groupRepository->save($group);
 
@@ -235,6 +242,21 @@ class GroupController extends Controller
             return $this->json(['success' => true]);
         }
         return $this->redirect('/groups');
+    }
+
+    /**
+     * Verlangt die Gruppe eine Version der Verpflichtung zum Datenschutz, die der Benutzer nicht abgegeben hat?
+     * (Die Buttons zum Beitreten sind trotzdem sichtbar; erst beim Klick gibt es diese Meldung.)
+     */
+    private function requireAgreementToJoin(Group $group, string $username): void
+    {
+        if ($group->requiredAgreementVersion !== null
+            && !$this->privacyAgreementCheck->satisfies($username, $group->requiredAgreementVersion)
+        ) {
+            throw new InvalidUserDataException(
+                'Du kannst der Gruppe nicht beitreten, weil du keine aktuelle Verpflichtungserklärung zum Datenschutz abgegeben hast.'
+            );
+        }
     }
 
     #[Route('POST /groups/{name=>group}/leave'), RequireLogin]
@@ -273,6 +295,8 @@ class GroupController extends Controller
         if ($group->isMember($username)) {
             throw new InvalidUserDataException('Du bist bereits Mitglied dieser Gruppe.');
         }
+
+        $this->requireAgreementToJoin($group, $username);
 
         $rateLimiter->attempt('join-request', $username, 3, 3600);
 

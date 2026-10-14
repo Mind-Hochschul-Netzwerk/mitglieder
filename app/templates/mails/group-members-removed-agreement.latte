@@ -1,0 +1,11 @@
+{layout html-mail-layout.latte}
+{var $return->subject = 'Mitglieder aus der Gruppe ' . ($group->displayName ?: $group->name) . ' entfernt'}
+{block content}
+<p>Hallo {$fullName},</p>
+<p>aus der Gruppe <strong>{$group->displayName ?: $group->name}</strong>, die du verwaltest, wurde{if count($removedNames) !== 1}n{/if} {if count($removedNames) === 1}ein Mitglied{else}{count($removedNames)} Mitglieder{/if} entfernt, weil {if count($removedNames) === 1}es{else}sie{/if} keine aktuelle Verpflichtungserklärung zum Datenschutz abgegeben {if count($removedNames) === 1}hat{else}haben{/if}. Für diese Gruppe ist mindestens Version {$agreement->version} vom {$agreement->timestamp|format:'j.n.Y@local'} erforderlich.</p>
+<ul>
+    <li n:foreach="$removedNames as $name">{$name}</li>
+</ul>
+<p>Sie können wieder aufgenommen werden, sobald sie die Verpflichtungserklärung abgegeben haben.</p>
+<p>Viele Grüße,<br>dein MHN-Mitgliederportal</p>
+{/block}

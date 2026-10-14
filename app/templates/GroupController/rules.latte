@@ -1,5 +1,6 @@
 {layout none}
-{* Gruppenregeln knapp als Liste (Bezeichnung und Wert, wie im Mitgliederprofil). Parameter: $group, $insider (Mitglied,
+{* Gruppenregeln knapp als Liste (Bezeichnung und Wert, wie im Mitgliederprofil). Parameter: $group, $agreement (verlangte
+   Version der Verpflichtung zum Datenschutz oder null), $insider (Mitglied,
    Gruppenverwaltung oder Administration: sieht zusätzlich die Regeln, die nur Mitglieder betreffen). Es gelten die
    wirksamen Werte (Standard, wenn nichts gesetzt ist). *}
 {var $isList = $group->isMailingList()}
@@ -34,6 +35,11 @@
         <dd>
             nicht möglich
         </dd>
+    </div>
+
+    <div n:if="$agreement">
+        <dt>Verpflichtung zum Datenschutz</dt>
+        <dd>mindestens Version {$agreement->version} vom {$agreement->timestamp|format:'j.n.Y@local'}</dd>
     </div>
 
     {if $isList}

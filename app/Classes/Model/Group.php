@@ -119,6 +119,8 @@ class Group
         public ?string $maxPerSender = null,
         public ?string $archiveMaxAge = null,
         public ?string $personalize = null,
+        // kein listig-Key: verlangte Mindestversion der Verpflichtung zum Datenschutz für die Mitgliedschaft (null = nicht verlangt)
+        public ?int $requiredAgreementVersion = null,
         public private(set) array $unknownDescriptionLines = [],
     ) {}
 

@@ -12,12 +12,16 @@ use App\Model\Enum\UserAgreementAction;
 use App\Model\User;
 use App\Model\UserAgreement;
 use App\Model\UserInfo;
+use App\Model\Group;
 use App\Repository\AgreementRepository;
+use App\Repository\GroupRepository;
 use App\Repository\UserAgreementRepository;
 use App\Repository\UserRepository;
+use App\Service\AgreementRemovalMailer;
 use App\Service\CurrentUser;
 use App\Service\EmailService;
 use App\Service\Ldap;
+use App\Service\PrivacyAgreementCheck;
 use Hengeb\Router\Attribute\AllowIf;
 use Hengeb\Router\Attribute\RequestValue;
 use Hengeb\Router\Attribute\Route;
@@ -32,6 +36,9 @@ class UserAgreementController extends Controller {
         private AgreementRepository $agreementRepository,
         private UserAgreementRepository $userAgreementRepository,
         private UserRepository $userRepository,
+        private GroupRepository $groupRepository,
+        private PrivacyAgreementCheck $privacyAgreementCheck,
+        private AgreementRemovalMailer $removalMailer,
     ) {}
 
     /**
@@ -119,19 +126,71 @@ class UserAgreementController extends Controller {
         $this->userAgreementRepository->persist($userAgreement);
 
         // send mail in case somebody revokes the 'Datenschutzverpflichtung' agreement
-        if ($agreement->name === 'Datenschutzverpflichtung' && $userAgreement->action === UserAgreementAction::Revoke) {
+        if ($agreement->name === PrivacyAgreementCheck::AGREEMENT && $userAgreement->action === UserAgreementAction::Revoke) {
             $text = $this->renderToString('UserAgreementController/revoke.mail', [
                 'user' => $user,
                 'recorderName' => $this->currentUser->get('fullName'),
                 'url' => 'https://mitglieder.' . getenv('DOMAINNAME') . '/user/' . urlencode($user->get('username')),
                 'return' => $return = new \stdclass,
             ]);
-            $this->emailService->send([
-                'datenschutz@mind-hochschul-netzwerk.de',
-                'vorstand@mind-hochschul-netzwerk.de',
-            ], $return->subject, $text);
+            $this->emailService->send([getenv('MAIL_DATENSCHUTZ'), getenv('MAIL_VORSTAND')], $return->subject, $text);
+        }
+
+        // wer die Verpflichtung zum Datenschutz zurückzieht, kann nicht Mitglied von Gruppen bleiben, die sie verlangen
+        if ($agreement->name === PrivacyAgreementCheck::AGREEMENT && $userAgreement->action === UserAgreementAction::Revoke) {
+            $this->removeFromGroupsRequiringAgreement($user, $agreement, $isAdmin);
         }
 
         return $this->getLatest($user);
+    }
+
+    /**
+     * Vorschau für die Rückfrage vor dem Widerruf: Aus welchen Gruppen würde der Benutzer entfernt?
+     * (nur bei der Verpflichtung zum Datenschutz, sonst leer)
+     */
+    #[
+        Route('GET /user/{username=>user}/agreements/{id=>agreement}/revoke-groups'),
+        AllowIf(role: 'datenschutz'),
+        AllowIf(id: '$user->get("id")'),
+    ]
+    public function revokeGroups(User $user, Agreement $agreement): JsonResponse {
+        return $this->json([
+            'groups' => array_map(fn(Group $group) => $group->displayName ?: $group->name, $this->groupsRequiringAgreement($user, $agreement)),
+        ]);
+    }
+
+    /**
+     * @return Group[] Gruppen, in denen der Benutzer Mitglied ist und die die Verpflichtung zum Datenschutz verlangen
+     */
+    private function groupsRequiringAgreement(User $user, Agreement $agreement): array {
+        if ($agreement->name !== PrivacyAgreementCheck::AGREEMENT) {
+            return [];
+        }
+        $username = $user->get('username');
+        return array_values(array_filter(
+            $this->groupRepository->findAll(),
+            fn(Group $group) => $group->requiredAgreementVersion !== null && $group->isMember($username)
+        ));
+    }
+
+    /**
+     * Entfernt den Benutzer aus den Gruppen, die die Verpflichtung zum Datenschutz verlangen. Die Gruppenverwaltung
+     * wird informiert; der Benutzer selbst nur, wenn nicht er, sondern jemand anderes die Verpflichtung zurückgezogen hat.
+     */
+    private function removeFromGroupsRequiringAgreement(User $user, Agreement $agreement, bool $byAdmin): void {
+        $username = $user->get('username');
+        foreach ($this->groupsRequiringAgreement($user, $agreement) as $group) {
+            $group->removeMember($username);
+            $this->groupRepository->save($group);
+
+            $required = $this->privacyAgreementCheck->requiredAgreement($group);
+            if ($required === null) {
+                continue;
+            }
+            if ($byAdmin) {
+                $this->removalMailer->notifyMember($username, $group, $required);
+            }
+            $this->removalMailer->notifyOwners($group, [$username], [$user->get('fullName')], $required);
+        }
     }
 }

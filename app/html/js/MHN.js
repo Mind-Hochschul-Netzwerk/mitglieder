@@ -93,3 +93,22 @@ function showError(error) {
     console.warn("API Fehler:", error);
     alert(error.message);
 }
+
+/**
+ * Gruppeneinstellungen: Vorschau, welche Mitglieder bei der gewählten Mindestversion der Verpflichtung zum Datenschutz
+ * beim Speichern aus der Gruppe entfernt werden (Abfrage beim Server, geändert wird erst beim Speichern).
+ */
+async function checkAgreementRemovals(select) {
+    const box = select.closest('.form-group').querySelector('.agreement-warning');
+    box.classList.add('hidden');
+    if (!select.value) return;
+    try {
+        const data = await callApi('GET', `${select.dataset.checkUrl}?version=${encodeURIComponent(select.value)}`);
+        if (data.total > 0) {
+            box.querySelector('p').textContent = (data.total === 1 ? 'Beim Speichern wird dieses Mitglied' : `Beim Speichern werden diese ${data.total} Mitglieder`)
+                + ' aus der Gruppe entfernt, weil keine aktuelle Verpflichtungserklärung zum Datenschutz abgegeben wurde: '
+                + data.names.join(', ') + (data.more > 0 ? ` und ${data.more} weitere` : '') + '.';
+            box.classList.remove('hidden');
+        }
+    } catch (err) { showError(err); }
+}

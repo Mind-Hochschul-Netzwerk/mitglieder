@@ -1,0 +1,9 @@
+{layout html-mail-layout.latte}
+{var $return->subject = 'Entfernt aus der Gruppe ' . ($group->displayName ?: $group->name)}
+{block content}
+<p>Hallo {$fullName},</p>
+<p>du wurdest aus der Gruppe <strong>{$group->displayName ?: $group->name}</strong> entfernt, weil du keine aktuelle Verpflichtungserklärung zum Datenschutz abgegeben hast. Für diese Gruppe ist mindestens Version {$agreement->version} vom {$agreement->timestamp|format:'j.n.Y@local'} erforderlich.</p>
+<p>Wenn du die Verpflichtungserklärung abgegeben hast, kannst du der Gruppe wieder beitreten bzw. erneut aufgenommen werden:</p>
+<p><a href="{$agreementUrl}">{$agreementUrl}</a></p>
+<p>Viele Grüße,<br>dein MHN-Mitgliederportal</p>
+{/block}

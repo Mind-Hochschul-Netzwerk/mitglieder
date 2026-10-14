@@ -208,7 +208,7 @@
     <div class="panel-heading">
         <h2 id="rules-heading"><i class="label-icon ti ti-list-details" aria-hidden="true"></i>Gruppenregeln</h2>
     </div>
-    {include 'rules.latte', group: $group, insider: $isMember || $isOwner || $isGroupAdmin}
+    {include 'rules.latte', group: $group, agreement: $requiredAgreement, insider: $isMember || $isOwner || $isGroupAdmin}
 </section>
 
 <section class="panel" aria-labelledby="members-heading">
@@ -315,6 +315,7 @@
     {foreach $ownerRows['always'] as $row}
         {include owner-row, row: $row}
     {/foreach}
+    {include required-agreement, id: 'edit-requiredAgreement', group: $group, versions: $agreementVersions}
     <fieldset n:if="$group->hasListPassword()">
         <legend>Mailingliste</legend>
         {foreach $ownerRows['list'] as $row}

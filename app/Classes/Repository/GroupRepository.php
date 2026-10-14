@@ -45,6 +45,7 @@ class GroupRepository
         'max-per-sender'  => 'maxPerSender',
         'archive-max-age' => 'archiveMaxAge',
         'personalize'     => 'personalize',
+        'required-agreement' => 'requiredAgreement',
     ];
 
     /** @var GroupMembershipListener[] */
@@ -115,6 +116,7 @@ class GroupRepository
             self::line('max-size', $group->maxSize),
             self::line('max-per-sender', $group->maxPerSender),
             self::line('personalize', $group->personalize),
+            self::line('required-agreement', $group->requiredAgreementVersion === null ? null : (string) $group->requiredAgreementVersion),
             // Passwort-Chiffrat und Token werden unverändert zurückgeschrieben (das description-Attribut wird
             // komplett ersetzt); überschrieben werden sie nur, wenn das Model einen neuen Wert enthält
             $group->listPasswordCiphertext !== '' ? 'mail-password:' . $group->listPasswordCiphertext : null,
@@ -228,6 +230,7 @@ class GroupRepository
             maxPerSender:      $config['maxPerSender'] ?? null,
             archiveMaxAge:     $config['archiveMaxAge'] ?? null,
             personalize:       $config['personalize'] ?? null,
+            requiredAgreementVersion: isset($config['requiredAgreement']) && ctype_digit(trim($config['requiredAgreement'])) ? (int) $config['requiredAgreement'] : null,
             unknownDescriptionLines: $unknownDescriptionLines,
         );
         $group->ldapEntry = $entry;

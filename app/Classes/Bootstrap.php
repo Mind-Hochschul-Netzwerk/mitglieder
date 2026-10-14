@@ -135,8 +135,27 @@ class Bootstrap extends ServiceContainer {
             $repository = new GroupRepository($this->getLdap());
             // Änderungen der Newsletter-Gruppe sofort nach ListMonk übertragen
             $repository->addListener(new \App\Service\NewsletterGroupListener($this->getListmonk(), $this->getLdap()));
+            // Gruppen mit verlangter Verpflichtung zum Datenschutz nehmen niemanden ohne sie auf
+            $repository->addListener(new \App\Service\AgreementGroupListener($this->getPrivacyAgreementCheck()));
             return $repository;
         });
+    }
+
+    public function getAgreementRemovalMailer(): \App\Service\AgreementRemovalMailer
+    {
+        return $this->createService(\App\Service\AgreementRemovalMailer::class, fn() => new \App\Service\AgreementRemovalMailer(
+            $this->getService(\Latte\Engine::class),
+            $this->getEmailService(),
+            $this->getUserRepository(),
+        ));
+    }
+
+    public function getPrivacyAgreementCheck(): \App\Service\PrivacyAgreementCheck
+    {
+        return $this->createService(\App\Service\PrivacyAgreementCheck::class, fn() => new \App\Service\PrivacyAgreementCheck(
+            $this->getService(\Hengeb\Db\Db::class),
+            $this->getAgreementRepository(),
+        ));
     }
 
     public function getListmonkSync(): \App\Service\ListmonkSync

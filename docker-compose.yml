@@ -36,6 +36,9 @@ services:
       - LDAP_PEOPLE_DN=ou=people,dc=mind-hochschul-netzwerk,dc=de
       - LDAP_BIND_DN=cn=admin,dc=mind-hochschul-netzwerk,dc=de
       - LDAP_BIND_PASSWORD
+      - MAIL_VORSTAND
+      - MAIL_DATENSCHUTZ
+      - MAIL_MITGLIEDERBETREUUNG
       - SMTP_HOST
       - SMTP_SECURE
       - SMTP_PORT

@@ -5,9 +5,11 @@ namespace App\Controller;
 use App\Model\Group;
 use App\Model\GroupSettings;
 use App\Repository\GroupRepository;
+use App\Service\AgreementRemovalMailer;
 use App\Service\GroupPermissions;
 use App\Service\ListigApi;
 use App\Service\ListigPasswordRejectedException;
+use App\Service\PrivacyAgreementCheck;
 use Hengeb\Router\Attribute\Inject;
 use Hengeb\Router\Attribute\RequireLogin;
 use Hengeb\Router\Attribute\Route;
@@ -41,6 +43,15 @@ class GroupSettingsController extends Controller
     #[Inject]
     public GroupPermissions $groupPermissions;
 
+    #[Inject]
+    public PrivacyAgreementCheck $privacyAgreementCheck;
+
+    #[Inject]
+    public AgreementRemovalMailer $removalMailer;
+
+    /** so viele Namen werden in der Vorschau der zu entfernenden Mitglieder höchstens genannt */
+    private const int MAX_PREVIEW_NAMES = 10;
+
     #[Route('GET /groups/{name=>group}/settings'), RequireLogin]
     public function show(Group $group): Response
     {
@@ -50,6 +61,7 @@ class GroupSettingsController extends Controller
             'group' => $group,
             'isRechteAdmin' => $this->groupPermissions->isRechteAdmin(),
             'sections' => GroupSettings::adminSections($group),
+            'agreementVersions' => $this->privacyAgreementCheck->versions(),
         ]);
     }
 
@@ -60,12 +72,33 @@ class GroupSettingsController extends Controller
 
         $adminForm = $this->isAdminForm($group);
         $this->applySettings($group, $adminForm);
+        $removed = $this->removeMembersWithoutAgreement($group);
         $groupRepository->save($group);
+        $this->notifyRemoved($group, $removed);
 
         if ($this->isJsonResponse) {
             return $this->json(['success' => true]);
         }
         return $this->redirect('/groups/' . rawurlencode($group->name) . ($adminForm ? '/settings' : ''));
+    }
+
+    /**
+     * Vorschau für das Formular: Welche Mitglieder würden bei der gewählten Mindestversion der Verpflichtung zum
+     * Datenschutz aus der Gruppe entfernt? (Entfernt wird erst beim Speichern, dort wird neu berechnet.)
+     */
+    #[Route('GET /groups/{name=>group}/settings/agreement-check'), RequireLogin]
+    public function agreementCheck(Group $group): Response
+    {
+        $this->groupPermissions->requireManage($group);
+
+        $version = $this->request->query->getInt('version');
+        $lacking = $version > 0 ? $this->privacyAgreementCheck->membersLacking($group->memberUsernames, $version) : [];
+
+        return $this->json([
+            'total' => count($lacking),
+            'names' => array_column(array_slice($lacking, 0, self::MAX_PREVIEW_NAMES), 'name'),
+            'more' => max(0, count($lacking) - self::MAX_PREVIEW_NAMES),
+        ]);
     }
 
     #[Route('POST /groups/{name=>group}/settings/list-password'), RequireLogin]
@@ -83,7 +116,7 @@ class GroupSettingsController extends Controller
         // obwohl der Rest der Konfiguration (insb. mailAddress, das Listig als IMAP-Benutzername verwendet)
         // noch fehlt, wodurch die Verifikation fehlschlägt.
         if ($this->isAdminForm($group)) {
-            $this->applySettings($group, true);
+            $this->applySettings($group, true, false);
         }
 
         if ($input['password'] === '') {
@@ -135,7 +168,11 @@ class GroupSettingsController extends Controller
             && $this->groupPermissions->mayAdminister($group);
     }
 
-    private function applySettings(Group $group, bool $adminForm): void
+    /**
+     * @param bool $withMembership auch die verlangte Verpflichtung zum Datenschutz übernehmen (dann muss der Aufrufer
+     *                             removeMembersWithoutAgreement() aufrufen)
+     */
+    private function applySettings(Group $group, bool $adminForm, bool $withMembership = true): void
     {
         $payload = $this->request->getPayload();
 
@@ -147,6 +184,9 @@ class GroupSettingsController extends Controller
         }
         if ($payload->has('category')) {
             $group->category = trim($payload->getString('category'));
+        }
+        if ($withMembership && $payload->has('requiredAgreement')) {
+            $group->requiredAgreementVersion = $this->parseRequiredAgreement(trim($payload->getString('requiredAgreement')));
         }
 
         if ($adminForm) {
@@ -218,6 +258,49 @@ class GroupSettingsController extends Controller
         if ($this->groupPermissions->isRechteAdmin()) {
             $group->privileged = $payload->has('privileged');
         }
+    }
+
+    /** leer = nicht verlangt, sonst eine vorhandene Version der Verpflichtung zum Datenschutz */
+    private function parseRequiredAgreement(string $value): ?int
+    {
+        if ($value === '') {
+            return null;
+        }
+        if (!ctype_digit($value) || $this->privacyAgreementCheck->agreement((int) $value) === null) {
+            throw new InvalidUserDataException('Diese Version der Verpflichtung zum Datenschutz gibt es nicht.');
+        }
+        return (int) $value;
+    }
+
+    /**
+     * Entfernt aus der Gruppe alle Mitglieder, die die verlangte Version der Verpflichtung zum Datenschutz nicht
+     * abgegeben haben (die Gruppe wird erst vom Aufrufer gespeichert).
+     *
+     * @return array<array{username: string, name: string}>
+     */
+    private function removeMembersWithoutAgreement(Group $group): array
+    {
+        if ($group->requiredAgreementVersion === null) {
+            return [];
+        }
+        $lacking = $this->privacyAgreementCheck->membersLacking($group->memberUsernames, $group->requiredAgreementVersion);
+        foreach ($lacking as $member) {
+            $group->removeMember($member['username']);
+        }
+        return $lacking;
+    }
+
+    /** informiert die entfernten Mitglieder und die Gruppenverwaltung (Mailfehler lassen das Speichern nicht scheitern) */
+    private function notifyRemoved(Group $group, array $removed): void
+    {
+        $agreement = $this->privacyAgreementCheck->requiredAgreement($group);
+        if (!$removed || $agreement === null) {
+            return;
+        }
+        foreach ($removed as $member) {
+            $this->removalMailer->notifyMember($member['username'], $group, $agreement);
+        }
+        $this->removalMailer->notifyOwners($group, array_column($removed, 'username'), array_column($removed, 'name'), $agreement);
     }
 
     private function nonEmptyOrNull(string $value): ?string
