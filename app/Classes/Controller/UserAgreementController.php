@@ -133,7 +133,8 @@ class UserAgreementController extends Controller {
                 'url' => 'https://mitglieder.' . getenv('DOMAINNAME') . '/user/' . urlencode($user->get('username')),
                 'return' => $return = new \stdclass,
             ]);
-            $this->emailService->send([getenv('MAIL_DATENSCHUTZ'), getenv('MAIL_VORSTAND')], $return->subject, $text);
+            $this->emailService->sendToGroup('datenschutz', $return->subject, $text);
+            $this->emailService->sendToGroup('vorstand', $return->subject, $text);
         }
 
         // wer die Verpflichtung zum Datenschutz zurückzieht, kann nicht Mitglied von Gruppen bleiben, die sie verlangen

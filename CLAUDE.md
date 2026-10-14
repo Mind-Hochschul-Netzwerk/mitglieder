@@ -47,7 +47,7 @@ Kein Dateibaum (per `ls`/Glob schnell zu finden), sondern nur nicht offensichtli
 - **Mails**: Versand `Service/EmailService`; Texte in `templates/mails/*.latte` (Rahmen: `html-mail-layout.latte`).
 - **Wiederverwendbare Template-Bausteine**: `templates/partials/components.latte`; globales Layout `templates/layout.latte`; Fehlerseite `templates/errorpage.latte`.
 - **Client-JS/CSS**: `html/js/MHN.js`, `html/css/style.css` (kein Build, `marked.min.js` für Markdown-Vorschau).
-- **Umgebungsvariablen**: neue Variable in `env.sample`, in `environment:` von `docker-compose.yml` durchreichen und in `Bootstrap` per `getenv()` lesen. **Keine Mailadressen im Code** (auch nicht in Templates): Empfänger interner Benachrichtigungen kommen aus `MAIL_VORSTAND`, `MAIL_DATENSCHUTZ`, `MAIL_MITGLIEDERBETREUUNG` (per `getenv()`, Template-Variable `$vorstandMail`); sie müssen gesetzt sein, im Testsystem auf Testadressen.
+- **Umgebungsvariablen**: neue Variable in `env.sample`, in `environment:` von `docker-compose.yml` durchreichen und in `Bootstrap` per `getenv()` lesen. **Interne Benachrichtigungen** (Austritt, Widerruf der Datenschutzverpflichtung) gehen per `EmailService::sendToGroup()` an die Mitglieder der LDAP-Gruppen `vorstand`, `datenschutz` und `mvedit`, nie an fest einprogrammierte Empfänger.
 - **Mailu-/Authelia-Anbindung**: `html/mailu-login.php` (Token-Verifikation) und `MailboxSelectorController` (Token-Erzeugung) müssen zusammenpassen.
 
 ## Konventionen

@@ -60,7 +60,6 @@ class Controller {
         $res = $this->latte->renderToString($templateName . '.latte', [
             ...$this->templateVariables,
             'hasMailboxAccess' => $hasMailboxAccess,
-            'vorstandMail' => getenv('MAIL_VORSTAND'),
             ...$data
         ]);
         error_reporting($er);

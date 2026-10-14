@@ -155,7 +155,10 @@ $body
     }
 
     /**
-     * @throws \RuntimeException wenn eine E-Mail nicht versandt werden konnte.
+     * Sendet an jedes Mitglied der Gruppe einzeln. Schlägt der Versand an ein Mitglied fehl (z. B. ungültige Adresse),
+     * wird der Fehler nur geloggt und der Versand an die übrigen läuft weiter.
+     *
+     * @throws \OutOfRangeException wenn es die Gruppe nicht gibt
      */
     public function sendToGroup(string $groupname, string $subject, string $body, array $headers = []): void
     {
@@ -168,8 +171,14 @@ $body
         $ids = $this->ldap->getIdsByGroup($groupname);
         foreach ($ids as $id) {
             $user = $this->userRepository->findOneById($id);
-            if ($user !== null) {
+            if ($user === null) {
+                continue;
+            }
+            try {
                 $this->sendToUser($user, $subject, $body, $headers);
+            } catch (\RuntimeException $e) {
+                error_log('Mail an Gruppe ' . $groupname . ' nicht an alle zugestellt: ' . $e->getMessage()
+                    . ($e->getPrevious() ? ' (' . $e->getPrevious()->getMessage() . ')' : ''));
             }
         }
     }

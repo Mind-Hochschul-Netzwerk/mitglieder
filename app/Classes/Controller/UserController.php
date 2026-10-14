@@ -535,8 +535,8 @@ class UserController extends Controller {
             $vars['adminFullName'] = $adminFullName;
         }
         $text = $this->renderToString('mails/resignation', $vars);
-        $this->emailService->send(getenv('MAIL_VORSTAND'), $return->subject, $text);
-        $this->emailService->send(getenv('MAIL_MITGLIEDERBETREUUNG'), $return->subject, $text);
+        $this->emailService->sendToGroup('vorstand', $return->subject, $text);
+        $this->emailService->sendToGroup('mvedit', $return->subject, $text);
 
         $text = $this->renderToString('mails/resignationConfirmation', [
             'fullName' => $user->get('fullName'),
