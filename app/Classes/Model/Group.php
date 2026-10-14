@@ -24,7 +24,8 @@ class Group
      */
     public const JoinPolicy LISTIG_DEFAULT_JOIN_POLICY = JoinPolicy::Invite;
     public const LeavePolicy LISTIG_DEFAULT_LEAVE_POLICY = LeavePolicy::Direct;
-    public const MemberVisibility LISTIG_DEFAULT_MEMBER_VISIBILITY = MemberVisibility::Members;
+    // kein listig-Key, sondern unser Standard (Datenschutz: Abonnentenliste standardmäßig nur für die Gruppenverwaltung)
+    public const MemberVisibility LISTIG_DEFAULT_MEMBER_VISIBILITY = MemberVisibility::Owners;
     // laut config.yml (list-defaults); der Code-Default von listig wäre `members`
     public const GroupVisibility LISTIG_DEFAULT_VISIBILITY = GroupVisibility::Authenticated;
     public const PostAccessLevel LISTIG_DEFAULT_POST_ACCESS_MEMBERS = PostAccessLevel::Allow;
@@ -81,6 +82,8 @@ class Group
     public PostAccessLevel $effectivePostAccessMembers { get => $this->postAccessMembers ?? self::LISTIG_DEFAULT_POST_ACCESS_MEMBERS; }
     public PostAccessLevel $effectivePostAccessPublic { get => $this->postAccessPublic ?? self::LISTIG_DEFAULT_POST_ACCESS_PUBLIC; }
     public ReplyToBehavior $effectiveReplyTo { get => $this->replyTo ?? self::LISTIG_DEFAULT_REPLY_TO; }
+    /** wirksame Aufbewahrungsdauer des Archivs; null oder '' = unbegrenzt */
+    public ?string $effectiveArchiveMaxAge { get => $this->archiveMaxAge ?? self::LISTIG_DEFAULTS['archive-max-age']; }
     public ArchiveMode $effectiveArchive { get => $this->archive ?? self::LISTIG_DEFAULT_ARCHIVE; }
 
     /**

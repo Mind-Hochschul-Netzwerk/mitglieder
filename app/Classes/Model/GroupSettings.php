@@ -56,10 +56,25 @@ class GroupSettings
     ];
 
     /**
+     * Archiv-Modi, die ausgewählt werden dürfen: „öffentlich“ nicht. Ein bereits gespeicherter anderer Wert
+     * bleibt auswählbar, damit er sich nicht ungewollt ändert.
+     *
+     * @return ArchiveMode[]
+     */
+    public static function allowedArchiveModes(Group $group): array
+    {
+        $modes = [ArchiveMode::Authenticated, ArchiveMode::Members, ArchiveMode::Owners, ArchiveMode::Hidden, ArchiveMode::Off];
+        if ($group->archive !== null && !in_array($group->archive, $modes, true)) {
+            array_unshift($modes, $group->archive);
+        }
+        return $modes;
+    }
+
+    /**
      * Eine Zeile mit Enum-Wert. isSet = Wert ist gesetzt (sonst gilt der listig-Standard), selected = der
      * anzuzeigende Wert (gesetzter Wert, sonst der Standard).
      */
-    private static function enumRow(Group $group, string $field, string $listigKey, string $label, ?string $help = null): array
+    private static function enumRow(Group $group, string $field, string $listigKey, string $label, ?string $help = null, ?array $cases = null): array
     {
         $class = self::ENUM_FIELDS[$field];
         $value = $group->$field;
@@ -67,7 +82,7 @@ class GroupSettings
         return [
             'name' => $field, 'label' => $label, 'type' => 'enum', 'help' => $help,
             'isSet' => $value !== null, 'defaultText' => $default->label(),
-            'cases' => $class::cases(), 'selected' => $value ?? $default,
+            'cases' => $cases ?? $class::cases(), 'selected' => $value ?? $default,
         ];
     }
 
@@ -129,7 +144,7 @@ class GroupSettings
                         'Platzhalter: {sender-name} = ursprüngliche*r Absender*in, {display-name} = Anzeigename der Liste. Haken gesetzt und Feld leer = nur die Adresse, ohne Namen.'),
                 ],
                 'Mailingliste: Archiv' => [
-                    self::enumRow($group, 'archive', 'archive', 'Archiv'),
+                    self::enumRow($group, 'archive', 'archive', 'Archiv', null, self::allowedArchiveModes($group)),
                     self::archiveMaxAgeRow($group),
                 ],
                 'Mailingliste: Inhalt der Mails' => [
@@ -163,8 +178,6 @@ class GroupSettings
                 self::textRow($group, 'listLabel', 'list-label', 'Betreff-Präfix'),
                 self::enumRow($group, 'postAccessMembers', 'post-access-members', 'Posten durch Gruppenmitglieder'),
                 self::enumRow($group, 'replyTo', 'reply-to', 'Antwort geht an'),
-                self::enumRow($group, 'archive', 'archive', 'Archiv'),
-                self::archiveMaxAgeRow($group),
             ],
         ];
     }

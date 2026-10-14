@@ -1,0 +1,93 @@
+{layout none}
+{* Gruppenregeln knapp als Liste (Bezeichnung und Wert, wie im Mitgliederprofil). Parameter: $group, $insider (Mitglied,
+   Gruppenverwaltung oder Administration: sieht zusätzlich die Regeln, die nur Mitglieder betreffen). Es gelten die
+   wirksamen Werte (Standard, wenn nichts gesetzt ist). *}
+{var $isList = $group->isMailingList()}
+
+{* relative Zeit für listig ("12 months", "1 year") in Worten; unbekannte Formate bleiben unverändert *}
+{define duration, $value}
+    {var $n = (int) $value}
+    {var $unit = rtrim(trim((string) strstr($value, ' ')), 's')}
+    {switch $unit}
+        {case day}{$n} {if $n === 1}Tag{else}Tage{/if}
+        {case week}{$n} {if $n === 1}Woche{else}Wochen{/if}
+        {case month}{$n} {if $n === 1}Monat{else}Monate{/if}
+        {case year}{$n} {if $n === 1}Jahr{else}Jahre{/if}
+        {default}{$value}
+    {/switch}
+{/define}
+
+<dl>
+    <div>
+        <dt>Beitritt</dt>
+        <dd>
+            {switch $group->effectiveJoinPolicy->value}
+                {case open}offen für alle Mitglieder des MHN
+                {case invite}nur auf Einladung
+                {case request}nur auf Anfrage
+            {/switch}
+        </dd>
+    </div>
+
+    <div n:if="$insider && $group->effectiveLeavePolicy->value === 'moderated'">
+        <dt>Austritt</dt>
+        <dd>
+            nicht möglich
+        </dd>
+    </div>
+
+    {if $isList}
+        <div>
+            <dt>Mailversand durch</dt>
+            <dd>
+                {var $byMembers = $group->effectivePostAccessMembers->value}
+                {var $byOthers = $group->effectivePostAccessPublic->value}
+                {if $byOthers === 'deny'}
+                    {if $byMembers === 'deny'}nur Gruppenverwalter*innen
+                    {elseif $byMembers === 'allow'}nur Mitglieder
+                    {else}nur Mitglieder (Freigabe erforderlich){/if}
+                {elseif $byMembers === 'deny'}
+                    nur Gruppenverwalter*innen und Externe{if $byOthers === 'moderate'} (Freigabe erforderlich){/if}
+                {elseif $byMembers === 'allow' && $byOthers === 'allow'}Mitglieder und Externe
+                {elseif $byMembers === 'moderate' && $byOthers === 'moderate'}Mitglieder und Externe (Freigabe erforderlich)
+                {elseif $byMembers === 'allow'}Mitglieder (und Externe nach Freigabe)
+                {else}Mitglieder (Freigabe erforderlich) und Externe (ohne Freigabe){/if}
+            </dd>
+        </div>
+
+        <div n:if="$insider">
+            <dt>Antworten gehen an</dt>
+            <dd>
+                {switch $group->effectiveReplyTo->value}
+                    {case list}die Gruppe
+                    {case sender}die absendende Person (Adresse sichtbar)
+                    {case both}Gruppe und absendende Person (Adresse sichtbar)
+                    {case masked-sender}die absendende Person (Adresse verborgen)
+                    {case masked-both}Gruppe und absendende Person (Adresse verborgen)
+                    {case nobody}niemanden (keine Antworten möglich)
+                {/switch}
+            </dd>
+        </div>
+
+        <div>
+            <dt>Archiv</dt>
+            <dd>
+                {switch $group->effectiveArchive->value}
+                    {case off}kein Archiv
+                    {case public}öffentlich sichtbar
+                    {case authenticated}für alle MHN-Mitglieder sichtbar
+                    {case members}für die Mitglieder der Gruppe sichtbar
+                    {case owners}nur die Gruppenverwaltung sichtbar
+                    {case hidden}archiviert, aber nicht einsehbar
+                {/switch}
+
+                {if $group->effectiveArchive->value !== 'off'}
+                    {var $maxAge = $group->effectiveArchiveMaxAge}
+                    ({if !$maxAge}ohne Zeitbegrenzung{else}{include duration, value: $maxAge|trim}{/if})
+                {/if}
+            </dd>
+        </div>
+
+
+    {/if}
+</dl>

@@ -204,6 +204,13 @@
 
 {block content}
 
+<section class="panel" aria-labelledby="rules-heading">
+    <div class="panel-heading">
+        <h2 id="rules-heading"><i class="label-icon ti ti-list-details" aria-hidden="true"></i>Gruppenregeln</h2>
+    </div>
+    {include 'rules.latte', group: $group, insider: $isMember || $isOwner || $isGroupAdmin}
+</section>
+
 <section class="panel" aria-labelledby="members-heading">
     <div class="panel-heading">
         <h2 id="members-heading"><i class="label-icon ti ti-users" aria-hidden="true"></i>Mitglieder</h2>
@@ -211,6 +218,15 @@
         {var $memberCount = $showMembers ? count($displayInfos) : count($group->memberUsernames)}
         <span n:if=$memberCount class="meta-note" id="member-count" data-count="{$memberCount}">{$memberCount} Mitglied{$memberCount !== 1 ? 'er'}</span>
     </div>
+
+    {* wer die Mitgliederliste sehen darf: Mitglieder und Verwaltung erfahren es, wenn sie die Liste sehen; Nichtmitglieder sehen selbst, ob sie sie sehen können *}
+    <p n:if="$showMembers && ($isMember || $isOwner || $isGroupAdmin)" class="text-muted">
+        {switch $group->effectiveMemberVisibility->value}
+            {case all}Die Mitgliederliste der Gruppe ist für alle Mitglieder des MHN sichtbar.
+            {case members}Die Mitgliederliste ist nur für die Mitglieder der Gruppe sichtbar. Gruppenverwalter*innen sind für alle MHN-Mitglieder sichtbar.
+            {case owners}Die Mitgliederliste ist nur für die Gruppenverwaltung sichtbar. Gruppenverwalter*innen selbst sind für alle MHN-Mitglieder sichtbar.
+        {/switch}
+    </p>
 
     <p n:if="!$showMembers" class="text-muted">{if $displayInfos}Die vollständige Mitgliederliste ist nicht öffentlich sichtbar, hier werden nur die Gruppenverwalter*innen angezeigt.{else}Die Mitgliederliste ist nicht öffentlich sichtbar.{/if}</p>
 

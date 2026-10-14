@@ -35,7 +35,7 @@ class GroupSettingsController extends Controller
     private const OWNER_ENUM_FIELDS = ['joinPolicy', 'memberVisibility', 'visibility'];
 
     /** was Gruppenverwalter*innen nur bei einer Mailingliste ändern dürfen */
-    private const OWNER_LIST_ENUM_FIELDS = ['postAccessMembers', 'replyTo', 'archive'];
+    private const OWNER_LIST_ENUM_FIELDS = ['postAccessMembers', 'replyTo'];
     private const OWNER_LIST_TEXT_FIELDS = ['listLabel'];
 
     #[Inject]
@@ -167,7 +167,7 @@ class GroupSettingsController extends Controller
             : self::OWNER_ENUM_FIELDS;
         foreach ($enumFields as $field) {
             if ($payload->has($field)) {
-                $group->$field = $this->parseEnum($field, trim($payload->getString($field)));
+                $group->$field = $this->parseEnumFor($group, $field, trim($payload->getString($field)));
             }
         }
 
@@ -177,9 +177,6 @@ class GroupSettingsController extends Controller
                 if ($payload->has($field) && !($group->$field === '' && trim($payload->getString($field)) === '')) {
                     $group->$field = $this->nonEmptyOrNull($payload->getString($field));
                 }
-            }
-            if ($payload->has('archiveMaxAge')) {
-                $group->archiveMaxAge = $this->parseArchiveMaxAge(trim($payload->getString('archiveMaxAge')), $group);
             }
         }
     }
@@ -191,7 +188,7 @@ class GroupSettingsController extends Controller
 
         foreach (array_keys(GroupSettings::ENUM_FIELDS) as $field) {
             $group->$field = $payload->has('set_' . $field)
-                ? $this->parseEnum($field, trim($payload->getString($field)))
+                ? $this->parseEnumFor($group, $field, trim($payload->getString($field)))
                 : null;
         }
         foreach (self::TEXT_FIELDS as $field) {
@@ -227,6 +224,16 @@ class GroupSettingsController extends Controller
     {
         $value = trim($value);
         return $value !== '' ? $value : null;
+    }
+
+    /** wie parseEnum(), prüft zusätzlich die erlaubten Archiv-Modi */
+    private function parseEnumFor(Group $group, string $field, string $value): ?\BackedEnum
+    {
+        $enum = $this->parseEnum($field, $value);
+        if ($field === 'archive' && $enum !== null && !in_array($enum, GroupSettings::allowedArchiveModes($group), true)) {
+            throw new InvalidUserDataException('Dieser Archiv-Modus ist nicht erlaubt.');
+        }
+        return $enum;
     }
 
     private function parseEnum(string $field, string $value): ?\BackedEnum
