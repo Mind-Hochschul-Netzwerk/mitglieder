@@ -241,11 +241,14 @@ class GroupSettingsController extends Controller
         return $enum;
     }
 
-    /** nur die angebotenen Fristen (oder der bereits gespeicherte Wert); leer = unbegrenzt = nicht gesetzt */
+    /** nur die angebotenen Fristen (oder der bereits gespeicherte Wert); leer = Standard (nicht gesetzt), „unbegrenzt“ = leerer Eintrag */
     private function parseArchiveMaxAge(string $value, Group $group): ?string
     {
         if ($value === '') {
             return null;
+        }
+        if ($value === GroupSettings::ARCHIVE_UNLIMITED) {
+            return '';
         }
         if (!isset(GroupSettings::ARCHIVE_MAX_AGE_OPTIONS[$value]) && $value !== $group->archiveMaxAge) {
             throw new InvalidUserDataException('Ungültige Aufbewahrungsdauer.');

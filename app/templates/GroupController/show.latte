@@ -10,8 +10,8 @@
         </select>
     {elseif $row['type'] === 'archiveMaxAge'}
         <select id="edit-{$row['name']}" name="{$row['name']}">
-            <option value="" n:attr="selected: !$row['isSet']">Standard (unbegrenzt)</option>
-            <option n:foreach="$row['options'] as $value => $label" value="{$value}" n:attr="selected: $value === $row['selected']">{$label}</option>
+            <option value="" n:attr="selected: !$row['isSet']">Standard ({$row['defaultText']})</option>
+            <option n:foreach="$row['options'] as $value => $label" value="{$value}" n:attr="selected: $row['isSet'] && $value === $row['selected']">{$label}</option>
         </select>
     {else}
         <input id="edit-{$row['name']}" name="{$row['name']}" type="text" value="{$row['isSet'] ? $row['text']}" placeholder="{$row['defaultText']}">
@@ -188,7 +188,7 @@
     <button n:if="$isMember && $group->effectiveLeavePolicy === \App\Model\Enum\LeavePolicy::Direct"
         class="leave"
         data-action="/groups/{$group->name}/leave"
-        n:attr="data-confirm: !($group->effectiveJoinPolicy === \App\Model\Enum\JoinPolicy::Open && $group->effectiveVisibility === \App\Model\Enum\GroupVisibility::Public) ? 'Möchtest du die Gruppe wirklich verlassen?'"
+        n:attr="data-confirm: !($group->effectiveJoinPolicy === \App\Model\Enum\JoinPolicy::Open && $group->effectiveVisibility === \App\Model\Enum\GroupVisibility::Authenticated) ? 'Möchtest du die Gruppe wirklich verlassen?'"
         onclick="if (!this.dataset.confirm || confirm(this.dataset.confirm)) groupAction(this.dataset.action, 'POST')">
         <i class="ti ti-user-minus" aria-hidden="true"></i> Gruppe verlassen
     </button>

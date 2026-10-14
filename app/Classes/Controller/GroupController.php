@@ -43,7 +43,7 @@ class GroupController extends Controller
 
         $groups = array_values(array_filter($allGroups, function (Group $g) use ($isGroupAdmin, $username) {
             return match ($g->effectiveVisibility) {
-                GroupVisibility::Public  => true,
+                GroupVisibility::Authenticated => true,
                 GroupVisibility::Members => $isGroupAdmin || $g->isMember($username) || $g->isOwner($username),
                 GroupVisibility::Hidden  => $isGroupAdmin || $g->isOwner($username),
             };
@@ -68,7 +68,7 @@ class GroupController extends Controller
         $username = $this->currentUser->get('username');
 
         $canView = match ($group->effectiveVisibility) {
-            GroupVisibility::Public  => true,
+            GroupVisibility::Authenticated => true,
             GroupVisibility::Members => $isGroupAdmin || $group->isMember($username) || $group->isOwner($username),
             GroupVisibility::Hidden  => $isGroupAdmin || $group->isOwner($username),
         };
@@ -93,7 +93,7 @@ class GroupController extends Controller
         $mayManage = $this->groupPermissions->mayManage($group);
 
         $canView = match ($group->effectiveVisibility) {
-            GroupVisibility::Public  => true,
+            GroupVisibility::Authenticated => true,
             GroupVisibility::Members => $isMember || $isOwner || $isGroupAdmin,
             GroupVisibility::Hidden  => $isOwner || $isGroupAdmin,
         };

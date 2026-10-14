@@ -25,13 +25,12 @@ class Group
     public const JoinPolicy LISTIG_DEFAULT_JOIN_POLICY = JoinPolicy::Invite;
     public const LeavePolicy LISTIG_DEFAULT_LEAVE_POLICY = LeavePolicy::Direct;
     public const MemberVisibility LISTIG_DEFAULT_MEMBER_VISIBILITY = MemberVisibility::Members;
-    // bewusste Abweichung: listig nimmt ohne Eintrag `members`, bei uns ist eine Gruppe ohne Eintrag öffentlich
-    // (sie erscheint dann bei uns, aber nicht in listig)
-    public const GroupVisibility LISTIG_DEFAULT_VISIBILITY = GroupVisibility::Public;
+    // laut config.yml (list-defaults); der Code-Default von listig wäre `members`
+    public const GroupVisibility LISTIG_DEFAULT_VISIBILITY = GroupVisibility::Authenticated;
     public const PostAccessLevel LISTIG_DEFAULT_POST_ACCESS_MEMBERS = PostAccessLevel::Allow;
     public const PostAccessLevel LISTIG_DEFAULT_POST_ACCESS_PUBLIC = PostAccessLevel::Deny;
     public const ReplyToBehavior LISTIG_DEFAULT_REPLY_TO = ReplyToBehavior::List;
-    public const ArchiveMode LISTIG_DEFAULT_ARCHIVE = ArchiveMode::Members;
+    public const ArchiveMode LISTIG_DEFAULT_ARCHIVE = ArchiveMode::Off;
 
     /**
      * Alle Listig-Standards als Anzeigewerte, nach listig-Schlüssel (description-Key). Quelle: listig-Code-Defaults
@@ -55,7 +54,7 @@ class Group
         'from-address'                => 'masked', // listig-Code-Default: list
         'sender-address-header'       => 'never',
         'archive'                     => self::LISTIG_DEFAULT_ARCHIVE->value,
-        'archive-max-age'             => null, // unbegrenzt
+        'archive-max-age'             => '12 months', // listig-Code-Default: unbegrenzt
         'footer'                      => "-- \n<p>Diese Mail wurde über die MHN-Liste {display-name} verschickt.</p>"
             . '<p>Falls du keine Mails über diese Liste mehr bekommen möchtest, kannst du sie hier abbestellen: '
             . '<a href="{group-url}">Zur Liste</a></p>{archive-block}',

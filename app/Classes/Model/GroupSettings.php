@@ -21,12 +21,16 @@ use App\Model\Enum\ReplyToBehavior;
  */
 class GroupSettings
 {
-    /** Auswahl für `archive-max-age` (relative Zeit für listig => Anzeige); ohne Eintrag = unbegrenzt */
+    /** Formularwert für „unbegrenzt“: wird als leerer `archive-max-age`-Eintrag gespeichert (überschreibt den Standard) */
+    public const ARCHIVE_UNLIMITED = 'unlimited';
+
+    /** Auswahl für `archive-max-age` (relative Zeit für listig => Anzeige) */
     public const ARCHIVE_MAX_AGE_OPTIONS = [
         '6 months' => '6 Monate',
-        '1 year'   => '1 Jahr',
+        '12 months' => '12 Monate',
         '2 years'  => '2 Jahre',
         '5 years'  => '5 Jahre',
+        self::ARCHIVE_UNLIMITED => 'unbegrenzt',
     ];
 
     /** Empfänger-Variablen, die in `personalize` freigegeben werden können (Variable => Anzeige) */
@@ -79,14 +83,17 @@ class GroupSettings
 
     private static function archiveMaxAgeRow(Group $group): array
     {
+        // null = nicht gesetzt (Standard), '' = bewusst unbegrenzt
+        $value = $group->archiveMaxAge === '' ? self::ARCHIVE_UNLIMITED : $group->archiveMaxAge;
+        $default = Group::LISTIG_DEFAULTS['archive-max-age'] ?? self::ARCHIVE_UNLIMITED;
         $options = self::ARCHIVE_MAX_AGE_OPTIONS;
-        if ($group->archiveMaxAge !== null && !isset($options[$group->archiveMaxAge])) {
-            $options[$group->archiveMaxAge] = $group->archiveMaxAge;
+        if ($value !== null && !isset($options[$value])) {
+            $options[$value] = $value;
         }
         return [
             'name' => 'archiveMaxAge', 'label' => 'Aufbewahrungsdauer des Archivs', 'type' => 'archiveMaxAge', 'help' => null,
-            'isSet' => $group->archiveMaxAge !== null, 'defaultText' => 'unbegrenzt',
-            'options' => $options, 'selected' => $group->archiveMaxAge,
+            'isSet' => $group->archiveMaxAge !== null, 'defaultText' => $options[$default] ?? $default,
+            'options' => $options, 'selected' => $value ?? $default,
         ];
     }
 

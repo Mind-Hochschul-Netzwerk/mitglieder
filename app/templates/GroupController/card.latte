@@ -41,7 +41,7 @@
         <button n:if="$isMember && $group->effectiveLeavePolicy === \App\Model\Enum\LeavePolicy::Direct"
             class="ghost leave"
             data-action="/groups/{$group->name}/leave"
-            n:attr="data-confirm: !($group->effectiveJoinPolicy === \App\Model\Enum\JoinPolicy::Open && $group->effectiveVisibility === \App\Model\Enum\GroupVisibility::Public) ? 'Möchtest du die Gruppe wirklich verlassen?'"
+            n:attr="data-confirm: !($group->effectiveJoinPolicy === \App\Model\Enum\JoinPolicy::Open && $group->effectiveVisibility === \App\Model\Enum\GroupVisibility::Authenticated) ? 'Möchtest du die Gruppe wirklich verlassen?'"
 onclick="if (!this.dataset.confirm || confirm(this.dataset.confirm)) membershipAction(this)">
             <i class="ti ti-user-minus" aria-hidden="true"></i> Verlassen
         </button>
