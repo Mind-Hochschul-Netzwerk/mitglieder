@@ -64,7 +64,9 @@ services:
     container_name: ${SERVICENAME}-adminer
     labels:
       - traefik.enable=true
-      - traefik.http.routers.${SERVICENAME}-adminer.middlewares=secheader@file
+      - traefik.docker.network=traefik
+      - traefik.http.routers.${SERVICENAME}-adminer.rule=Host(`${SERVICENAME}-adminer.${DOMAINNAME}`)
+      - traefik.http.routers.${SERVICENAME}-adminer.middlewares=forwardauth@file
     depends_on:
       - db
     networks:
