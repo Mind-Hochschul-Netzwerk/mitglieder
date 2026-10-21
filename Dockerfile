@@ -1,4 +1,4 @@
-FROM trafex/php-nginx:3.9.0
+FROM trafex/php-nginx:3.11.1
 
 LABEL Maintainer="Henrik Gebauer <henrik@mind-hochschul-netzwerk.de>" \
       Description="mind-hochschul-netzwerk.de"
@@ -9,25 +9,27 @@ COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 USER root
 
-# apply (security) updates
+# Alpine 3.24 statt 3.23 des Basis-Images: enthält die aktuellen PHP-Sicherheitsupdates (8.5.11)
+# und wird von apk upgrade mit allen übrigen (security) updates installiert
 RUN set -x \
-  && apk upgrade --no-cache
+  && sed -i 's/v3\.23/v3.24/g' /etc/apk/repositories \
+  && apk upgrade --no-cache --available
 
 # install packages
 RUN set -x \
   && apk add --no-cache \
-       php84-ldap \
-       php84-zip \
-       php84-pdo_mysql \
-       php84-iconv \
-       php84-curl \
-       php84-openssl \
+       php85-ldap \
+       php85-zip \
+       php85-pdo_mysql \
+       php85-iconv \
+       php85-curl \
+       php85-openssl \
   && chown nobody:nobody /var/www
 
 USER nobody
 
 COPY config/nginx/ /etc/nginx
-COPY config/php-custom.ini /etc/php84/conf.d/custom.ini
+COPY config/php-custom.ini /etc/php85/conf.d/custom.ini
 COPY --chown=nobody app/ /var/www
 
 RUN composer install -d "/var/www/" --optimize-autoloader --no-dev --no-interaction --no-progress --no-cache

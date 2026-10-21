@@ -51,21 +51,26 @@
         },
         {
             "name": "hengeb/router",
-            "version": "v0.11",
+            "version": "v0.12",
             "source": {
                 "type": "git",
                 "url": "https://github.com/hengeb/router.git",
-                "reference": "3fc75306ed2e77a109146b3699e157594c14a041"
+                "reference": "39143d80239aa667277d01d3ad8eb1d773f70957"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hengeb/router/zipball/3fc75306ed2e77a109146b3699e157594c14a041",
-                "reference": "3fc75306ed2e77a109146b3699e157594c14a041",
+                "url": "https://api.github.com/repos/hengeb/router/zipball/39143d80239aa667277d01d3ad8eb1d773f70957",
+                "reference": "39143d80239aa667277d01d3ad8eb1d773f70957",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.4.0",
-                "symfony/http-foundation": ">=7.0"
+                "symfony/http-foundation": "^7.0 || ^8.0"
+            },
+            "suggest": {
+                "hengeb/db": "Required for the default Db service of ServiceContainer",
+                "latte/latte": "Required for ServiceContainer and LatteExtension",
+                "tracy/tracy": "Required for ServiceContainer::startDebugger() and the Tracy extension of the Latte engine"
             },
             "type": "library",
             "autoload": {
@@ -88,9 +93,9 @@
             "description": "a PHP router that makes use of attributes",
             "support": {
                 "issues": "https://github.com/hengeb/router/issues",
-                "source": "https://github.com/hengeb/router/tree/v0.11"
+                "source": "https://github.com/hengeb/router/tree/v0.12"
             },
-            "time": "2026-06-21T21:59:32+00:00"
+            "time": "2026-10-21T16:20:18+00:00"
         },
         {
             "name": "hengeb/token",
@@ -1306,12 +1311,12 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
         "php": ">=8.4"
     },
-    "platform-dev": [],
-    "plugin-api-version": "2.2.0"
+    "platform-dev": {},
+    "plugin-api-version": "2.6.0"
 }
