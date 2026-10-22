@@ -3,8 +3,6 @@ FROM trafex/php-nginx:3.12
 LABEL Maintainer="Henrik Gebauer <henrik@mind-hochschul-netzwerk.de>" \
       Description="mind-hochschul-netzwerk.de"
 
-HEALTHCHECK --interval=10s CMD curl --silent --fail http://127.0.0.1:8080/fpm-ping
-
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 USER root
