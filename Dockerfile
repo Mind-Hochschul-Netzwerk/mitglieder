@@ -1,4 +1,4 @@
-FROM trafex/php-nginx:3.11.1
+FROM trafex/php-nginx:3.12
 
 LABEL Maintainer="Henrik Gebauer <henrik@mind-hochschul-netzwerk.de>" \
       Description="mind-hochschul-netzwerk.de"
@@ -9,10 +9,7 @@ COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 USER root
 
-# Alpine 3.24 statt 3.23 des Basis-Images: enthält die aktuellen PHP-Sicherheitsupdates (8.5.11)
-# und wird von apk upgrade mit allen übrigen (security) updates installiert
 RUN set -x \
-  && sed -i 's/v3\.23/v3.24/g' /etc/apk/repositories \
   && apk upgrade --no-cache --available
 
 # install packages
