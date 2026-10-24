@@ -1,0 +1,1200 @@
+version: 1
+
+# Entry 10002 cn=Anna.Klaer ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Anna.Klaer,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Anna.Klaer
+employeenumber: 10002
+givenname: Anna
+mail: Anna.Klaer@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Klaer
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10003 cn=Anna.Kulka ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Anna.Kulka,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Anna.Kulka
+employeenumber: 10003
+givenname: Anna
+mail: Anna.Kulka@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Kulka
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10004 cn=Anna.Meier ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Anna.Meier,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Anna.Meier
+employeenumber: 10004
+givenname: Anna
+mail: Anna.Meier@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Meier
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10005 cn=Anna.Perser ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Anna.Perser,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Anna.Perser
+employeenumber: 10005
+givenname: Anna
+mail: Anna.Perser@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Perser
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10006 cn=Anna.Pistorius ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Anna.Pistorius,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Anna.Pistorius
+employeenumber: 10006
+givenname: Anna
+mail: Anna.Pistorius@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Pistorius
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10007 cn=Anna.Rademacher ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Anna.Rademacher,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Anna.Rademacher
+employeenumber: 10007
+givenname: Anna
+mail: Anna.Rademacher@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Rademacher
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10008 cn=Anna.Schulheiss ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Anna.Schulheiss,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Anna.Schulheiss
+employeenumber: 10008
+givenname: Anna
+mail: Anna.Schulheiss@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulheiss
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10009 cn=Anna.Schulze ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Anna.Schulze,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Anna.Schulze
+employeenumber: 10009
+givenname: Anna
+mail: Anna.Schulze@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulze
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10010 cn=Anna.Wagner ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Anna.Wagner,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Anna.Wagner
+employeenumber: 10010
+givenname: Anna
+mail: Anna.Wagner@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Wagner
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10011 cn=Gabi.Clausen ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Gabi.Clausen,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Gabi.Clausen
+employeenumber: 10011
+givenname: Gabi
+mail: Gabi.Clausen@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Clausen
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10012 cn=Gabi.Klaer ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Gabi.Klaer,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Gabi.Klaer
+employeenumber: 10012
+givenname: Gabi
+mail: Gabi.Klaer@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Klaer
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10013 cn=Gabi.Kulka ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Gabi.Kulka,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Gabi.Kulka
+employeenumber: 10013
+givenname: Gabi
+mail: Gabi.Kulka@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Kulka
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10014 cn=Gabi.Meier ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Gabi.Meier,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Gabi.Meier
+employeenumber: 10014
+givenname: Gabi
+mail: Gabi.Meier@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Meier
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10015 cn=Gabi.Perser ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Gabi.Perser,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Gabi.Perser
+employeenumber: 10015
+givenname: Gabi
+mail: Gabi.Perser@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Perser
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10016 cn=Gabi.Pistorius ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Gabi.Pistorius,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Gabi.Pistorius
+employeenumber: 10016
+givenname: Gabi
+mail: Gabi.Pistorius@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Pistorius
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10017 cn=Gabi.Rademacher ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Gabi.Rademacher,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Gabi.Rademacher
+employeenumber: 10017
+givenname: Gabi
+mail: Gabi.Rademacher@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Rademacher
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10018 cn=Gabi.Schulheiss ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Gabi.Schulheiss,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Gabi.Schulheiss
+employeenumber: 10018
+givenname: Gabi
+mail: Gabi.Schulheiss@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulheiss
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10019 cn=Gabi.Schulze ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Gabi.Schulze,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Gabi.Schulze
+employeenumber: 10019
+givenname: Gabi
+mail: Gabi.Schulze@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulze
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10020 cn=Gabi.Wagner ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Gabi.Wagner,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Gabi.Wagner
+employeenumber: 10020
+givenname: Gabi
+mail: Gabi.Wagner@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Wagner
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10021 cn=Horst.Clausen ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Horst.Clausen,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Horst.Clausen
+employeenumber: 10021
+givenname: Horst
+mail: Horst.Clausen@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Clausen
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10022 cn=Horst.Klaer ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Horst.Klaer,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Horst.Klaer
+employeenumber: 10022
+givenname: Horst
+mail: Horst.Klaer@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Klaer
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10023 cn=Horst.Kulka ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Horst.Kulka,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Horst.Kulka
+employeenumber: 10023
+givenname: Horst
+mail: Horst.Kulka@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Kulka
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10024 cn=Horst.Meier ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Horst.Meier,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Horst.Meier
+employeenumber: 10024
+givenname: Horst
+mail: Horst.Meier@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Meier
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10025 cn=Horst.Perser ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Horst.Perser,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Horst.Perser
+employeenumber: 10025
+givenname: Horst
+mail: Horst.Perser@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Perser
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10026 cn=Horst.Pistorius ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Horst.Pistorius,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Horst.Pistorius
+employeenumber: 10026
+givenname: Horst
+mail: Horst.Pistorius@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Pistorius
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10027 cn=Horst.Rademacher ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Horst.Rademacher,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Horst.Rademacher
+employeenumber: 10027
+givenname: Horst
+mail: Horst.Rademacher@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Rademacher
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10028 cn=Horst.Schulheiss ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Horst.Schulheiss,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Horst.Schulheiss
+employeenumber: 10028
+givenname: Horst
+mail: Horst.Schulheiss@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulheiss
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10029 cn=Horst.Schulze ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Horst.Schulze,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Horst.Schulze
+employeenumber: 10029
+givenname: Horst
+mail: Horst.Schulze@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulze
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10030 cn=Horst.Wagner ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Horst.Wagner,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Horst.Wagner
+employeenumber: 10030
+givenname: Horst
+mail: Horst.Wagner@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Wagner
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10031 cn=Johann.Clausen ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Johann.Clausen,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Johann.Clausen
+employeenumber: 10031
+givenname: Johann
+mail: Johann.Clausen@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Clausen
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10032 cn=Johann.Klaer ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Johann.Klaer,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Johann.Klaer
+employeenumber: 10032
+givenname: Johann
+mail: Johann.Klaer@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Klaer
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10033 cn=Johann.Kulka ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Johann.Kulka,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Johann.Kulka
+employeenumber: 10033
+givenname: Johann
+mail: Johann.Kulka@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Kulka
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10034 cn=Johann.Meier ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Johann.Meier,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Johann.Meier
+employeenumber: 10034
+givenname: Johann
+mail: Johann.Meier@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Meier
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10035 cn=Johann.Perser ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Johann.Perser,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Johann.Perser
+employeenumber: 10035
+givenname: Johann
+mail: Johann.Perser@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Perser
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10036 cn=Johann.Pistorius ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Johann.Pistorius,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Johann.Pistorius
+employeenumber: 10036
+givenname: Johann
+mail: Johann.Pistorius@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Pistorius
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10037 cn=Johann.Rademacher ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Johann.Rademacher,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Johann.Rademacher
+employeenumber: 10037
+givenname: Johann
+mail: Johann.Rademacher@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Rademacher
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10038 cn=Johann.Schulheiss ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Johann.Schulheiss,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Johann.Schulheiss
+employeenumber: 10038
+givenname: Johann
+mail: Johann.Schulheiss@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulheiss
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10039 cn=Johann.Schulze ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Johann.Schulze,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Johann.Schulze
+employeenumber: 10039
+givenname: Johann
+mail: Johann.Schulze@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulze
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10040 cn=Johann.Wagner ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Johann.Wagner,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Johann.Wagner
+employeenumber: 10040
+givenname: Johann
+mail: Johann.Wagner@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Wagner
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10041 cn=Jupp.Clausen ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Jupp.Clausen,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Jupp.Clausen
+employeenumber: 10041
+givenname: Jupp
+mail: Jupp.Clausen@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Clausen
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10042 cn=Jupp.Klaer ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Jupp.Klaer,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Jupp.Klaer
+employeenumber: 10042
+givenname: Jupp
+mail: Jupp.Klaer@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Klaer
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10043 cn=Jupp.Kulka ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Jupp.Kulka,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Jupp.Kulka
+employeenumber: 10043
+givenname: Jupp
+mail: Jupp.Kulka@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Kulka
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10044 cn=Jupp.Meier ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Jupp.Meier,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Jupp.Meier
+employeenumber: 10044
+givenname: Jupp
+mail: Jupp.Meier@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Meier
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10045 cn=Jupp.Perser ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Jupp.Perser,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Jupp.Perser
+employeenumber: 10045
+givenname: Jupp
+mail: Jupp.Perser@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Perser
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10046 cn=Jupp.Pistorius ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Jupp.Pistorius,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Jupp.Pistorius
+employeenumber: 10046
+givenname: Jupp
+mail: Jupp.Pistorius@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Pistorius
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10047 cn=Jupp.Rademacher ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Jupp.Rademacher,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Jupp.Rademacher
+employeenumber: 10047
+givenname: Jupp
+mail: Jupp.Rademacher@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Rademacher
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10048 cn=Jupp.Schulheiss ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Jupp.Schulheiss,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Jupp.Schulheiss
+employeenumber: 10048
+givenname: Jupp
+mail: Jupp.Schulheiss@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulheiss
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10049 cn=Jupp.Schulze ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Jupp.Schulze,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Jupp.Schulze
+employeenumber: 10049
+givenname: Jupp
+mail: Jupp.Schulze@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulze
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10050 cn=Jupp.Wagner ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Jupp.Wagner,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Jupp.Wagner
+employeenumber: 10050
+givenname: Jupp
+mail: Jupp.Wagner@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Wagner
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10051 cn=Kurt.Clausen ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Kurt.Clausen,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Kurt.Clausen
+employeenumber: 10051
+givenname: Kurt
+mail: Kurt.Clausen@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Clausen
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10052 cn=Kurt.Klaer ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Kurt.Klaer,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Kurt.Klaer
+employeenumber: 10052
+givenname: Kurt
+mail: Kurt.Klaer@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Klaer
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10053 cn=Kurt.Kulka ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Kurt.Kulka,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Kurt.Kulka
+employeenumber: 10053
+givenname: Kurt
+mail: Kurt.Kulka@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Kulka
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10054 cn=Kurt.Meier ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Kurt.Meier,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Kurt.Meier
+employeenumber: 10054
+givenname: Kurt
+mail: Kurt.Meier@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Meier
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10055 cn=Kurt.Perser ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Kurt.Perser,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Kurt.Perser
+employeenumber: 10055
+givenname: Kurt
+mail: Kurt.Perser@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Perser
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10056 cn=Kurt.Pistorius ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Kurt.Pistorius,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Kurt.Pistorius
+employeenumber: 10056
+givenname: Kurt
+mail: Kurt.Pistorius@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Pistorius
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10057 cn=Kurt.Rademacher ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Kurt.Rademacher,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Kurt.Rademacher
+employeenumber: 10057
+givenname: Kurt
+mail: Kurt.Rademacher@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Rademacher
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10058 cn=Kurt.Schulheiss ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Kurt.Schulheiss,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Kurt.Schulheiss
+employeenumber: 10058
+givenname: Kurt
+mail: Kurt.Schulheiss@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulheiss
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10059 cn=Kurt.Schulze ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Kurt.Schulze,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Kurt.Schulze
+employeenumber: 10059
+givenname: Kurt
+mail: Kurt.Schulze@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulze
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10060 cn=Kurt.Wagner ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Kurt.Wagner,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Kurt.Wagner
+employeenumber: 10060
+givenname: Kurt
+mail: Kurt.Wagner@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Wagner
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10061 cn=Martina.Clausen ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martina.Clausen,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martina.Clausen
+employeenumber: 10061
+givenname: Martina
+mail: Martina.Clausen@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Clausen
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10062 cn=Martina.Klaer ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martina.Klaer,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martina.Klaer
+employeenumber: 10062
+givenname: Martina
+mail: Martina.Klaer@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Klaer
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10063 cn=Martina.Kulka ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martina.Kulka,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martina.Kulka
+employeenumber: 10063
+givenname: Martina
+mail: Martina.Kulka@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Kulka
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10064 cn=Martina.Meier ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martina.Meier,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martina.Meier
+employeenumber: 10064
+givenname: Martina
+mail: Martina.Meier@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Meier
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10065 cn=Martina.Perser ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martina.Perser,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martina.Perser
+employeenumber: 10065
+givenname: Martina
+mail: Martina.Perser@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Perser
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10066 cn=Martina.Pistorius ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martina.Pistorius,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martina.Pistorius
+employeenumber: 10066
+givenname: Martina
+mail: Martina.Pistorius@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Pistorius
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10067 cn=Martina.Rademacher ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martina.Rademacher,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martina.Rademacher
+employeenumber: 10067
+givenname: Martina
+mail: Martina.Rademacher@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Rademacher
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10068 cn=Martina.Schulheiss ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martina.Schulheiss,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martina.Schulheiss
+employeenumber: 10068
+givenname: Martina
+mail: Martina.Schulheiss@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulheiss
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10069 cn=Martina.Schulze ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martina.Schulze,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martina.Schulze
+employeenumber: 10069
+givenname: Martina
+mail: Martina.Schulze@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulze
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10070 cn=Martina.Wagner ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martina.Wagner,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martina.Wagner
+employeenumber: 10070
+givenname: Martina
+mail: Martina.Wagner@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Wagner
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10071 cn=Martita.Clausen ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martita.Clausen,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martita.Clausen
+employeenumber: 10071
+givenname: Martita
+mail: Martita.Clausen@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Clausen
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10072 cn=Martita.Klaer ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martita.Klaer,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martita.Klaer
+employeenumber: 10072
+givenname: Martita
+mail: Martita.Klaer@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Klaer
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10073 cn=Martita.Kulka ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martita.Kulka,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martita.Kulka
+employeenumber: 10073
+givenname: Martita
+mail: Martita.Kulka@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Kulka
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10074 cn=Martita.Meier ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martita.Meier,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martita.Meier
+employeenumber: 10074
+givenname: Martita
+mail: Martita.Meier@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Meier
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10075 cn=Martita.Perser ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martita.Perser,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martita.Perser
+employeenumber: 10075
+givenname: Martita
+mail: Martita.Perser@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Perser
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10076 cn=Martita.Pistorius ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martita.Pistorius,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martita.Pistorius
+employeenumber: 10076
+givenname: Martita
+mail: Martita.Pistorius@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Pistorius
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10077 cn=Martita.Rademacher ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martita.Rademacher,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martita.Rademacher
+employeenumber: 10077
+givenname: Martita
+mail: Martita.Rademacher@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Rademacher
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10078 cn=Martita.Schulheiss ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martita.Schulheiss,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martita.Schulheiss
+employeenumber: 10078
+givenname: Martita
+mail: Martita.Schulheiss@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulheiss
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10079 cn=Martita.Schulze ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martita.Schulze,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martita.Schulze
+employeenumber: 10079
+givenname: Martita
+mail: Martita.Schulze@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulze
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10080 cn=Martita.Wagner ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Martita.Wagner,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Martita.Wagner
+employeenumber: 10080
+givenname: Martita
+mail: Martita.Wagner@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Wagner
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10081 cn=Paul.Clausen ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Paul.Clausen,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Paul.Clausen
+employeenumber: 10081
+givenname: Paul
+mail: Paul.Clausen@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Clausen
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10082 cn=Paul.Klaer ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Paul.Klaer,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Paul.Klaer
+employeenumber: 10082
+givenname: Paul
+mail: Paul.Klaer@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Klaer
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10083 cn=Paul.Kulka ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Paul.Kulka,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Paul.Kulka
+employeenumber: 10083
+givenname: Paul
+mail: Paul.Kulka@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Kulka
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10084 cn=Paul.Meier ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Paul.Meier,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Paul.Meier
+employeenumber: 10084
+givenname: Paul
+mail: Paul.Meier@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Meier
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10085 cn=Paul.Perser ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Paul.Perser,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Paul.Perser
+employeenumber: 10085
+givenname: Paul
+mail: Paul.Perser@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Perser
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10086 cn=Paul.Pistorius ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Paul.Pistorius,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Paul.Pistorius
+employeenumber: 10086
+givenname: Paul
+mail: Paul.Pistorius@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Pistorius
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10087 cn=Paul.Rademacher ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Paul.Rademacher,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Paul.Rademacher
+employeenumber: 10087
+givenname: Paul
+mail: Paul.Rademacher@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Rademacher
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10088 cn=Paul.Schulheiss ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Paul.Schulheiss,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Paul.Schulheiss
+employeenumber: 10088
+givenname: Paul
+mail: Paul.Schulheiss@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulheiss
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10089 cn=Paul.Schulze ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Paul.Schulze,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Paul.Schulze
+employeenumber: 10089
+givenname: Paul
+mail: Paul.Schulze@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulze
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10090 cn=Paul.Wagner ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Paul.Wagner,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Paul.Wagner
+employeenumber: 10090
+givenname: Paul
+mail: Paul.Wagner@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Wagner
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10091 cn=Peter.Clausen ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Peter.Clausen,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Peter.Clausen
+employeenumber: 10091
+givenname: Peter
+mail: Peter.Clausen@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Clausen
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10092 cn=Peter.Klaer ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Peter.Klaer,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Peter.Klaer
+employeenumber: 10092
+givenname: Peter
+mail: Peter.Klaer@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Klaer
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10093 cn=Peter.Kulka ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Peter.Kulka,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Peter.Kulka
+employeenumber: 10093
+givenname: Peter
+mail: Peter.Kulka@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Kulka
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10094 cn=Peter.Meier ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Peter.Meier,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Peter.Meier
+employeenumber: 10094
+givenname: Peter
+mail: Peter.Meier@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Meier
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10095 cn=Peter.Perser ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Peter.Perser,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Peter.Perser
+employeenumber: 10095
+givenname: Peter
+mail: Peter.Perser@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Perser
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10096 cn=Peter.Pistorius ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Peter.Pistorius,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Peter.Pistorius
+employeenumber: 10096
+givenname: Peter
+mail: Peter.Pistorius@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Pistorius
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10097 cn=Peter.Rademacher ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Peter.Rademacher,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Peter.Rademacher
+employeenumber: 10097
+givenname: Peter
+mail: Peter.Rademacher@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Rademacher
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10098 cn=Peter.Schulheiss ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Peter.Schulheiss,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Peter.Schulheiss
+employeenumber: 10098
+givenname: Peter
+mail: Peter.Schulheiss@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulheiss
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10099 cn=Peter.Schulze ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Peter.Schulze,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Peter.Schulze
+employeenumber: 10099
+givenname: Peter
+mail: Peter.Schulze@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulze
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10100 cn=Peter.Wagner ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Peter.Wagner,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Peter.Wagner
+employeenumber: 10100
+givenname: Peter
+mail: Peter.Wagner@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Wagner
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10101 cn=Petra.Clausen ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Petra.Clausen,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Petra.Clausen
+employeenumber: 10101
+givenname: Petra
+mail: Petra.Clausen@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Clausen
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10102 cn=Petra.Klaer ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Petra.Klaer,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Petra.Klaer
+employeenumber: 10102
+givenname: Petra
+mail: Petra.Klaer@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Klaer
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10103 cn=Petra.Kulka ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Petra.Kulka,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Petra.Kulka
+employeenumber: 10103
+givenname: Petra
+mail: Petra.Kulka@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Kulka
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10104 cn=Petra.Meier ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Petra.Meier,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Petra.Meier
+employeenumber: 10104
+givenname: Petra
+mail: Petra.Meier@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Meier
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10105 cn=Petra.Perser ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Petra.Perser,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Petra.Perser
+employeenumber: 10105
+givenname: Petra
+mail: Petra.Perser@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Perser
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10106 cn=Petra.Pistorius ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Petra.Pistorius,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Petra.Pistorius
+employeenumber: 10106
+givenname: Petra
+mail: Petra.Pistorius@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Pistorius
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10107 cn=Petra.Rademacher ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Petra.Rademacher,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Petra.Rademacher
+employeenumber: 10107
+givenname: Petra
+mail: Petra.Rademacher@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Rademacher
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10108 cn=Petra.Schulheiss ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Petra.Schulheiss,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Petra.Schulheiss
+employeenumber: 10108
+givenname: Petra
+mail: Petra.Schulheiss@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulheiss
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10109 cn=Petra.Schulze ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Petra.Schulze,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Petra.Schulze
+employeenumber: 10109
+givenname: Petra
+mail: Petra.Schulze@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Schulze
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
+
+# Entry 10110 cn=Petra.Wagner ou=people,dc=mind-hochschul-netzwerk,dc=de
+dn: cn=Petra.Wagner,ou=people,dc=mind-hochschul-netzwerk,dc=de
+cn: Petra.Wagner
+employeenumber: 10110
+givenname: Petra
+mail: Petra.Wagner@mind-hochschul-netzwerk.de
+objectclass: inetOrgPerson
+objectclass: top
+sn: Wagner
+userpassword: {CRYPT}$5$rounds=100000$Vm9qOdHS$IO5ibes1Oognk2Xud9vIZ7sd2mjxj8Zf8czQOpdL.E4
