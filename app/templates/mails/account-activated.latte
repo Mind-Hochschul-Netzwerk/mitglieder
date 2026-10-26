@@ -1,8 +1,11 @@
 {layout none}{contentType text}
 {var $return->subject = 'Neues Mitglied'}
-Liebes Mitglied der Mitgliederbetreuung,
+Liebes Mitglied des Aktivierungsteams/Begrüßungsteams,
 
 soeben hat ein neues Mitglied seinen Zugang aktiviert und somit dem Aufnahmeprozess abgeschlossen.
 
 Mitgliedsnummer: {="$id\n"}
 Profil: https://mitglieder.{=getenv('DOMAINNAME')}/user/{="$id\n"}
+
+Der Aufnahmeantrag kannst du hier einsehen:
+https://aufnahme.{=getenv('DOMAINNAME')}/aktivierung
