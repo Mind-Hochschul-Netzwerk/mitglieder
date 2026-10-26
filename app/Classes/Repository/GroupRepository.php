@@ -149,6 +149,26 @@ class GroupRepository
         }
     }
 
+    /**
+     * Trägt ein Mitglied in eine Gruppe ein (nichts passiert, wenn es die Gruppe nicht gibt). Scheitert ein Listener
+     * (z. B. ListMonk nicht erreichbar), wird der Fehler geloggt und die Mitgliedschaft trotzdem im LDAP gesetzt;
+     * der Cron-Abgleich holt das Abo nach.
+     */
+    public function addMemberIgnoringListenerErrors(string $groupName, string $username): void
+    {
+        $group = $this->findOneByName($groupName);
+        if (!$group) {
+            return;
+        }
+        $group->addMember($username);
+        try {
+            $this->save($group);
+        } catch (\Throwable $e) {
+            error_log('Gruppe ' . $groupName . ': Listener für ' . $username . ' fehlgeschlagen: ' . $e->getMessage());
+            $this->save($group, notifyListeners: false);
+        }
+    }
+
     /** meldet den Listenern die Änderung der Mitglieder gegenüber dem zuletzt geladenen Stand; Exceptions brechen das Speichern ab */
     private function notifyMembershipChange(Group $group): void
     {

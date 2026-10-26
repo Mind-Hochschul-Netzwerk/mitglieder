@@ -10,6 +10,7 @@ use App\Model\Enum\UserAgreementAction;
 use App\Model\User;
 use App\Model\UserAgreement;
 use App\Repository\AgreementRepository;
+use App\Repository\GroupRepository;
 use App\Repository\UserAgreementRepository;
 use App\Repository\UserRepository;
 use App\Service\CurrentUser;
@@ -85,6 +86,7 @@ class AufnahmeController extends Controller
         private EmailService $emailService,
         private Ldap $ldap,
         private UserRepository $userRepository,
+        private GroupRepository $groupRepository,
         private AgreementRepository $agreementRepository,
         private UserAgreementRepository $userAgreementRepository,
     ) {}
@@ -284,7 +286,9 @@ class AufnahmeController extends Controller
         $this->saveUserAgreement($user, 'Kenntnisnahme', (int) $this->data['kenntnisnahme_datenverarbeitung_text'], new \DateTimeImmutable($this->data['kenntnisnahme_datenverarbeitung']));
         $this->saveUserAgreement($user, 'Einwilligung', (int) $this->data['einwilligung_datenverarbeitung_text'], new \DateTimeImmutable($this->data['einwilligung_datenverarbeitung']));
 
-        $this->ldap->addUserToGroup($this->username, 'mitglieder');
+        foreach (['mitglieder', 'newsletter'] as $groupName) {
+            $this->groupRepository->addMemberIgnoringListenerErrors($groupName, $this->username);
+        }
 
         $curl = curl_init('http://aufnahme:8080/onboarding/?token=' . $this->token);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
