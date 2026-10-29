@@ -221,7 +221,7 @@ main form {
 {block page-label}<i class="ti ti-user-search" aria-hidden="true"></i> Finden und gefunden werden{/block}
 {block page-header}
     <p class="page-subtitle">Finde Mitglieder des Mind-Hochschul-Netzwerks nach Name, Ort oder anderen Filtern.</p>
-    <form role="search" method="get">
+    <form role="search" method="get" id="search-form" action="/">
         <div class="form-row">
             {include input, name: fullName, placeholder: "Name", type: search}
             {include input, name: location, placeholder: "Ort, PLZ-Bereich oder Land", type: search}
@@ -291,31 +291,54 @@ main form {
 {/block}
 
 {block footer}<script>
-    function ensureVisibleSelection(select) {
-        const current = select.selectedOptions[0];
-        if (!current || getComputedStyle(current).display !== 'none') {
-            return;
-        }
-
-        for (const opt of select.options) {
-            if (getComputedStyle(opt).display !== 'none' && !opt.disabled) {
-                select.value = opt.value;
-                select.dispatchEvent(new Event('change', { bubbles: true }));
-                return;
-            }
-        }
+function ensureVisibleSelection(select) {
+    const current = select.selectedOptions[0];
+    if (!current || getComputedStyle(current).display !== 'none') {
+        return;
     }
 
-    document.querySelectorAll(".filters > div").forEach((element) => {
-        const number = element.dataset.number;
-        const selectKey = document.querySelector("#input-key" + number);
-        const selectOp = document.querySelector("#input-op" + number);
-        selectKey.addEventListener("change", e => ensureVisibleSelection(selectOp));
-    });
+    for (const opt of select.options) {
+        if (getComputedStyle(opt).display !== 'none' && !opt.disabled) {
+            select.value = opt.value;
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            return;
+        }
+    }
+}
 
-    {if $ergebnisse !== null}
-        window.addEventListener("load", (event) => {
-            document.getElementById("results-header").scrollIntoView();
-        });
-    {/if}
+document.querySelectorAll(".filters > div").forEach((element) => {
+    const number = element.dataset.number;
+    const selectKey = document.querySelector("#input-key" + number);
+    const selectOp = document.querySelector("#input-op" + number);
+    selectKey.addEventListener("change", e => ensureVisibleSelection(selectOp));
+});
+
+// möglichst kurze URL bauen
+document.getElementById("search-form").addEventListener('submit', function (e) {
+    e.preventDefault();
+    const data = new FormData(this);
+    const params = new URLSearchParams();
+
+    // 1. Allgemeine Felder: nur übernehmen, wenn nicht leer
+    for (const [name, value] of data) {
+        if (/^(key|op|value)\d+$/.test(name)) continue; // Filter separat behandeln
+        if (value.toString().trim() !== '') params.append(name, value);
+    }
+
+    // 2. Filter: ab dem ersten leeren Filter alle weiteren verwerfen
+    for (let i = 0; data.has('key' + i) && data.get('key' + i) !== 'none'; i++) {
+        params.append('key' + i, data.get('key' + i));
+        params.append('op' + i, data.get('op' + i));
+        params.append('value' + i, data.get('value' + i));
+    }
+
+    const query = params.toString();
+    location.href = this.action + (query ? '?' + query : '');
+});
+
+{if $ergebnisse !== null}
+    window.addEventListener("load", (event) => {
+        document.getElementById("results-header").scrollIntoView();
+    });
+{/if}
 </script>{/block}
